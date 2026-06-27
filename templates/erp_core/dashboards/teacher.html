@@ -19,7 +19,7 @@
     <div class="summary-card">
         <div class="card-details">
             <h4>My Classes</h4>
-            <h2>2</h2>
+            <h2>{{ my_classes_count }}</h2>
         </div>
         <div class="card-icon card-icon-blue">
             <i class="fa-solid fa-chalkboard-user"></i>
@@ -28,16 +28,20 @@
     <div class="summary-card">
         <div class="card-details">
             <h4>Attendance Today</h4>
-            <h5 style="color: var(--danger); font-size: 0.95rem; font-weight: 700; margin-top: 5px;">Not Marked</h5>
+            {% if attendance_status == "Marked" %}
+                <h5 style="color: var(--success); font-size: 0.95rem; font-weight: 700; margin-top: 5px;">Marked</h5>
+            {% else %}
+                <h5 style="color: var(--danger); font-size: 0.95rem; font-weight: 700; margin-top: 5px;">Not Marked</h5>
+            {% endif %}
         </div>
-        <div class="card-icon card-icon-red">
+        <div class="card-icon {% if attendance_status == 'Marked' %}card-icon-green{% else %}card-icon-red{% endif %}">
             <i class="fa-solid fa-clipboard-user"></i>
         </div>
     </div>
     <div class="summary-card">
         <div class="card-details">
-            <h4>Marks Pending</h4>
-            <h2>1 Subject</h2>
+            <h4>My Subjects</h4>
+            <h2>{{ my_subjects_count }} Subject{{ my_subjects_count|pluralize }}</h2>
         </div>
         <div class="card-icon card-icon-gold">
             <i class="fa-solid fa-pen-ruler"></i>

@@ -191,7 +191,7 @@
     <div class="summary-card">
         <div class="card-details">
             <h4>Total Students</h4>
-            <h2>320</h2>
+            <h2>{{ total_students }}</h2>
         </div>
         <div class="card-icon card-icon-blue">
             <i class="fa-solid fa-graduation-cap"></i>
@@ -200,7 +200,7 @@
     <div class="summary-card">
         <div class="card-details">
             <h4>Total Staff</h4>
-            <h2>42</h2>
+            <h2>{{ total_staff }}</h2>
         </div>
         <div class="card-icon card-icon-gold">
             <i class="fa-solid fa-user-tie"></i>
@@ -209,7 +209,7 @@
     <div class="summary-card">
         <div class="card-details">
             <h4>Fee Collected</h4>
-            <h2>TZS 34M</h2>
+            <h2>TZS {{ fee_collected|floatformat:0 }}</h2>
         </div>
         <div class="card-icon card-icon-green">
             <i class="fa-solid fa-wallet"></i>
@@ -218,7 +218,7 @@
     <div class="summary-card">
         <div class="card-details">
             <h4>Outstanding Fees</h4>
-            <h2>TZS 16M</h2>
+            <h2>TZS {{ outstanding_fees|floatformat:0 }}</h2>
         </div>
         <div class="card-icon card-icon-red">
             <i class="fa-solid fa-hand-holding-dollar"></i>
@@ -242,11 +242,11 @@
             <div style="display: flex; gap: 30px; margin-bottom: 20px;">
                 <div style="flex: 1; text-align: center; padding: 15px; background-color: var(--gray-100); border-radius: var(--radius-md);">
                     <h5 style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 5px;">Student Attendance</h5>
-                    <h3 style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">94.2%</h3>
+                    <h3 style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">{{ student_attendance_rate }}</h3>
                 </div>
                 <div style="flex: 1; text-align: center; padding: 15px; background-color: var(--gray-100); border-radius: var(--radius-md);">
                     <h5 style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 5px;">Staff Attendance</h5>
-                    <h3 style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">98.5%</h3>
+                    <h3 style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">{{ staff_attendance_rate }}</h3>
                 </div>
             </div>
 
@@ -261,24 +261,18 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% for sec in section_data %}
                     <tr style="border-bottom: 1px solid var(--gray-200);">
-                        <td style="padding: 10px 0; font-weight: 600;">Early Childhood</td>
-                        <td style="padding: 10px 0;">110</td>
-                        <td style="padding: 10px 0;">105</td>
-                        <td style="padding: 10px 0; text-align: right; color: var(--success); font-weight: 600;">95.5%</td>
+                        <td style="padding: 10px 0; font-weight: 600;">{{ sec.name }}</td>
+                        <td style="padding: 10px 0;">{{ sec.enrolled }}</td>
+                        <td style="padding: 10px 0;">{{ sec.present }}</td>
+                        <td style="padding: 10px 0; text-align: right; color: var(--success); font-weight: 600;">{{ sec.rate }}</td>
                     </tr>
-                    <tr style="border-bottom: 1px solid var(--gray-200);">
-                        <td style="padding: 10px 0; font-weight: 600;">Primary School</td>
-                        <td style="padding: 10px 0;">140</td>
-                        <td style="padding: 10px 0;">131</td>
-                        <td style="padding: 10px 0; text-align: right; color: var(--success); font-weight: 600;">93.6%</td>
-                    </tr>
+                    {% empty %}
                     <tr>
-                        <td style="padding: 10px 0; font-weight: 600;">Secondary School</td>
-                        <td style="padding: 10px 0;">70</td>
-                        <td style="padding: 10px 0;">65</td>
-                        <td style="padding: 10px 0; text-align: right; color: var(--success); font-weight: 600;">92.8%</td>
+                        <td colspan="4" style="padding: 10px 0; text-align: center;">No sections configured.</td>
                     </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>

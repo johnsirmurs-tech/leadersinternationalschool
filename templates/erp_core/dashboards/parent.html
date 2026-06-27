@@ -1,0 +1,42 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Parent Dashboard | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Parent Dashboard{% endblock %}
+
+{% block sidebar_items %}
+<li><a href="#"><i class="fa-solid fa-coins"></i> <span>Fee Information</span></a></li>
+<li><a href="#"><i class="fa-solid fa-calendar-check"></i> <span>Attendance Records</span></a></li>
+<li><a href="#"><i class="fa-solid fa-square-poll-vertical"></i> <span>Academic Reports</span></a></li>
+<li><a href="#"><i class="fa-solid fa-shapes"></i> <span>School Activities</span></a></li>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Outstanding Fee Balance</h4>
+            <h2>TZS 250,000</h2>
+        </div>
+        <div class="card-icon card-icon-red">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Child Attendance Rate</h4>
+            <h2>95.5%</h2>
+        </div>
+        <div class="card-icon card-icon-green">
+            <i class="fa-solid fa-percent"></i>
+        </div>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="card-header-flex">
+        <h4>Parent Oversight Panel</h4>
+    </div>
+    <p>Welcome to the Parent Portal. You can monitor your children's fees, academic progress, and school events. Details will be fully implemented in the upcoming modules.</p>
+</div>
+{% endblock %}

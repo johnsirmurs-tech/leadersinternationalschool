@@ -1,0 +1,487 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Fee Receipt | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Fee Receipt{% endblock %}
+
+{% block extra_css %}
+/* ─── SCREEN WRAPPER ─────────────────────────────── */
+.receipt-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: #f0f0f0;
+  min-height: 100vh;
+}
+
+/* ─── A5 SHEET — FIXED SIZE, NEVER CHANGES ────────── */
+.receipt-sheet {
+  width: 148mm;
+  height: 210mm;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #1e293b;
+}
+
+/* ─── INNER CONTENT — THIS IS WHAT SCALES ────────── */
+.receipt-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 148mm;        /* A5 width — fixed */
+  min-height: 210mm;   /* starts at A5 height */
+  padding: 20px 22px;
+  box-sizing: border-box;
+
+  /* THE MAGIC — scales content down if it overflows */
+  transform-origin: top left;
+  /* transform value is set dynamically by JavaScript below */
+}
+
+/* ─── HEADER ─── */
+.receipt-header {
+  border-bottom: 2px solid #1e293b;
+  padding-bottom: 12px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+.receipt-school-name {
+  font-size: 1.25rem;
+  font-weight: 850;
+  color: #1e3a8a;
+  margin: 0 0 4px 0;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.receipt-school-address,
+.receipt-school-contacts {
+  font-size: 0.75rem;
+  margin: 2px 0;
+  color: #475569;
+}
+.receipt-title-bar {
+  background-color: #1e3a8a;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 5px 0;
+  margin-top: 10px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+/* ─── META INFO GRID ─── */
+.receipt-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.meta-box {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background-color: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+.meta-label {
+  color: #64748b;
+  font-weight: 600;
+}
+.meta-value {
+  font-weight: 750;
+  color: #0f172a;
+}
+
+/* ─── ALLOCATIONS TABLE ─── */
+.allocations-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+  font-size: 0.75rem;
+}
+.allocations-table th, 
+.allocations-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+.allocations-table th {
+  background-color: #f1f5f9;
+  color: #1e3a8a;
+  font-weight: 750;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+.allocations-table tfoot tr td {
+  padding: 8px 10px;
+}
+.allocations-table tfoot tr.total-row td {
+  font-weight: 800;
+  background-color: #f8fafc;
+  border-top: 1.5px solid #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+}
+.allocations-table tfoot tr.balance-row td {
+  font-weight: 800;
+  background-color: #fdf2f2;
+  color: #b91c1c;
+  border-bottom: 2px solid #1e293b;
+}
+
+/* ─── NOTES ─── */
+.receipt-notes {
+  font-size: 0.75rem;
+  padding: 8px 12px;
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  color: #d97706;
+}
+.notes-label {
+  font-weight: 750;
+}
+
+/* ─── FOOTER ─── */
+.receipt-footer-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 20px;
+  padding-top: 10px;
+}
+.footer-col {
+  flex: 1;
+}
+.footer-col-right {
+  display: flex;
+  justify-content: flex-end;
+}
+.signature-line {
+  border-bottom: 1px solid #94a3b8;
+  width: 150px;
+  margin-bottom: 5px;
+}
+.signature-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 600;
+}
+.signature-name {
+  font-size: 0.75rem;
+  font-weight: 750;
+  margin: 2px 0 0 0;
+}
+.receipt-stamp {
+  border: 2px dashed #2563eb;
+  color: #2563eb;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 850;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  transform: rotate(-5deg);
+  letter-spacing: 1px;
+}
+
+/* ─── LEGAL FOOTER ─── */
+.receipt-legal {
+  text-align: center;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  margin-top: 25px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+}
+
+/* ─── ACTION BUTTONS ─── */
+.receipt-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+.btn-print,
+.btn-pdf {
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 750;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+.btn-print {
+  background-color: #0f172a;
+  color: var(--white);
+}
+.btn-print:hover {
+  background-color: #1e293b;
+}
+.btn-pdf {
+  background-color: var(--white);
+  border: 1.5px solid var(--gray-300);
+  color: var(--primary);
+}
+.btn-pdf:hover {
+  background-color: var(--gray-100);
+}
+
+/* ─── PRINT — FORCES EXACT A5 ─────────────────────── */
+@media print {
+  @page {
+    size: A5 portrait;
+    margin: 0;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .receipt-wrapper,
+  .receipt-sheet,
+  .receipt-sheet * {
+    visibility: visible;
+  }
+
+  .receipt-wrapper {
+    padding: 0;
+    background: none;
+    min-height: auto;
+  }
+
+  .receipt-sheet {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 148mm;
+    height: 210mm;
+    box-shadow: none;
+    overflow: hidden;
+  }
+
+  /* Hide all buttons and UI when printing */
+  .receipt-actions {
+    display: none !important;
+  }
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px; max-width: 148mm; margin-left: auto; margin-right: auto;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Outer wrapper — screen centering only -->
+<div class="receipt-wrapper">
+
+  <!-- Fixed A5 container — size never changes -->
+  <div class="receipt-sheet">
+
+    <!-- Inner content — this is what gets scaled -->
+    <div class="receipt-inner">
+
+      <!-- HEADER -->
+      <div class="receipt-header">
+        <h2 class="receipt-school-name">LEADERS INTERNATIONAL SCHOOL</h2>
+        <p class="receipt-school-address">P.O. Box 100, Dar es Salaam, Tanzania</p>
+        <p class="receipt-school-contacts">+255 700 000 000 | info@leaders.ac.tz</p>
+        <div class="receipt-title-bar">OFFICIAL PAYMENT RECEIPT</div>
+      </div>
+
+      <!-- META INFO GRID -->
+      <div class="receipt-meta-grid">
+        <div class="meta-box">
+          <span class="meta-label">Receipt No.</span>
+          <span class="meta-value">{{ receipt_no }}</span>
+        </div>
+        <div class="meta-box">
+          <span class="meta-label">Date</span>
+          <span class="meta-value">{{ date|date:"Y-m-d H:i" }}</span>
+        </div>
+        <div class="meta-box">
+          <span class="meta-label">Student Name</span>
+          <span class="meta-value">{{ student.user.get_full_name }}</span>
+        </div>
+        <div class="meta-box">
+          <span class="meta-label">Class</span>
+          <span class="meta-value">{{ student.current_class.name }}</span>
+        </div>
+        <div class="meta-box">
+          <span class="meta-label">Payment Method</span>
+          <span class="meta-value">{{ payment_method }}</span>
+        </div>
+        <div class="meta-box">
+          <span class="meta-label">Admission No.</span>
+          <span class="meta-value">{{ student.student_id }}</span>
+        </div>
+      </div>
+
+      <!-- FEE ALLOCATIONS TABLE -->
+      <table class="allocations-table">
+        <thead>
+          <tr>
+            <th>Fee Type</th>
+            <th>Term</th>
+            <th style="text-align: right;">Amount Paid (TZS)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in payments %}
+          <tr>
+            <td style="font-weight: 700; color: #1e3a8a;">{{ item.fee_structure.vote_head }}</td>
+            <td>{{ item.fee_structure.due_term|default:"Termly" }}</td>
+            <td style="text-align: right; font-weight: 700;">{{ item.amount_paid|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="2">TOTAL PAID</td>
+            <td style="text-align: right;">{{ total_paid|floatformat:2 }}</td>
+          </tr>
+          <tr class="balance-row">
+            <td colspan="2">REMAINING BALANCE</td>
+            <td style="text-align: right;">{{ balance_after|floatformat:2 }}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- NOTES (if any) -->
+      {% for item in payments %}
+        {% if forloop.first and item.notes %}
+          <div class="receipt-notes">
+            <span class="notes-label">Notes:</span> {{ item.notes }}
+          </div>
+        {% endif %}
+      {% endfor %}
+
+      <!-- FOOTER -->
+      <div class="receipt-footer-grid">
+        <div class="footer-col">
+          <div class="signature-line"></div>
+          <p class="signature-label">Received By</p>
+          <p class="signature-name">{{ recorded_by }}</p>
+        </div>
+        <div class="footer-col footer-col-right">
+          <div class="receipt-stamp">PAID</div>
+        </div>
+      </div>
+
+      <!-- LEGAL FOOTER -->
+      <div class="receipt-legal">
+        This is an official receipt. Please retain for your records.<br>
+        For queries contact the school accounts office.
+      </div>
+
+    </div><!-- end receipt-inner -->
+  </div><!-- end receipt-sheet -->
+
+  <!-- Action Buttons — OUTSIDE the sheet so they never print -->
+  <div class="receipt-actions">
+    <button onclick="window.print()" class="btn-print">
+      🖨️ Print Receipt
+    </button>
+    <button onclick="downloadPDF()" class="btn-pdf">
+      ⬇️ Download PDF
+    </button>
+    <a href="{% url 'record_payment' %}" class="btn-pdf" style="text-decoration: none;">
+      ↩️ Back
+    </a>
+  </div>
+
+</div><!-- end receipt-wrapper -->
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+(function() {
+
+  function fitReceiptToA5() {
+    const sheet = document.querySelector('.receipt-sheet');
+    const inner = document.querySelector('.receipt-inner');
+
+    if (!sheet || !inner) return;
+
+    // Reset any previous scaling first
+    inner.style.transform = 'scale(1)';
+
+    // A5 height in pixels at 96dpi (210mm)
+    // 1mm = 3.7795px at 96dpi
+    const a5HeightPx = 210 * 3.7795;  // ≈ 793.695px
+    const a5WidthPx  = 148 * 3.7795;  // ≈ 559.366px
+
+    // Measure the actual content height after reset
+    const contentHeight = inner.scrollHeight;
+    const contentWidth  = inner.scrollWidth;
+
+    // Calculate scale needed to fit height
+    const scaleH = a5HeightPx / contentHeight;
+    const scaleW = a5WidthPx  / contentWidth;
+
+    // Use the smaller scale so both dimensions fit
+    const scale = Math.min(scaleH, scaleW);
+
+    if (scale < 1) {
+      // Only scale DOWN — never scale up (no zooming in)
+      inner.style.transform = `scale(${scale})`;
+      inner.style.transformOrigin = 'top left';
+    }
+  }
+
+  // Run on page load
+  document.addEventListener('DOMContentLoaded', fitReceiptToA5);
+
+  // Run again if window is resized
+  window.addEventListener('resize', fitReceiptToA5);
+
+  // Expose for manual call if needed
+  window.fitReceiptToA5 = fitReceiptToA5;
+
+})();
+
+function downloadPDF() {
+  const element = document.querySelector('.receipt-sheet');
+
+  const options = {
+    margin:      0,
+    filename:    'Receipt_{{ receipt_no }}.pdf',
+    image:       { type: 'jpeg', quality: 1.0 },
+    html2canvas: {
+      scale: 3,           // High resolution
+      useCORS: true,
+      scrollY: 0,
+      scrollX: 0,
+      width:  559,        // A5 width in px at 96dpi
+      height: 794         // A5 height in px at 96dpi
+    },
+    jsPDF: {
+      unit:        'mm',
+      format:      'a5',
+      orientation: 'portrait'
+    }
+  };
+
+  html2pdf().set(options).from(element).save();
+}
+</script>
+{% endblock %}

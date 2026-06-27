@@ -1,0 +1,204 @@
+{% extends 'erp_core/base.html' %}
+
+{% block title %}ERP Login | Leaders International School{% endblock %}
+
+{% block extra_css %}
+.login-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    width: 100%;
+    box-shadow: var(--shadow-premium);
+    transition: var(--transition);
+    animation: cardEnter 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes cardEnter {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.login-card:hover {
+    border-color: rgba(229, 169, 60, 0.25);
+    box-shadow: 0 25px 50px rgba(15, 46, 89, 0.25);
+}
+
+.login-title-area {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-title-area i {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+
+.login-title-area h2 {
+    font-size: 1.6rem;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.login-title-area p {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    margin-top: 5px;
+}
+
+.form-group {
+    margin-bottom: 22px;
+    position: relative;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-container {
+    position: relative;
+}
+
+.input-container i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-light);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 14px 12px 42px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    background-color: rgba(255, 255, 255, 0.8);
+    color: var(--dark);
+    font-size: 0.95rem;
+    font-family: var(--font-family);
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: var(--white);
+    box-shadow: 0 0 0 4px rgba(15, 46, 89, 0.08);
+}
+
+.form-control:focus + i {
+    color: var(--accent);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    cursor: pointer;
+}
+
+.remember-me input {
+    cursor: pointer;
+}
+
+.forgot-password {
+    font-size: 0.85rem;
+    color: var(--primary-light);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.forgot-password:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(15, 46, 89, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15, 46, 89, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+{% endblock %}
+
+{% block content %}
+<div class="login-card">
+    <div class="login-title-area">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <h2>ERP Portal Login</h2>
+        <p>Please enter your credentials to log in.</p>
+    </div>
+
+    <form method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="username">Username or Email</label>
+            <div class="input-container">
+                <input class="form-control" type="text" id="username" name="username" placeholder="Enter username or email" required autocomplete="username">
+                <i class="fa-solid fa-user"></i>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <div class="input-container">
+                <input class="form-control" type="password" id="password" name="password" placeholder="Enter password" required autocomplete="current-password">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <label class="remember-me">
+                <input type="checkbox" name="remember"> Remember me
+            </label>
+            <a class="forgot-password" href="{% url 'password_reset' %}">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn-primary">
+            <span>Login to Portal</span>
+            <i class="fa-solid fa-right-to-bracket"></i>
+        </button>
+    </form>
+</div>
+{% endblock %}

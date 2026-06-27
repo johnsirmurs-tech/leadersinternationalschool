@@ -1,0 +1,267 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Raw Marks Entry | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Raw Marks Entry{% endblock %}
+
+{% block extra_css %}
+.class-select-card {
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 25px;
+}
+.marks-table-card {
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.marks-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.marks-table th, .marks-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.marks-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 700;
+}
+.input-score {
+    width: 120px;
+    padding: 8px 12px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-weight: 600;
+}
+.btn-save {
+    padding: 10px 20px;
+    background-color: var(--success);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 700;
+    transition: var(--transition);
+}
+.btn-save:hover {
+    background-color: #146c43;
+}
+.selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--primary);
+}
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+}
+.badge-locked {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: var(--danger);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="class-select-card">
+    <form method="GET" action="">
+        <div class="selector-grid">
+            <div>
+                <label class="form-label" for="class_id">Select Class:</label>
+                <select name="class_id" id="class_id" class="form-control" onchange="this.form.submit()">
+                    <option value="">-- Choose Class --</option>
+                    {% for c in classes %}
+                        <option value="{{ c.id }}" {% if selected_class.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            {% if selected_class %}
+                <div>
+                    <label class="form-label" for="subject">Subject:</label>
+                    <select name="subject" id="subject" class="form-control" onchange="this.form.submit()">
+                        <option value="">-- Choose Subject --</option>
+                        <option value="Mathematics" {% if subject == 'Mathematics' %}selected{% endif %}>Mathematics</option>
+                        <option value="English Language" {% if subject == 'English Language' %}selected{% endif %}>English Language</option>
+                        <option value="Science" {% if subject == 'Science' %}selected{% endif %}>Science</option>
+                        <option value="Geography" {% if subject == 'Geography' %}selected{% endif %}>Geography</option>
+                        <option value="History" {% if subject == 'History' %}selected{% endif %}>History</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label" for="assessment_type">Exam / Assessment:</label>
+                    <select name="assessment_type" id="assessment_type" class="form-control" onchange="this.form.submit()">
+                        <option value="">-- Choose Assessment --</option>
+                        <option value="Continuous Assessment (CA)" {% if assessment_type == 'Continuous Assessment (CA)' %}selected{% endif %}>Continuous Assessment (CA)</option>
+                        <option value="Mid-Term Exam" {% if assessment_type == 'Mid-Term Exam' %}selected{% endif %}>Mid-Term Exam</option>
+                        <option value="End of Term Exam" {% if assessment_type == 'End of Term Exam' %}selected{% endif %}>End of Term Exam</option>
+                    </select>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+{% if selected_class and subject and assessment_type %}
+    <div class="marks-table-card">
+        <div style="border-bottom: 1.5px solid var(--gray-200); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase;">{{ selected_class.name }} | {{ subject }}</span>
+                <h3 style="color: var(--primary); font-size: 1.35rem; font-weight: 700;">Score Entry: {{ assessment_type }}</h3>
+            </div>
+            <div>
+                {% if is_locked %}
+                    <span class="badge-locked"><i class="fa-solid fa-lock"></i> Published & Locked</span>
+                {% else %}
+                    <form method="POST" action="{% url 'publish_and_lock_marks' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="class_id" value="{{ selected_class.id }}">
+                        <input type="hidden" name="subject" value="{{ subject }}">
+                        <input type="hidden" name="assessment_type" value="{{ assessment_type }}">
+                        <button type="submit" class="btn-save" onclick="return confirm('Are you sure you want to publish these marks? This will lock the entry from further edits.');">
+                            <i class="fa-solid fa-paper-plane"></i> Publish & Lock Marks
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px; gap: 10px;">
+            <label class="form-label" style="margin-bottom: 0;">Max Score for Assessment:</label>
+            <input type="number" name="max_score" value="100" class="input-score" style="width: 80px;" required {% if is_locked %}disabled{% endif %}>
+        </div>
+
+        <table class="marks-table">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Student ID</th>
+                    <th style="text-align: center;">Enter Raw Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ student.user.get_full_name }}</td>
+                        <td>{{ student.student_id }}</td>
+                        <td style="text-align: center;">
+                            <input type="number" step="0.1" min="0" max="100" name="score_{{ student.id }}" 
+                                   class="input-score score-input-ajax" placeholder="-" data-student-id="{{ student.id }}"
+                                   {% if is_locked %}disabled{% endif %}
+                                   {% for id, score in existing_marks.items %}
+                                       {% if id == student.id %}value="{{ score }}"{% endif %}
+                                   {% endfor %}>
+                            <span class="save-status-indicator" id="status_{{ student.id }}" style="margin-left: 8px; font-size: 0.85rem;"></span>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 20px; color: var(--gray-600);">No students enrolled in this class.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="content-card" style="text-align: center; padding: 40px; color: var(--gray-600);">
+        <i class="fa-solid fa-calculator" style="font-size: 2.5rem; margin-bottom: 15px; color: var(--primary);"></i>
+        <p>Please select Class, Subject, and Assessment/Exam above to open the raw marks entry grid.</p>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if not is_locked %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const scoreInputs = document.querySelectorAll('.score-input-ajax');
+        
+        scoreInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const studentId = this.getAttribute('data-student-id');
+                const rawScore = this.value;
+                const maxScore = document.querySelector('input[name="max_score"]').value || '100';
+                const statusSpan = document.getElementById(`status_${studentId}`);
+                
+                // Set state to saving
+                statusSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color: var(--accent);"></i>';
+                this.style.borderColor = 'var(--accent)';
+                
+                const formData = new FormData();
+                formData.append('student_id', studentId);
+                formData.append('subject', '{{ subject }}');
+                formData.append('assessment_type', '{{ assessment_type }}');
+                formData.append('raw_score', rawScore);
+                formData.append('max_score', maxScore);
+                formData.append('term', '{{ term }}');
+                formData.append('academic_year', '{{ academic_year }}');
+                
+                fetch('{% url "auto_save_mark" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Save failed');
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        statusSpan.innerHTML = '<i class="fa-solid fa-circle-check" style="color: var(--success);"></i>';
+                        this.style.borderColor = 'var(--success)';
+                        setTimeout(() => {
+                            statusSpan.innerHTML = '';
+                            this.style.borderColor = 'var(--gray-300)';
+                        }, 1500);
+                    } else {
+                        throw new Error(data.message || 'Error saving');
+                    }
+                })
+                .catch(err => {
+                    statusSpan.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color: var(--danger);"></i>';
+                    this.style.borderColor = 'var(--danger)';
+                    alert(err.message || 'Failed to auto-save score. Please try again.');
+                });
+            });
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

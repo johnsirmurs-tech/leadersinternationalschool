@@ -1,0 +1,95 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Report Cards Generator | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Report Cards Generator{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">Generate Academic Report Cards</h4>
+    <form method="GET" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+        <div style="flex: 1; min-width: 250px;">
+            <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Select Class</label>
+            <select name="class_id" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+                <option value="">-- Choose Class --</option>
+                {% for c in classes %}
+                    <option value="{{ c.id }}" {% if selected_class.id == c.id %}selected{% endif %}>{{ c.name }} ({{ c.get_level_type_display }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn-action" style="padding: 10px 25px; height: 42px;">Load Students</button>
+    </form>
+</div>
+
+{% if selected_class %}
+<div class="content-card">
+    <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">Students List ({{ selected_class.name }})</h4>
+    <div style="overflow-x: auto;">
+        <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--gray-200); background-color: var(--light); text-align: left;">
+                    <th style="padding: 10px 12px;">Student Name</th>
+                    <th style="padding: 10px 12px;">Admission No.</th>
+                    <th style="padding: 10px 12px;">Framework Select (if Primary/IGCSE)</th>
+                    <th style="padding: 10px 12px; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                    <tr style="border-bottom: 1px solid var(--gray-200);">
+                        <td style="padding: 10px 12px; font-weight: 700; color: var(--primary);">{{ s.user.get_full_name }}</td>
+                        <td style="padding: 10px 12px; font-family: monospace;">{{ s.student_id }}</td>
+                        <td style="padding: 10px 12px;">
+                            {% if selected_class.level_type != 'EARLY_YEARS' %}
+                                <select id="framework_{{ s.id }}" style="padding: 5px 10px; border-radius: 4px; border: 1px solid var(--gray-300);">
+                                    <option value="A-G">Cambridge A-G</option>
+                                    <option value="1-9">Cambridge 1-9</option>
+                                </select>
+                            {% else %}
+                                <span style="color: var(--gray-500); font-style: italic;">Early Years Observations</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 10px 12px; text-align: right;">
+                            <button onclick="viewReportCard({{ s.id }})" class="btn-action" style="padding: 6px 12px; font-size: 0.8rem;">
+                                <i class="fa-solid fa-file-invoice"></i> Generate Report Card
+                            </button>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" style="padding: 20px; text-align: center; color: var(--gray-600);">No students enrolled in this class.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function viewReportCard(studentId) {
+    const fwSelect = document.getElementById('framework_' + studentId);
+    const fw = fwSelect ? fwSelect.value : 'A-G';
+    const term = 'Term 1'; // Default term
+    const year = '2026'; // Default academic year
+    
+    const url = `/academics/report-cards/view/${studentId}/${term}/${year}/?framework=${fw}`;
+    window.open(url, '_blank');
+}
+</script>
+{% endif %}
+
+<style>
+.btn-action {
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+.btn-action:hover {
+    background-color: var(--primary-light);
+}
+</style>
+{% endblock %}

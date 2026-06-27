@@ -1,0 +1,135 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% load custom_filters %}
+{% block title %}Daily Attendance Registry | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Daily Attendance Registry{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; 
+                background-color: {% if message.tags == 'success' %}rgba(25, 135, 84, 0.1){% else %}rgba(220, 53, 69, 0.1){% endif %}; 
+                border: 1px solid {% if message.tags == 'success' %}var(--success){% else %}var(--danger){% endif %}; 
+                color: {% if message.tags == 'success' %}var(--success){% else %}var(--danger){% endif %};">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="content-card">
+    <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">Registry Filters</h4>
+    <form method="GET" style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+            <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Select Class</label>
+            <select name="class_id" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+                <option value="">-- Choose Class --</option>
+                {% for c in classes %}
+                    <option value="{{ c.id }}" {% if selected_class.id == c.id %}selected{% endif %}>
+                        {{ c.name }} 
+                        {% if c.class_teacher %}
+                            (Teacher: {{ c.class_teacher.first_name }} {{ c.class_teacher.last_name }})
+                        {% else %}
+                            (No Teacher Assigned)
+                        {% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="min-width: 180px;">
+            <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Date</label>
+            <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+        </div>
+
+        <button type="submit" class="btn-action" style="padding: 10px 25px; align-self: flex-end; height: 42px;">Load Students</button>
+    </form>
+</div>
+
+{% if selected_class %}
+<div class="content-card">
+    <div class="card-header-flex">
+        <h4>Attendance Sheet: {{ selected_class.name }} (Date: {{ selected_date|date:'F d, Y' }})</h4>
+    </div>
+
+    <form method="POST" action="{% url 'save_attendance' %}">
+        {% csrf_token %}
+        <input type="hidden" name="class_id" value="{{ selected_class.id }}">
+        <input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+
+        <div style="overflow-x: auto;">
+            <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--gray-200); background-color: var(--light); text-align: left;">
+                        <th style="padding: 12px 15px;">Student Name</th>
+                        <th style="padding: 12px 15px;">Admission No.</th>
+                        <th style="padding: 12px 15px; text-align: center;">Status</th>
+                        <th style="padding: 12px 15px;">Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                        <tr style="border-bottom: 1px solid var(--gray-200);">
+                            <td style="padding: 12px 15px; font-weight: 700; color: var(--primary);">{{ s.user.get_full_name }}</td>
+                            <td style="padding: 12px 15px; font-family: monospace;">{{ s.student_id }}</td>
+                            <td style="padding: 12px 15px; text-align: center;">
+                                <div style="display: inline-flex; gap: 15px;">
+                                    <label style="cursor: pointer; font-weight: 600; color: var(--success); display: inline-flex; align-items: center; gap: 4px;">
+                                        <input type="radio" name="status_{{ s.id }}" value="PRESENT" 
+                                            {% if attendances|dict_key:s.id == 'PRESENT' or not attendances|dict_key:s.id %}checked{% endif %} 
+                                            style="accent-color: var(--success); width: 18px; height: 18px;">
+                                        Present
+                                    </label>
+                                    <label style="cursor: pointer; font-weight: 600; color: var(--danger); display: inline-flex; align-items: center; gap: 4px;">
+                                        <input type="radio" name="status_{{ s.id }}" value="ABSENT" 
+                                            {% if attendances|dict_key:s.id == 'ABSENT' %}checked{% endif %}
+                                            style="accent-color: var(--danger); width: 18px; height: 18px;">
+                                        Absent
+                                    </label>
+                                    <label style="cursor: pointer; font-weight: 600; color: var(--warning); display: inline-flex; align-items: center; gap: 4px;">
+                                        <input type="radio" name="status_{{ s.id }}" value="LATE" 
+                                            {% if attendances|dict_key:s.id == 'LATE' %}checked{% endif %}
+                                            style="accent-color: var(--warning); width: 18px; height: 18px;">
+                                        Late
+                                    </label>
+                                </div>
+                            </td>
+                            <td style="padding: 12px 15px;">
+                                <input type="text" name="remarks_{{ s.id }}" placeholder="e.g. sick leave, late bus" style="width: 100%; padding: 6px 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" style="padding: 20px; text-align: center; color: var(--gray-600);">No students enrolled in this class.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if students %}
+            <button type="submit" class="btn-action" style="padding: 12px 30px; font-size: 1rem; width: 100%; margin-top: 20px;">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Save Daily Attendance Registry
+            </button>
+        {% endif %}
+    </form>
+</div>
+{% endif %}
+
+<style>
+.btn-action {
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 700;
+    transition: var(--transition);
+}
+.btn-action:hover {
+    background-color: var(--primary-light);
+}
+</style>
+{% endblock %}

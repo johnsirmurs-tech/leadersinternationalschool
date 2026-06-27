@@ -1,0 +1,65 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Accountant Dashboard | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Accountant Dashboard{% endblock %}
+
+{% block sidebar_items %}
+<li><a href="{% url 'fee_structure_setup' %}"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Fee Structure</span></a></li>
+<li><a href="{% url 'record_payment' %}"><i class="fa-solid fa-cash-register"></i> <span>Fee Payments</span></a></li>
+<li><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
+<li><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
+<li><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+<li><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
+<li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Reports</span></a></li>
+<li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="dashboard-grid">
+    <div class="summary-card" onclick="location.href='{% url 'fee_balances' %}'">
+        <div class="card-details">
+            <h4>Fee Collections Summary</h4>
+            <h2 style="font-size: 1.3rem;">Balances & Reminders</h2>
+        </div>
+        <div class="card-icon card-icon-blue">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+        </div>
+    </div>
+    <div class="summary-card" onclick="location.href='{% url 'payroll_list' %}'">
+        <div class="card-details">
+            <h4>Staff Payroll</h4>
+            <h2 style="font-size: 1.3rem;">Run Monthly Payroll</h2>
+        </div>
+        <div class="card-icon card-icon-green">
+            <i class="fa-solid fa-calculator"></i>
+        </div>
+    </div>
+    <div class="summary-card" onclick="location.href='{% url 'expense_list' %}'">
+        <div class="card-details">
+            <h4>Expenses Record</h4>
+            <h2 style="font-size: 1.3rem;">Track Operations</h2>
+        </div>
+        <div class="card-icon card-icon-red">
+            <i class="fa-solid fa-receipt"></i>
+        </div>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="card-header-flex">
+        <h4>Financial Operations Control Panel</h4>
+    </div>
+    <p>Welcome to the Accountant Dashboard. Use the sidebar menu to define fee structures, capture payments, audit outstanding balances, configure salary bands, generate staff payroll, and capture school expenditures.</p>
+</div>
+{% endblock %}

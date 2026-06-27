@@ -1,0 +1,406 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Director Dashboard | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Director Dashboard{% endblock %}
+
+{% block sidebar_items %}
+<li><a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a></li>
+<li><a href="{% url 'subject_setup' %}"><i class="fa-solid fa-book-open"></i> <span>Subjects & Areas</span></a></li>
+<li><a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a></li>
+<li><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
+<li><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
+<li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Reports</span></a></li>
+<li><a href="{% url 'grade_boundaries' %}"><i class="fa-solid fa-calculator"></i> <span>Grade Boundaries</span></a></li>
+<li><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-file-signature"></i> <span>Lesson Plans</span></a></li>
+<li><a href="{% url 'fee_structure_setup' %}"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Fee Structure</span></a></li>
+<li><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
+<li><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
+<li><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+<li><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
+<li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+{% endblock %}
+
+{% block extra_css %}
+/* Dashboard Layout Grid */
+.widgets-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Activity Feed */
+.activity-feed-list {
+    list-style: none;
+}
+
+.activity-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--gray-100);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+.activity-text p {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.activity-text span {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+}
+
+/* Pending Items List */
+.pending-list {
+    list-style: none;
+}
+
+.pending-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.pending-item:last-child {
+    border-bottom: none;
+}
+
+.pending-label {
+    display: flex;
+    flex-direction: column;
+}
+
+.pending-label span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.pending-label small {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+}
+
+.pending-badge {
+    padding: 4px 10px;
+    background-color: rgba(229, 169, 60, 0.15);
+    color: var(--accent);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.pending-badge.action {
+    background-color: var(--primary);
+    color: var(--white);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.pending-badge.action:hover {
+    background-color: var(--accent);
+    color: var(--primary);
+}
+
+/* Calendar Events */
+.calendar-events-list {
+    list-style: none;
+}
+
+.event-item {
+    display: flex;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.event-item:last-child {
+    border-bottom: none;
+}
+
+.event-date-badge {
+    width: 45px;
+    height: 45px;
+    background-color: rgba(15, 46, 89, 0.05);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-family);
+    color: var(--primary);
+}
+
+.event-date-badge span {
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.event-date-badge small {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.event-details h5 {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.event-details p {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+}
+{% endblock %}
+
+{% block content %}
+<!-- Top row Summary Cards -->
+<div class="dashboard-grid">
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Total Students</h4>
+            <h2>320</h2>
+        </div>
+        <div class="card-icon card-icon-blue">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Total Staff</h4>
+            <h2>42</h2>
+        </div>
+        <div class="card-icon card-icon-gold">
+            <i class="fa-solid fa-user-tie"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Fee Collected</h4>
+            <h2>TZS 34M</h2>
+        </div>
+        <div class="card-icon card-icon-green">
+            <i class="fa-solid fa-wallet"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Outstanding Fees</h4>
+            <h2>TZS 16M</h2>
+        </div>
+        <div class="card-icon card-icon-red">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Main Widgets Layout -->
+<div class="widgets-layout">
+    <!-- Left Column -->
+    <div class="left-column">
+        <!-- Attendance Overview -->
+        <div class="content-card">
+            <div class="card-header-flex">
+                <h4>Today's Attendance Overview</h4>
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--success);">
+                    <i class="fa-solid fa-circle-dot"></i> Live Status
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 30px; margin-bottom: 20px;">
+                <div style="flex: 1; text-align: center; padding: 15px; background-color: var(--gray-100); border-radius: var(--radius-md);">
+                    <h5 style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 5px;">Student Attendance</h5>
+                    <h3 style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">94.2%</h3>
+                </div>
+                <div style="flex: 1; text-align: center; padding: 15px; background-color: var(--gray-100); border-radius: var(--radius-md);">
+                    <h5 style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 5px;">Staff Attendance</h5>
+                    <h3 style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">98.5%</h3>
+                </div>
+            </div>
+
+            <!-- Table breakdown by section -->
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--gray-200); color: var(--gray-600); font-weight: 600;">
+                        <th style="padding: 10px 0;">Section</th>
+                        <th style="padding: 10px 0;">Enrolled</th>
+                        <th style="padding: 10px 0;">Present Today</th>
+                        <th style="padding: 10px 0; text-align: right;">Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid var(--gray-200);">
+                        <td style="padding: 10px 0; font-weight: 600;">Early Childhood</td>
+                        <td style="padding: 10px 0;">110</td>
+                        <td style="padding: 10px 0;">105</td>
+                        <td style="padding: 10px 0; text-align: right; color: var(--success); font-weight: 600;">95.5%</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--gray-200);">
+                        <td style="padding: 10px 0; font-weight: 600;">Primary School</td>
+                        <td style="padding: 10px 0;">140</td>
+                        <td style="padding: 10px 0;">131</td>
+                        <td style="padding: 10px 0; text-align: right; color: var(--success); font-weight: 600;">93.6%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; font-weight: 600;">Secondary School</td>
+                        <td style="padding: 10px 0;">70</td>
+                        <td style="padding: 10px 0;">65</td>
+                        <td style="padding: 10px 0; text-align: right; color: var(--success); font-weight: 600;">92.8%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <div class="content-card">
+            <div class="card-header-flex">
+                <h4>Recent System Activity</h4>
+                <a href="#" style="font-size: 0.85rem; color: var(--primary-light); text-decoration: none; font-weight: 600;">View All</a>
+            </div>
+            
+            <ul class="activity-feed-list">
+                <li class="activity-item">
+                    <div class="activity-icon"><i class="fa-solid fa-user-check"></i></div>
+                    <div class="activity-text">
+                        <p>Principal approved 3 lesson plans</p>
+                        <span>2 hours ago</span>
+                    </div>
+                </li>
+                <li class="activity-item">
+                    <div class="activity-icon"><i class="fa-solid fa-receipt"></i></div>
+                    <div class="activity-text">
+                        <p>Accountant recorded fee payment for Hamisi Juma</p>
+                        <span>3 hours ago</span>
+                    </div>
+                </li>
+                <li class="activity-item">
+                    <div class="activity-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div class="activity-text">
+                        <p>Teacher Amina submitted Class 5A attendance</p>
+                        <span>Today 8:15 am</span>
+                    </div>
+                </li>
+                <li class="activity-item">
+                    <div class="activity-icon"><i class="fa-solid fa-user-plus"></i></div>
+                    <div class="activity-text">
+                        <p>New student enrolled: Mwaisha Ali - Class 3B</p>
+                        <span>Today</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="right-column">
+        <!-- Pending Items Widget -->
+        <div class="content-card">
+            <div class="card-header-flex">
+                <h4>Pending Approvals</h4>
+            </div>
+            <ul class="pending-list">
+                <li class="pending-item">
+                    <div class="pending-label">
+                        <span>Unread Reports</span>
+                        <small>From Principal & Dean</small>
+                    </div>
+                    <span class="pending-badge">4 submitted</span>
+                </li>
+                <li class="pending-item">
+                    <div class="pending-label">
+                        <span>Pending Appraisals</span>
+                        <small>Staff self-assessments</small>
+                    </div>
+                    <span class="pending-badge">6 awaiting review</span>
+                </li>
+                <li class="pending-item">
+                    <div class="pending-label">
+                        <span>Principal's Leave</span>
+                        <small>Awaiting review</small>
+                    </div>
+                    <a href="#" class="pending-badge action">Review (1)</a>
+                </li>
+                <li class="pending-item">
+                    <div class="pending-label">
+                        <span>Salary Advance</span>
+                        <small>Principal request</small>
+                    </div>
+                    <a href="#" class="pending-badge action">Review (1)</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Upcoming Calendar Events Widget -->
+        <div class="content-card">
+            <div class="card-header-flex">
+                <h4>Upcoming Events</h4>
+                <a href="#" style="font-size: 0.85rem; color: var(--primary-light); text-decoration: none; font-weight: 600;">Full Calendar</a>
+            </div>
+            <ul class="calendar-events-list">
+                <li class="event-item">
+                    <div class="event-date-badge">
+                        <span>28</span>
+                        <small>Jun</small>
+                    </div>
+                    <div class="event-details">
+                        <h5>Term 1 Exams Start</h5>
+                        <p>Created by Principal</p>
+                    </div>
+                </li>
+                <li class="event-item">
+                    <div class="event-date-badge">
+                        <span>04</span>
+                        <small>Jul</small>
+                    </div>
+                    <div class="event-details">
+                        <h5>Parent-Teacher Association Meeting</h5>
+                        <p>Created by Principal</p>
+                    </div>
+                </li>
+                <li class="event-item">
+                    <div class="event-date-badge">
+                        <span>10</span>
+                        <small>Jul</small>
+                    </div>
+                    <div class="event-details">
+                        <h5>School Sports Day</h5>
+                        <p>Created by Dean</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

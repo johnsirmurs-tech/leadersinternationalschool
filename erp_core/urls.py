@@ -1,0 +1,64 @@
+from django.urls import path
+from django.contrib.auth import views as auth_views
+from . import views
+
+urlpatterns = [
+    path('', views.custom_login, name='login'),
+    path('logout/', views.custom_logout, name='logout'),
+    path('change-password/', views.change_temporary_password, name='change_temporary_password'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    
+    # Password Reset Flow (using Django default views, but we will style their templates)
+    path('password-reset/', auth_views.PasswordResetView.as_view(template_name='erp_core/registration/password_reset_form.html'), name='password_reset'),
+    path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='erp_core/registration/password_reset_done.html'), name='password_reset_done'),
+    path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='erp_core/registration/password_reset_confirm.html'), name='password_reset_confirm'),
+    path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(template_name='erp_core/registration/password_reset_complete.html'), name='password_reset_complete'),
+
+    # Phase 2 urls
+    path('boundaries/', views.grade_boundaries, name='grade_boundaries'),
+    path('early-years-progress/', views.early_years_progress, name='early_years_progress'),
+    path('enter-raw-marks/', views.enter_raw_marks, name='enter_raw_marks'),
+    path('lesson-plans/', views.lesson_plan_list, name='lesson_plan_list'),
+    path('lesson-plans/create/', views.create_lesson_plan, name='create_lesson_plan'),
+    path('lesson-plans/review/<int:plan_id>/', views.review_lesson_plan, name='review_lesson_plan'),
+    path('lesson-plans/pdf/<int:plan_id>/', views.download_lesson_plan_pdf, name='download_lesson_plan_pdf'),
+    path('activities/', views.activity_list, name='activity_list'),
+    path('activities/create/', views.create_activity, name='create_activity'),
+    path('activities/take/<int:activity_id>/', views.take_activity, name='take_activity'),
+    path('auto-save-mark/', views.auto_save_mark, name='auto_save_mark'),
+    path('publish-marks/', views.publish_and_lock_marks, name='publish_and_lock_marks'),
+
+    # Phase 3 URLs
+    path('financials/fees/setup/', views.fee_structure_setup, name='fee_structure_setup'),
+    path('financials/fees/payment/', views.record_payment, name='record_payment'),
+    path('financials/fees/payment/get-dues/<int:student_id>/', views.get_student_dues, name='get_student_dues'),
+    path('financials/fees/payment/receipt/<str:receipt_no>/', views.view_receipt, name='view_receipt'),
+    path('financials/fees/balances/', views.fee_balances, name='fee_balances'),
+    path('financials/salaries/setup/', views.salary_setup, name='salary_setup'),
+    path('financials/payroll/', views.payroll_list, name='payroll_list'),
+    path('financials/payroll/finalize/<int:payroll_id>/', views.finalize_payroll, name='finalize_payroll'),
+    path('financials/payslip/<int:payslip_id>/', views.view_payslip, name='view_payslip'),
+    path('financials/expenses/', views.expense_list, name='expense_list'),
+
+    # Phase 4 URLs
+    path('administration/users/', views.user_list, name='user_list'),
+    path('administration/users/create/', views.user_create, name='user_create'),
+    path('administration/users/edit/<int:user_id>/', views.user_edit, name='user_edit'),
+    path('administration/users/toggle/<int:user_id>/', views.user_toggle_status, name='user_toggle_status'),
+    path('administration/users/change-password/<int:user_id>/', views.admin_change_password, name='admin_change_password'),
+    path('administration/change-my-password/', views.change_my_password, name='change_my_password'),
+    
+    path('administration/subjects/', views.subject_setup, name='subject_setup'),
+    path('administration/subjects/delete/<int:subject_id>/', views.subject_delete, name='subject_delete'),
+    
+    path('administration/assignments/', views.teacher_assignment_setup, name='teacher_assignment_setup'),
+    path('administration/assignments/delete/<int:assignment_id>/', views.teacher_assignment_delete, name='teacher_assignment_delete'),
+    
+    path('attendance/', views.attendance_registry, name='attendance_registry'),
+    path('attendance/save/', views.save_attendance, name='save_attendance'),
+    
+    path('academics/report-cards/', views.report_card_generator, name='report_card_generator'),
+    path('academics/report-cards/view/<int:student_id>/<str:term>/<str:year>/', views.view_report_card, name='view_report_card'),
+    
+    path('financials/statements/', views.financial_statements, name='financial_statements'),
+]

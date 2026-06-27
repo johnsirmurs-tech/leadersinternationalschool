@@ -1,0 +1,113 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Manage Subjects & Areas | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Manage Subjects & Areas{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 25px; align-items: start;">
+    <!-- Add Form -->
+    <div class="content-card">
+        <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">Add Subject or Learning Area</h4>
+        <form method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+            {% csrf_token %}
+            <div>
+                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Name</label>
+                <input type="text" name="name" placeholder="e.g. Mathematics, Psychomotor Skills" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+            </div>
+
+            <div>
+                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Academic Level</label>
+                <select name="level" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+                    <option value="EARLY_YEARS">Early Years (Learning Area)</option>
+                    <option value="PRIMARY_LOWER" selected>Primary & Lower Secondary</option>
+                    <option value="IGCSE">Upper Secondary / IGCSE</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-action" style="padding: 12px; font-size: 0.95rem; font-weight: 700;">
+                <i class="fa-solid fa-plus"></i> Add Subject / Area
+            </button>
+        </form>
+    </div>
+
+    <!-- Subjects List -->
+    <div class="content-card">
+        <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">Current Subjects & Learning Areas</h4>
+        <div style="overflow-x: auto;">
+            <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--gray-200); background-color: var(--light); text-align: left;">
+                        <th style="padding: 10px 12px;">Subject/Area Name</th>
+                        <th style="padding: 10px 12px;">Academic Level</th>
+                        <th style="padding: 10px 12px; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in subjects %}
+                        <tr style="border-bottom: 1px solid var(--gray-200);">
+                            <td style="padding: 10px 12px; font-weight: 700; color: var(--primary);">{{ s.name }}</td>
+                            <td style="padding: 10px 12px;">
+                                {% if s.level == 'EARLY_YEARS' %}
+                                    <span style="background-color: rgba(25, 135, 84, 0.1); color: var(--success); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Early Years Area</span>
+                                {% elif s.level == 'PRIMARY_LOWER' %}
+                                    <span style="background-color: rgba(15, 46, 89, 0.08); color: var(--primary); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Primary & Lower Sec</span>
+                                {% else %}
+                                    <span style="background-color: rgba(229, 169, 60, 0.15); color: var(--accent); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Upper Sec / IGCSE</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 10px 12px; text-align: right;">
+                                <a href="{% url 'subject_delete' s.id %}" class="btn-delete" onclick="return confirm('Are you sure you want to delete this subject? All linked mark records will be removed.')">
+                                    <i class="fa-solid fa-trash-can"></i> Delete
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" style="padding: 20px; text-align: center; color: var(--gray-600);">No subjects configured yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-action {
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+.btn-action:hover {
+    background-color: var(--primary-light);
+}
+.btn-delete {
+    background-color: transparent;
+    color: var(--danger);
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-delete:hover {
+    color: #a82230;
+}
+</style>
+{% endblock %}

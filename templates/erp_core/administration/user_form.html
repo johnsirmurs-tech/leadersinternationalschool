@@ -1,0 +1,154 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}{% if is_create %}Create User{% else %}Edit User{% endif %} | Leaders International School ERP{% endblock %}
+
+{% block page_title %}{% if is_create %}Create User{% else %}Edit User{% endif %}{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(220, 53, 69, 0.1); border: 1px solid var(--danger); color: var(--danger);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="content-card" style="max-width: 650px; margin: 0 auto;">
+    <div class="card-header-flex">
+        <h4>User Details Form</h4>
+        <a href="{% url 'user_list' %}" class="btn-action-white" style="text-decoration: none; padding: 6px 15px; font-size: 0.85rem;"><i class="fa-solid fa-arrow-left"></i> Back</a>
+    </div>
+
+    <form method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+        {% csrf_token %}
+
+        {% if is_create %}
+            <div>
+                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Username</label>
+                <input type="text" name="username" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+            </div>
+        {% else %}
+            <div>
+                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Username (ReadOnly)</label>
+                <input type="text" value="{{ target_user.username }}" readonly style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family); background-color: var(--light); color: var(--gray-600);">
+            </div>
+        {% endif %}
+
+        <div>
+            <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Email Address</label>
+            <input type="email" name="email" value="{% if not is_create %}{{ target_user.email }}{% endif %}" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">First Name</label>
+                <input type="text" name="first_name" value="{% if not is_create %}{{ target_user.first_name }}{% endif %}" style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+            </div>
+            <div>
+                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Last Name</label>
+                <input type="text" name="last_name" value="{% if not is_create %}{{ target_user.last_name }}{% endif %}" style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+            </div>
+        </div>
+
+        <div>
+            <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Assign Roles (Hold Ctrl to select multiple)</label>
+            <select name="roles" multiple required style="width: 100%; height: 120px; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+                {% for r in roles %}
+                    <option value="{{ r.id }}" 
+                        {% if not is_create %}
+                            {% if r in target_user.roles.all %}selected{% endif %}
+                        {% endif %}>
+                        {{ r.name }} ({{ r.code }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if not is_create %}
+            <div>
+                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Account Status</label>
+                <select name="status" style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+                    <option value="ACTIVE" {% if target_user.status == 'ACTIVE' %}selected{% endif %}>Active</option>
+                    <option value="REVOKED" {% if target_user.status == 'REVOKED' %}selected{% endif %}>Suspended</option>
+                </select>
+            </div>
+        {% endif %}
+
+        <!-- Dynamic Profile Fields -->
+        <div style="border-top: 1.5px solid var(--gray-200); padding-top: 15px; margin-top: 5px;">
+            <h5 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">Student/Staff Specific Profiles (Optional)</h5>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Student ID (if Student)</label>
+                    <input type="text" name="student_id" placeholder="e.g. LIS/STUD/2026/0005" value="{% if student_profile %}{{ student_profile.student_id }}{% endif %}" style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+                </div>
+                <div>
+                    <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Class (if Student)</label>
+                    <select name="class_id" style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+                        <option value="">-- Choose Class --</option>
+                        {% for c in classes %}
+                            <option value="{{ c.id }}" {% if student_profile.current_class.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Staff ID (if Staff)</label>
+                    <input type="text" name="staff_id" placeholder="e.g. LIS/STAFF/2026/0005" value="{% if staff_profile %}{{ staff_profile.staff_id }}{% endif %}" style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+                </div>
+                <div>
+                    <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Department (if Staff)</label>
+                    <input type="text" name="department" placeholder="e.g. Academic, Administration" value="{% if staff_profile %}{{ staff_profile.department }}{% endif %}" style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+                </div>
+            </div>
+        </div>
+
+        {% if is_create %}
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                <input type="checkbox" name="is_temporary_password" id="is_temp" checked style="width: 16px; height: 16px; accent-color: var(--primary);">
+                <label for="is_temp" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">Enable temporary password flow (forces reset on first login)</label>
+            </div>
+            <div>
+                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Temporary Password (Default: Password123!)</label>
+                <input type="text" name="password" value="Password123!" style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+            </div>
+        {% endif %}
+
+        <button type="submit" class="btn-action" style="padding: 12px; margin-top: 10px; font-size: 1rem; width: 100%;">
+            {% if is_create %}<i class="fa-solid fa-user-plus"></i> Create User Account{% else %}<i class="fa-solid fa-save"></i> Save Changes{% endif %}
+        </button>
+    </form>
+</div>
+
+<style>
+.btn-action {
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 700;
+    transition: var(--transition);
+}
+.btn-action:hover {
+    background-color: var(--primary-light);
+}
+.btn-action-white {
+    background-color: var(--white);
+    color: var(--primary);
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+.btn-action-white:hover {
+    background-color: var(--light);
+}
+</style>
+{% endblock %}

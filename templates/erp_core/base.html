@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Leaders International School ERP Portal">
+    <title>{% block title %}Leaders International School | ERP Portal{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Premium Custom Styles -->
+    <style>
+        :root {
+            --primary: #0F2E59; /* Deep Blue from school branding */
+            --primary-light: #1A4680;
+            --accent: #E5A93C; /* Premium Gold/Yellow from school crest */
+            --accent-light: #F0BE5E;
+            --success: #198754;
+            --danger: #DC3545;
+            --warning: #FFC107;
+            --dark: #0A192F;
+            --light: #F8F9FA;
+            --white: #FFFFFF;
+            --gray-100: #F1F3F5;
+            --gray-200: #E9ECEF;
+            --gray-300: #DEE2E6;
+            --gray-600: #6C757D;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --shadow-premium: 0 20px 40px rgba(15, 46, 89, 0.15);
+            --shadow-glow: 0 0 15px rgba(229, 169, 60, 0.4);
+            --font-family: 'Plus Jakarta Sans', 'Parkinsans', sans-serif;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: linear-gradient(135deg, #0A192F 0%, #0F2E59 50%, #1A4680 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Decorative Animated Background Elements */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            z-index: 0;
+            filter: blur(100px);
+            opacity: 0.15;
+            pointer-events: none;
+            animation: floatShape 20s infinite alternate;
+        }
+
+        body::before {
+            background-color: var(--accent);
+            top: 10%;
+            left: 5%;
+        }
+
+        body::after {
+            background-color: var(--primary-light);
+            bottom: 10%;
+            right: 5%;
+            animation-delay: -10s;
+        }
+
+        @keyframes floatShape {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.2); }
+        }
+
+        /* Utility classes */
+        .premium-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            z-index: 1;
+        }
+
+        /* Header / Navigation bar mimicking school web header */
+        .school-header {
+            width: 100%;
+            padding: 20px 0;
+            background: rgba(10, 25, 47, 0.6);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 10;
+        }
+
+        .header-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 50px;
+            width: auto;
+        }
+
+        .logo-text h1 {
+            font-size: 1.2rem;
+            color: var(--white);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-text p {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .header-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+        }
+
+        .header-links a:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* Main Content wrapper */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0;
+            z-index: 2;
+        }
+
+        /* Footer */
+        .school-footer {
+            width: 100%;
+            padding: 20px 0;
+            background: rgba(10, 25, 47, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            z-index: 10;
+        }
+
+        .school-footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Alerts and Messages style */
+        .alert-messages {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .alert-item {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            animation: slideIn 0.3s ease-out forwards;
+        }
+
+        .alert-error {
+            background-color: rgba(220, 53, 69, 0.15);
+            border: 1px solid var(--danger);
+            color: #ff6b7a;
+        }
+
+        .alert-success {
+            background-color: rgba(25, 135, 84, 0.15);
+            border: 1px solid var(--success);
+            color: #51cf66;
+        }
+
+        .alert-info {
+            background-color: rgba(26, 70, 128, 0.15);
+            border: 1px solid var(--primary-light);
+            color: #74c0fc;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="school-header">
+        <div class="premium-container header-wrap">
+            <a href="/" class="logo-wrap">
+                <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="Leaders International School Logo" class="logo-img">
+                <div class="logo-text">
+                    <h1>Leaders International School</h1>
+                    <p>Learn Today, Leading Tomorrow</p>
+                </div>
+            </a>
+            <div class="header-links">
+                <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">
+                    <i class="fa-solid fa-arrow-left"></i> School Website
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Section -->
+    <main class="main-content">
+        <div class="premium-container" style="max-width: 480px;">
+            {% if messages %}
+                <div class="alert-messages">
+                    {% for message in messages %}
+                        <div class="alert-item alert-{{ message.tags }}">
+                            {% if message.tags == 'error' %}
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                            {% elif message.tags == 'success' %}
+                                <i class="fa-solid fa-circle-check"></i>
+                            {% else %}
+                                <i class="fa-solid fa-circle-info"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="school-footer">
+        <div class="premium-container">
+            <p>&copy; {% now "Y" %} Leaders International School ERP. All rights reserved. Managed by <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">Leaders International School</a></p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,10 @@
+*.pyc
+__pycache__/
+db.sqlite3
+.env
+.gemini/
+.agents/
+venv/
+.venv/
+.git/
+*.log

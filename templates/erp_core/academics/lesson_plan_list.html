@@ -1,0 +1,138 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Lesson Plans | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Lesson Plans{% endblock %}
+
+{% block extra_css %}
+.plan-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+.btn-create {
+    padding: 10px 20px;
+    background-color: var(--accent);
+    color: var(--primary);
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+.btn-create:hover {
+    background-color: var(--accent-light);
+    box-shadow: var(--shadow-glow);
+}
+.plans-table-card {
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.plans-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.plans-table th, .plans-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.plans-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 700;
+}
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+.status-submitted { background-color: rgba(229, 169, 60, 0.15); color: var(--accent); }
+.status-approved { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
+.status-returned { background-color: rgba(220, 53, 69, 0.15); color: var(--danger); }
+
+.btn-action {
+    padding: 5px 10px;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+.btn-review { background-color: var(--primary); color: var(--white); }
+.btn-review:hover { background-color: var(--primary-light); }
+.btn-pdf { background-color: var(--gray-200); color: var(--dark); margin-left: 5px; }
+.btn-pdf:hover { background-color: var(--gray-300); }
+{% endblock %}
+
+{% block content %}
+<div class="plan-actions-row">
+    <h3 style="color: var(--primary);">Lesson Plan Submissions</h3>
+    {% if not is_reviewer %}
+        <a href="{% url 'create_lesson_plan' %}" class="btn-create">
+            <i class="fa-solid fa-plus"></i> Create / Submit Lesson Plan
+        </a>
+    {% endif %}
+</div>
+
+<div class="plans-table-card">
+    <table class="plans-table">
+        <thead>
+            <tr>
+                <th>Teacher</th>
+                <th>Class</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for plan in plans %}
+                <tr>
+                    <td style="font-weight: 600;">{{ plan.teacher.get_full_name }}</td>
+                    <td>{{ plan.class_obj.name }}</td>
+                    <td>{{ plan.subject }}</td>
+                    <td>{{ plan.date }}</td>
+                    <td>
+                        {% if plan.plan_type == 'UPLOAD' %}
+                            <i class="fa-solid fa-file-arrow-up"></i> Uploaded Document
+                        {% else %}
+                            <i class="fa-solid fa-align-left"></i> Structured Template
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ plan.status|lower }}">
+                            {{ plan.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if is_reviewer and plan.status == 'SUBMITTED' %}
+                            <a href="{% url 'review_lesson_plan' plan.id %}" class="btn-action btn-review">Review</a>
+                        {% endif %}
+                        
+                        {% if plan.plan_type == 'STRUCTURED' %}
+                            <a href="{% url 'download_lesson_plan_pdf' plan.id %}" class="btn-action btn-pdf">
+                                <i class="fa-solid fa-file-pdf"></i> PDF
+                            </a>
+                        {% elif plan.file %}
+                            <a href="{{ plan.file.url }}" class="btn-action btn-pdf" download>
+                                <i class="fa-solid fa-download"></i> File
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 30px; color: var(--gray-600);">No lesson plans found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

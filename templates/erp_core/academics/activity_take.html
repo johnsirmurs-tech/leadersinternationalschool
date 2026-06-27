@@ -1,0 +1,93 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Take Activity | Leaders International School ERP{% endblock %}
+
+{% block page_title %}MCQ Assessment{% endblock %}
+
+{% block extra_css %}
+.take-card {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.question-item {
+    margin-bottom: 30px;
+    border-bottom: 1.5px solid var(--gray-200);
+    padding-bottom: 20px;
+}
+.question-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.option-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 15px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    margin-top: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.option-label:hover {
+    border-color: var(--primary);
+    background-color: rgba(15, 46, 89, 0.02);
+}
+.option-label input {
+    cursor: pointer;
+}
+.btn-submit {
+    padding: 12px 25px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    font-weight: 700;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+{% endblock %}
+
+{% block content %}
+<div class="take-card">
+    <div style="border-bottom: 1.5px solid var(--gray-200); padding-bottom: 15px; margin-bottom: 25px;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase;">{{ activity.subject }}</span>
+        <h2 style="color: var(--primary); font-size: 1.6rem; font-weight: 700;">{{ activity.title }}</h2>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        {% for q in questions %}
+            <div class="question-item">
+                <h4 style="color: var(--primary); margin-bottom: 15px;">Question {{ forloop.counter }}: {{ q.question_text }}</h4>
+                
+                <label class="option-label">
+                    <input type="radio" name="q_{{ q.id }}" value="A" required>
+                    <span><b>A.</b> {{ q.option_a }}</span>
+                </label>
+                
+                <label class="option-label">
+                    <input type="radio" name="q_{{ q.id }}" value="B">
+                    <span><b>B.</b> {{ q.option_b }}</span>
+                </label>
+                
+                <label class="option-label">
+                    <input type="radio" name="q_{{ q.id }}" value="C">
+                    <span><b>C.</b> {{ q.option_c }}</span>
+                </label>
+                
+                <label class="option-label">
+                    <input type="radio" name="q_{{ q.id }}" value="D">
+                    <span><b>D.</b> {{ q.option_d }}</span>
+                </label>
+            </div>
+        {% endfor %}
+
+        <div style="text-align: right; margin-top: 30px;">
+            <button type="submit" class="btn-submit">Submit Assessment</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

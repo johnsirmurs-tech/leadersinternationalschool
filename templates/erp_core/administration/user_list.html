@@ -1,0 +1,113 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}User Administration | Leaders International School ERP{% endblock %}
+
+{% block page_title %}User Administration{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="content-card">
+    <div class="card-header-flex">
+        <h4>System Users</h4>
+        <a href="{% url 'user_create' %}" class="btn-action" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-user-plus"></i> Create User
+        </a>
+    </div>
+
+    <!-- Filter Form -->
+    <form method="GET" class="filter-form" style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search by name, username or email..." style="flex: 1; min-width: 250px; padding: 10px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
+        <select name="role" style="padding: 10px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family); min-width: 180px;">
+            <option value="">-- Filter by Role --</option>
+            {% for r in roles %}
+                <option value="{{ r.code }}" {% if role_filter == r.code %}selected{% endif %}>{{ r.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-action" style="padding: 10px 20px;">Filter</button>
+        <a href="{% url 'user_list' %}" class="btn-action-white" style="text-decoration: none; padding: 10px 20px; line-height: 20px;">Reset</a>
+    </form>
+
+    <div style="overflow-x: auto;">
+        <table class="table" style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--gray-200); background-color: var(--light); text-align: left;">
+                    <th style="padding: 12px 15px;">Username</th>
+                    <th style="padding: 12px 15px;">Full Name</th>
+                    <th style="padding: 12px 15px;">Email</th>
+                    <th style="padding: 12px 15px;">Roles</th>
+                    <th style="padding: 12px 15px;">Status</th>
+                    <th style="padding: 12px 15px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                    <tr style="border-bottom: 1px solid var(--gray-200); transition: var(--transition);">
+                        <td style="padding: 12px 15px; font-weight: 700; color: var(--primary);">{{ u.username }}</td>
+                        <td style="padding: 12px 15px;">{{ u.get_full_name }}</td>
+                        <td style="padding: 12px 15px;">{{ u.email }}</td>
+                        <td style="padding: 12px 15px;">
+                            {% for r in u.roles.all %}
+                                <span style="background-color: rgba(15, 46, 89, 0.08); color: var(--primary); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-right: 4px;">{{ r.name }}</span>
+                            {% endfor %}
+                        </td>
+                        <td style="padding: 12px 15px;">
+                            {% if u.status == 'ACTIVE' %}
+                                <span style="background-color: rgba(25, 135, 84, 0.1); color: var(--success); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Active</span>
+                            {% else %}
+                                <span style="background-color: rgba(220, 53, 69, 0.1); color: var(--danger); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Suspended</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 15px; text-align: right; display: flex; justify-content: flex-end; gap: 8px;">
+                            <a href="{% url 'user_edit' u.id %}" class="btn-action" style="text-decoration: none; padding: 6px 12px; font-size: 0.8rem; background-color: var(--primary);"><i class="fa-solid fa-edit"></i> Edit</a>
+                            <a href="{% url 'admin_change_password' u.id %}" class="btn-action-white" style="text-decoration: none; padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-key"></i> Pass</a>
+                            <a href="{% url 'user_toggle_status' u.id %}" class="btn-action" style="text-decoration: none; padding: 6px 12px; font-size: 0.8rem; background-color: {% if u.status == 'ACTIVE' %}var(--danger){% else %}var(--success){% endif %};">
+                                {% if u.status == 'ACTIVE' %}<i class="fa-solid fa-user-slash"></i> Suspend{% else %}<i class="fa-solid fa-user-check"></i> Activate{% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding: 30px; text-align: center; color: var(--gray-600);">No users matching filters.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.btn-action {
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+.btn-action:hover {
+    background-color: var(--primary-light);
+}
+.btn-action-white {
+    background-color: var(--white);
+    color: var(--primary);
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+.btn-action-white:hover {
+    background-color: var(--light);
+}
+</style>
+{% endblock %}

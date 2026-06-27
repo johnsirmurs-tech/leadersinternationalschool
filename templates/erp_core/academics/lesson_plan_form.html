@@ -1,0 +1,174 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Submit Lesson Plan | Leaders International School ERP{% endblock %}
+
+{% block page_title %}New Lesson Plan{% endblock %}
+
+{% block extra_css %}
+.form-card {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.form-group {
+    margin-bottom: 22px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+}
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+}
+.form-textarea {
+    width: 100%;
+    height: 120px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+}
+.tab-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 1.5px solid var(--gray-200);
+    padding-bottom: 10px;
+}
+.tab-button {
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    font-weight: 600;
+    color: var(--gray-600);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+.tab-button.active {
+    background-color: var(--primary);
+    color: var(--white);
+}
+.btn-submit {
+    padding: 12px 25px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 46, 89, 0.15);
+}
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label" for="class_id">Select Class</label>
+                <select class="form-control" id="class_id" name="class_id" required>
+                    {% for c in classes %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="subject">Subject</label>
+                <input class="form-control" type="text" id="subject" name="subject" placeholder="e.g. Mathematics, Science" required>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label" for="date">Planned Date</label>
+                <input class="form-control" type="date" id="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="plan_type">Plan Submission Type</label>
+                <select class="form-control" id="plan_type" name="plan_type" onchange="toggleFormType(this.value)" required>
+                    <option value="UPLOAD">Upload Document (Word / PDF)</option>
+                    <option value="STRUCTURED">Fill Structured Cambridge Template</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Document Upload Fields -->
+        <div id="upload_section" class="form-group">
+            <label class="form-label" for="file">Upload Document</label>
+            <input type="file" id="file" name="file" class="form-control">
+            <p style="font-size: 0.8rem; color: var(--gray-600); margin-top: 5px;">Only Word documents (.doc, .docx) and PDF files (.pdf) are allowed.</p>
+        </div>
+
+        <!-- Structured Cambridge Fields -->
+        <div id="structured_section" style="display: none;">
+            <div class="form-group">
+                <label class="form-label" for="objectives">Objectives / Aims</label>
+                <textarea class="form-textarea" id="objectives" name="objectives" placeholder="What will the learners achieve..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="materials">Materials Needed</label>
+                <textarea class="form-textarea" id="materials" name="materials" placeholder="Resources, smart boards, workbooks..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="activities">Learning Activities</label>
+                <textarea class="form-textarea" id="activities" name="activities" placeholder="Introduction, main tasks, group works..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="evaluation">Evaluation / Assessment</label>
+                <textarea class="form-textarea" id="evaluation" name="evaluation" placeholder="How learning will be checked..."></textarea>
+            </div>
+        </div>
+
+        <div style="text-align: right; margin-top: 30px;">
+            <button type="submit" class="btn-submit">Submit Lesson Plan</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleFormType(val) {
+        const uploadSec = document.getElementById('upload_section');
+        const structSec = document.getElementById('structured_section');
+        const fileInput = document.getElementById('file');
+        
+        if (val === 'UPLOAD') {
+            uploadSec.style.display = 'block';
+            structSec.style.display = 'none';
+            fileInput.required = true;
+        } else {
+            uploadSec.style.display = 'none';
+            structSec.style.display = 'block';
+            fileInput.required = false;
+            fileInput.value = ''; // Clear file selection
+        }
+    }
+    
+    // Set default on load
+    document.addEventListener("DOMContentLoaded", function() {
+        toggleFormType(document.getElementById('plan_type').value);
+    });
+</script>
+{% endblock %}

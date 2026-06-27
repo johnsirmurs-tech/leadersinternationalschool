@@ -1,0 +1,172 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Early Years Progress | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Early Years Progress Entry{% endblock %}
+
+{% block extra_css %}
+.class-select-card {
+    background-color: var(--white);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 25px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+.student-progress-card {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 25px;
+}
+.level-selector-row {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+}
+.level-option {
+    flex: 1;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.level-option:hover {
+    border-color: var(--primary);
+    background-color: rgba(15, 46, 89, 0.02);
+}
+.level-option input {
+    margin-right: 5px;
+}
+.observation-box {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    margin-top: 5px;
+    resize: vertical;
+}
+.btn-save {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 46, 89, 0.15);
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="class-select-card">
+    <form method="GET" action="" style="display: flex; gap: 20px; align-items: center; width: 100%;">
+        <div>
+            <label class="form-label" style="font-weight: 700; display: block; margin-bottom: 5px;">Select Class:</label>
+            <select name="class_id" onchange="this.form.submit()" style="padding: 10px 12px; border-radius: var(--radius-md); border: 1.5px solid var(--gray-300); min-width: 250px;">
+                <option value="">-- Choose Early Years Class --</option>
+                {% for c in classes %}
+                    <option value="{{ c.id }}" {% if selected_class.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if selected_class %}
+            <div>
+                <label class="form-label" style="font-weight: 700; display: block; margin-bottom: 5px;">Select Student:</label>
+                <select name="student_id" onchange="this.form.submit()" style="padding: 10px 12px; border-radius: var(--radius-md); border: 1.5px solid var(--gray-300); min-width: 250px;">
+                    <option value="">-- Choose Student --</option>
+                    {% for s in students %}
+                        <option value="{{ s.id }}" {% if selected_student.id == s.id %}selected{% endif %}>{{ s.user.get_full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+    </form>
+</div>
+
+{% if selected_student %}
+    <div class="student-progress-card">
+        <h3 style="color: var(--primary); border-bottom: 1.5px solid var(--gray-200); padding-bottom: 15px; margin-bottom: 25px;">
+            <i class="fa-solid fa-child"></i> Observation Profile: {{ selected_student.user.get_full_name }} ({{ selected_student.student_id }})
+        </h3>
+
+        <form method="POST" action="{% url 'early_years_progress' %}?class_id={{ selected_class.id }}&student_id={{ selected_student.id }}">
+            {% csrf_token %}
+            <input type="hidden" name="student_id" value="{{ selected_student.id }}">
+
+            {% for area in learning_areas %}
+                {% with key=area %}
+                    <div style="margin-bottom: 30px; background-color: var(--gray-100); padding: 20px; border-radius: var(--radius-md); border-left: 4px solid var(--primary);">
+                        <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 10px;">{{ area }}</h4>
+                        
+                        <label class="form-label">Development Level</label>
+                        <div class="level-selector-row">
+                            <!-- Loop over levels -->
+                            <label class="level-option">
+                                <input type="radio" name="level_{{ area|cut:' ' }}" value="EMERGING">
+                                <span>Emerging (🟢)</span>
+                            </label>
+                            <label class="level-option">
+                                <input type="radio" name="level_{{ area|cut:' ' }}" value="DEVELOPING">
+                                <span>Developing (🟡)</span>
+                            </label>
+                            <label class="level-option">
+                                <input type="radio" name="level_{{ area|cut:' ' }}" value="SECURE">
+                                <span>Secure (🔵)</span>
+                            </label>
+                            <label class="level-option">
+                                <input type="radio" name="level_{{ area|cut:' ' }}" value="EXCEEDING">
+                                <span>Exceeding (⭐)</span>
+                            </label>
+                        </div>
+
+                        <label class="form-label" style="margin-top: 15px;">Observation Notes</label>
+                        <textarea class="observation-box" name="obs_{{ area|cut:' ' }}" placeholder="e.g. counting upto 100 with minimal assistance"></textarea>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+
+            <div style="text-align: right; margin-top: 30px;">
+                <button type="submit" class="btn-save">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Save All Observations
+                </button>
+            </div>
+        </form>
+    </div>
+{% else %}
+    <div class="content-card" style="text-align: center; padding: 50px; color: var(--gray-600);">
+        <i class="fa-solid fa-users" style="font-size: 3rem; margin-bottom: 15px; color: var(--primary);"></i>
+        <p>Please select a Class and then a Student to enter early childhood progress observations.</p>
+    </div>
+{% endif %}
+{% endblock %}

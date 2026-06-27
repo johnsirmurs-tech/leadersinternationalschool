@@ -1,0 +1,39 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Student Dashboard | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Student Dashboard{% endblock %}
+
+{% block sidebar_items %}
+<li><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Pending Homework</h4>
+            <h2>3</h2>
+        </div>
+        <div class="card-icon card-icon-gold">
+            <i class="fa-solid fa-clock"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Attendance Rate</h4>
+            <h2>94.2%</h2>
+        </div>
+        <div class="card-icon card-icon-green">
+            <i class="fa-solid fa-percent"></i>
+        </div>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="card-header-flex">
+        <h4>Student Learning Portal</h4>
+    </div>
+    <p>Welcome to your portal. In Phase 2, you will be able to see homework details, download worksheets, check your attendance, and view academic results once they are officially released.</p>
+</div>
+{% endblock %}

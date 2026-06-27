@@ -1,0 +1,121 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Review Lesson Plan | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Review Lesson Plan{% endblock %}
+
+{% block extra_css %}
+.review-card {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.details-section {
+    margin-bottom: 25px;
+    border-bottom: 1.5px solid var(--gray-200);
+    padding-bottom: 15px;
+}
+.details-section h4 {
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+.details-section p {
+    color: var(--dark);
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+.form-textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+}
+.btn-approve {
+    padding: 10px 20px;
+    background-color: var(--success);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+}
+.btn-return {
+    padding: 10px 20px;
+    background-color: var(--danger);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 10px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="review-card">
+    <h3 style="color: var(--primary); margin-bottom: 20px;">Reviewing Submission</h3>
+    
+    <div class="details-section">
+        <h4>General Information</h4>
+        <p><b>Teacher:</b> {{ plan.teacher.get_full_name }}</p>
+        <p><b>Subject:</b> {{ plan.subject }}</p>
+        <p><b>Class:</b> {{ plan.class_obj.name }}</p>
+        <p><b>Date:</b> {{ plan.date }}</p>
+    </div>
+
+    {% if plan.plan_type == 'UPLOAD' %}
+        <div class="details-section">
+            <h4>Uploaded Document</h4>
+            <a href="{{ plan.file.url }}" download class="btn-approve" style="text-decoration: none; display: inline-block; background-color: var(--primary);">
+                <i class="fa-solid fa-download"></i> Download Document
+            </a>
+        </div>
+    {% else %}
+        <div class="details-section">
+            <h4>Objectives</h4>
+            <p>{{ plan.objectives|linebreaks }}</p>
+        </div>
+        <div class="details-section">
+            <h4>Materials Needed</h4>
+            <p>{{ plan.materials|linebreaks }}</p>
+        </div>
+        <div class="details-section">
+            <h4>Learning Activities</h4>
+            <p>{{ plan.activities|linebreaks }}</p>
+        </div>
+        <div class="details-section">
+            <h4>Evaluation / Homework</h4>
+            <p>{{ plan.evaluation|linebreaks }}</p>
+        </div>
+    {% endif %}
+
+    <!-- Reviewer form -->
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="comments">Review Comments / Feedback</label>
+            <textarea class="form-textarea" id="comments" name="comments" placeholder="Provide feedback (Required if returning plan)..."></textarea>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <button type="submit" name="action" value="APPROVE" class="btn-approve">Approve Lesson Plan</button>
+            <button type="submit" name="action" value="RETURN" class="btn-return">Return with Comment</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

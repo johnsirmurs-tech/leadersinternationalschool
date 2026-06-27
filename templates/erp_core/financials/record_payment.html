@@ -1,0 +1,661 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Record Payment | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Record Payment{% endblock %}
+
+{% block extra_css %}
+.banner-description {
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    margin-bottom: 25px;
+}
+.payment-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1.4fr;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+.payment-card {
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+}
+.payment-card-title {
+    color: var(--primary);
+    font-weight: 750;
+    font-size: 1.15rem;
+    margin-bottom: 5px;
+}
+.payment-card-subtitle {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    margin-bottom: 20px;
+}
+.form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 750;
+    color: var(--primary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    background-color: var(--white);
+}
+.form-control:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+.balance-preview-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.balance-box {
+    background-color: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 15px;
+    text-align: left;
+}
+.balance-box h4 {
+    font-size: 0.7rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    font-weight: 750;
+}
+.balance-box h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin: 0;
+}
+.sub-table-title {
+    font-size: 0.85rem;
+    font-weight: 750;
+    color: var(--primary);
+    margin: 15px 0 8px 0;
+}
+.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin-bottom: 15px;
+}
+.preview-table th, .preview-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--gray-200);
+    text-align: left;
+}
+.preview-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 750;
+}
+.split-payment-box {
+    border: 1.5px dashed var(--gray-300);
+    border-radius: var(--radius-md);
+    padding: 15px;
+    margin-top: 15px;
+    background-color: #fafbfc;
+}
+.badge-amount {
+    background-color: var(--gray-100);
+    border: 1px solid var(--gray-300);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+    margin-right: 8px;
+    color: var(--primary);
+}
+.badge-amount i {
+    margin-right: 5px;
+}
+.split-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 10px;
+    margin-top: 10px;
+    align-items: center;
+}
+.btn-action {
+    padding: 8px 16px;
+    border: 1px solid var(--gray-300);
+    background-color: var(--white);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    transition: all 0.2s ease;
+}
+.btn-action:hover {
+    background-color: var(--gray-100);
+}
+.btn-save-payment {
+    width: 100%;
+    padding: 12px;
+    background-color: #1e40af;
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 750;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-top: 15px;
+}
+.btn-save-payment:hover {
+    background-color: #1e3a8a;
+}
+.history-card {
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 30px;
+}
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.85rem;
+}
+.history-table th, .history-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.history-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 750;
+    font-size: 0.8rem;
+}
+.history-table tr:hover {
+    background-color: var(--gray-100);
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<p class="banner-description">Enter the payment source, amount, and allocation method. The preview updates based on the class, student, term, and year you choose.</p>
+
+<div class="payment-grid">
+    <!-- Left Column: Record Payment Form -->
+    <div class="payment-card">
+        <h3 class="payment-card-title">Record Payment</h3>
+        <p class="payment-card-subtitle">Complete the fields below to apply fee payments to the student's ledger.</p>
+
+        <form method="POST" id="paymentForm" onsubmit="return validateAllocation()">
+            {% csrf_token %}
+            
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label" for="class_id">Class</label>
+                    <select id="class_id" class="form-control" onchange="filterStudents(this.value)">
+                        <option value="">Select class</option>
+                        {% for c in classes %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="student_id">Student</label>
+                    <select name="student_id" id="student_id" class="form-control" onchange="fetchStudentDues(this.value)" required>
+                        <option value="">Select student</option>
+                        {% for s in students %}
+                            <option value="{{ s.id }}" data-class-id="{{ s.current_class.id }}">{{ s.user.get_full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label" for="term">Term</label>
+                    <select name="term" id="term" class="form-control" onchange="triggerDuesRefresh()">
+                        <option value="Term 1" selected>Term 1</option>
+                        <option value="Term 2">Term 2</option>
+                        <option value="Term 3">Term 3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="year">Year</label>
+                    <input type="number" name="year" id="year" class="form-control" value="2026" onchange="triggerDuesRefresh()" required>
+                </div>
+            </div>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label" for="payment_method">Payment Method</label>
+                    <select name="payment_method" id="payment_method" class="form-control">
+                        <option value="CASH">Cash</option>
+                        <option value="BANK">Bank Transfer</option>
+                        <option value="MOBILE">Mobile Money</option>
+                        <option value="CHEQUE">Cheque</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="amount_paid">Total Amount Paid</label>
+                    <input type="number" step="100" name="amount_paid" id="amount_paid" class="form-control" oninput="updateEnteredBadge(this.value)" placeholder="e.g. 500000" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="allocation_mode">Allocation Mode</label>
+                <select name="allocation_mode" id="allocation_mode" class="form-control" onchange="toggleAllocationSplit(this.value)">
+                    <option value="auto" selected>Oldest-first (Automatic)</option>
+                    <option value="manual">Manual</option>
+                </select>
+                <span style="font-size: 0.75rem; color: var(--gray-600); margin-top: 5px; display: block;">Oldest-first allocates from the oldest arrears first. Manual lets you choose specific year, term, and vote head rows yourself.</span>
+            </div>
+
+            <!-- Manual Allocation Split Section -->
+            <div class="split-payment-box" id="splitPaymentAllocationSection" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-size: 0.8rem; font-weight: 750; color: var(--primary); text-transform: uppercase;">Split Payment Allocation</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn-action" onclick="fillFromBalance()"><i class="fa-solid fa-magic"></i> Fill From Balance</button>
+                        <button type="button" class="btn-action" onclick="addSplitRow()"><i class="fa-solid fa-plus"></i> Add Row</button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <span class="badge-amount" id="enteredBadge"><i class="fa-solid fa-coins"></i> Amount entered: 0.00</span>
+                    <span class="badge-amount" id="allocatedBadge"><i class="fa-solid fa-chart-pie"></i> Allocated total: 0.00</span>
+                </div>
+
+                <div id="splitRowsContainer">
+                    <!-- Dynamic allocation rows will go here -->
+                </div>
+                
+                <span style="font-size: 0.75rem; color: var(--gray-500); display: block; margin-top: 10px;">Tip: The split total should match the total amount paid before you save.</span>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label class="form-label" for="notes">Notes / Remarks</label>
+                <textarea name="notes" id="notes" class="form-control" rows="2" placeholder="Reference notes..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-save-payment"><i class="fa-solid fa-save"></i> Save Payment</button>
+        </form>
+    </div>
+
+    <!-- Right Column: Balance Preview -->
+    <div class="payment-card">
+        <h3 class="payment-card-title">Balance Preview</h3>
+        <p class="payment-card-subtitle">Keep current dues, amounts already paid, and arrears visible while entering the payment.</p>
+
+        <div class="balance-preview-container">
+            <div class="balance-box">
+                <h4>Total Due</h4>
+                <h2 id="totalDueLabel">0.00</h2>
+            </div>
+            <div class="balance-box">
+                <h4>Already Paid</h4>
+                <h2 id="alreadyPaidLabel">0.00</h2>
+            </div>
+            <div class="balance-box">
+                <h4>Balance</h4>
+                <h2 id="balanceLabel" style="color: #dc3545;">0.00</h2>
+            </div>
+        </div>
+
+        <h4 class="sub-table-title">Due By Vote Head</h4>
+        <table class="preview-table">
+            <thead>
+                <tr>
+                    <th>Vote Head</th>
+                    <th style="text-align: right;">Due</th>
+                    <th style="text-align: right;">Paid</th>
+                    <th style="text-align: right;">Balance</th>
+                </tr>
+            </thead>
+            <tbody id="dueVoteHeadBody">
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--gray-600);">No due vote heads for this selection.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4 class="sub-table-title">Outstanding Arrears</h4>
+        <table class="preview-table">
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Term</th>
+                    <th>Vote Head</th>
+                    <th style="text-align: right;">Balance</th>
+                </tr>
+            </thead>
+            <tbody id="arrearsBody">
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--gray-600);">No outstanding arrears up to this selection.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Bottom Row: Recent Payments -->
+<div class="history-card">
+    <h3 class="payment-card-title">Recent Payment History</h3>
+    <p class="payment-card-subtitle" style="margin-bottom: 15px;">Recent transactions remain visible here so finance users can verify what has already been posted and open receipts when needed.</p>
+
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Term</th>
+                <th>Year</th>
+                <th style="text-align: right;">Amount</th>
+                <th>Method</th>
+                <th>Receipt</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in recent_payments %}
+                <tr>
+                    <td>{{ payment.created_at|date:"Y-m-d H:i" }}</td>
+                    <td style="font-weight: 700; color: var(--primary);">{{ payment.student.user.get_full_name }}</td>
+                    <td>{{ payment.student.current_class.name }}</td>
+                    <td>{{ payment.fee_structure.due_term|default:"Termly/Lifetime" }}</td>
+                    <td>{{ payment.fee_structure.year }}</td>
+                    <td style="text-align: right; font-weight: 700; color: var(--primary);">TZS {{ payment.amount_paid }}</td>
+                    <td>{{ payment.get_payment_method_display }}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--accent);">{{ payment.receipt_number }}</td>
+                    <td>
+                        <a href="{% url 'view_receipt' payment.receipt_number %}" class="btn-action" style="text-decoration: none; padding: 4px 8px; font-size: 0.75rem;"><i class="fa-solid fa-eye"></i> View</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: var(--gray-600); padding: 30px;">No payments recorded yet.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+let fetchedDuesItems = [];
+
+function filterStudents(classId) {
+    const studentSelect = document.getElementById('student_id');
+    const options = studentSelect.querySelectorAll('option');
+    studentSelect.value = "";
+    
+    options.forEach(opt => {
+        if (!opt.value) return;
+        const optClassId = opt.getAttribute('data-class-id');
+        if (!classId || optClassId === classId) {
+            opt.style.display = 'block';
+        } else {
+            opt.style.display = 'none';
+        }
+    });
+}
+
+function triggerDuesRefresh() {
+    const studentId = document.getElementById('student_id').value;
+    if (studentId) {
+        fetchStudentDues(studentId);
+    }
+}
+
+function fetchStudentDues(studentId) {
+    if (!studentId) {
+        clearBalancePreview();
+        return;
+    }
+    const term = document.getElementById('term').value;
+    const year = document.getElementById('year').value;
+    
+    fetch(`/financials/fees/payment/get-dues/${studentId}/?term=${encodeURIComponent(term)}&year=${encodeURIComponent(year)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            fetchedDuesItems = data.items;
+            
+            // Update balance summary box
+            document.getElementById('totalDueLabel').innerText = data.total_due.toLocaleString();
+            document.getElementById('alreadyPaidLabel').innerText = data.already_paid.toLocaleString();
+            document.getElementById('balanceLabel').innerText = data.balance.toLocaleString();
+            
+            // Build Due by Vote Head table (current items)
+            const dueVoteHeadBody = document.getElementById('dueVoteHeadBody');
+            dueVoteHeadBody.innerHTML = "";
+            
+            const currentItems = data.items.filter(item => item.is_current);
+            if (currentItems.length === 0) {
+                dueVoteHeadBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--gray-600);">No due vote heads for this selection.</td></tr>`;
+            } else {
+                currentItems.forEach(item => {
+                    dueVoteHeadBody.innerHTML += `
+                        <tr>
+                            <td style="font-weight: 700; color: var(--primary);">${item.vote_head}</td>
+                            <td style="text-align: right;">${item.due.toLocaleString()}</td>
+                            <td style="text-align: right;">${item.paid.toLocaleString()}</td>
+                            <td style="text-align: right; font-weight: 700; color: #dc3545;">${item.balance.toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            // Build Arrears table
+            const arrearsBody = document.getElementById('arrearsBody');
+            arrearsBody.innerHTML = "";
+            const arrearItems = data.items.filter(item => !item.is_current && item.balance > 0);
+            if (arrearItems.length === 0) {
+                arrearsBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--gray-600);">No outstanding arrears up to this selection.</td></tr>`;
+            } else {
+                arrearItems.forEach(item => {
+                    arrearsBody.innerHTML += `
+                        <tr>
+                            <td>${item.year}</td>
+                            <td>${item.term}</td>
+                            <td style="font-weight: 700; color: var(--primary);">${item.vote_head}</td>
+                            <td style="text-align: right; font-weight: 700; color: #dc3545;">${item.balance.toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            // Rebuild manual split list options if Manual mode is active
+            if (document.getElementById('allocation_mode').value === 'manual') {
+                rebuildManualSplitOptions();
+            }
+        });
+}
+
+function clearBalancePreview() {
+    document.getElementById('totalDueLabel').innerText = "0.00";
+    document.getElementById('alreadyPaidLabel').innerText = "0.00";
+    document.getElementById('balanceLabel').innerText = "0.00";
+    document.getElementById('dueVoteHeadBody').innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--gray-600);">No due vote heads for this selection.</td></tr>`;
+    document.getElementById('arrearsBody').innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--gray-600);">No outstanding arrears up to this selection.</td></tr>`;
+    fetchedDuesItems = [];
+}
+
+function toggleAllocationSplit(val) {
+    const sec = document.getElementById('splitPaymentAllocationSection');
+    if (val === 'manual') {
+        sec.style.display = 'block';
+        rebuildManualSplitOptions();
+    } else {
+        sec.style.display = 'none';
+    }
+}
+
+function updateEnteredBadge(val) {
+    const parsed = parseFloat(val) || 0;
+    document.getElementById('enteredBadge').innerHTML = `<i class="fa-solid fa-coins"></i> Amount entered: ${parsed.toLocaleString()}`;
+}
+
+function addSplitRow(defaultFsId = "", defaultAmt = 0) {
+    const container = document.getElementById('splitRowsContainer');
+    const index = container.children.length;
+    
+    let optionsHtml = `<option value="">Select allocation target</option>`;
+    fetchedDuesItems.forEach(item => {
+        const isSelected = (defaultFsId && item.id.toString() === defaultFsId.toString()) ? "selected" : "";
+        optionsHtml += `<option value="${item.id}" ${isSelected}>${item.year} - ${item.term} - ${item.vote_head} (Bal: ${item.balance})</option>`;
+    });
+    
+    const rowHtml = `
+        <div class="split-row" id="split_row_${index}">
+            <select name="fs_target_${index}" class="form-control fs-selector-item" onchange="calculateAllocatedTotal()" required>
+                ${optionsHtml}
+            </select>
+            <input type="number" name="amount_fs_placeholder" class="form-control fs-amount-item" value="${defaultAmt || ''}" placeholder="Amount" oninput="syncFieldName(this, ${index})" required>
+            <button type="button" class="btn-action" style="color: #dc3545;" onclick="removeSplitRow(${index})"><i class="fa-solid fa-trash"></i> Remove</button>
+        </div>
+    `;
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = rowHtml;
+    container.appendChild(tempDiv.firstElementChild);
+    
+    // Sync the input name initially if a default value is supplied
+    if (defaultFsId) {
+        const row = container.lastElementChild;
+        const selector = row.querySelector('.fs-selector-item');
+        const amtInput = row.querySelector('.fs-amount-item');
+        amtInput.name = `amount_fs_${defaultFsId}`;
+    }
+    
+    calculateAllocatedTotal();
+}
+
+function syncFieldName(inputElem, index) {
+    const row = document.getElementById(`split_row_${index}`);
+    const selector = row.querySelector('.fs-selector-item');
+    const fsId = selector.value;
+    if (fsId) {
+        inputElem.name = `amount_fs_${fsId}`;
+    } else {
+        inputElem.name = "amount_fs_placeholder";
+    }
+    calculateAllocatedTotal();
+}
+
+function removeSplitRow(index) {
+    const row = document.getElementById(`split_row_${index}`);
+    if (row) {
+        row.remove();
+    }
+    calculateAllocatedTotal();
+}
+
+function calculateAllocatedTotal() {
+    const container = document.getElementById('splitRowsContainer');
+    let total = 0;
+    const amountInputs = container.querySelectorAll('.fs-amount-item');
+    amountInputs.forEach(input => {
+        total += parseFloat(input.value) || 0;
+    });
+    document.getElementById('allocatedBadge').innerHTML = `<i class="fa-solid fa-chart-pie"></i> Allocated total: ${total.toLocaleString()}`;
+}
+
+function rebuildManualSplitOptions() {
+    const container = document.getElementById('splitRowsContainer');
+    container.innerHTML = "";
+    calculateAllocatedTotal();
+}
+
+function fillFromBalance() {
+    const enteredAmt = parseFloat(document.getElementById('amount_paid').value) || 0;
+    if (enteredAmt <= 0) {
+        alert("Please enter a total amount paid first.");
+        return;
+    }
+    
+    const container = document.getElementById('splitRowsContainer');
+    container.innerHTML = "";
+    
+    // Allocate to outstanding items (oldest first)
+    let remaining = enteredAmt;
+    
+    // Sort items by year, then term/id to match oldest-first logic
+    const sortedItems = [...fetchedDuesItems].sort((a,b) => {
+        if (a.year !== b.year) return a.year.localeCompare(b.year);
+        return a.id - b.id;
+    });
+    
+    sortedItems.forEach((item, index) => {
+        if (remaining <= 0) return;
+        if (item.balance > 0) {
+            const allocate = Math.min(remaining, item.balance);
+            addSplitRow(item.id, allocate);
+            remaining -= allocate;
+        }
+    });
+    
+    // If there is still remaining payment, allocate it to the first item
+    if (remaining > 0 && sortedItems.length > 0) {
+        // Find if a row for this first item already exists and add the remaining to it
+        const firstItem = sortedItems[0];
+        addSplitRow(firstItem.id, remaining);
+    }
+}
+
+function validateAllocation() {
+    const mode = document.getElementById('allocation_mode').value;
+    if (mode === 'manual') {
+        const enteredAmt = parseFloat(document.getElementById('amount_paid').value) || 0;
+        
+        let allocatedTotal = 0;
+        const container = document.getElementById('splitRowsContainer');
+        const amountInputs = container.querySelectorAll('.fs-amount-item');
+        amountInputs.forEach(input => {
+            allocatedTotal += parseFloat(input.value) || 0;
+        });
+        
+        if (Math.abs(enteredAmt - allocatedTotal) > 0.01) {
+            alert(`Validation Error: The split total (TZS ${allocatedTotal.toLocaleString()}) does not match the entered Amount Paid (TZS ${enteredAmt.toLocaleString()}). Please adjust before saving.`);
+            return false;
+        }
+    }
+    return true;
+}
+</script>
+{% endblock %}

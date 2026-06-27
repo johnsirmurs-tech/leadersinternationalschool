@@ -1,0 +1,205 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Operational Expenses | Leaders International School ERP{% endblock %}
+
+{% block page_title %}School Operational Expenses{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.form-card {
+    flex: 1;
+    min-width: 320px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.list-card {
+    flex: 2;
+    min-width: 500px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+}
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 750;
+    cursor: pointer;
+}
+.expense-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.expense-table th, .expense-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.expense-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 700;
+}
+.receipt-badge {
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.receipt-ok { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
+.receipt-missing { background-color: rgba(220, 53, 69, 0.15); color: var(--danger); }
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="flex-container" style="margin-bottom: 30px;">
+    <div class="summary-card" style="flex: 1; max-width: 300px;">
+        <div class="card-details">
+            <h4>Total Operational Outflow</h4>
+            <h2>TZS {{ total_amount }}</h2>
+        </div>
+        <div class="card-icon card-icon-red">
+            <i class="fa-solid fa-arrow-trend-down"></i>
+        </div>
+    </div>
+</div>
+
+<div class="flex-container">
+    {% if is_accountant %}
+    <div class="form-card">
+        <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px;">
+            <i class="fa-solid fa-plus-circle"></i> Log operational Expense
+        </h3>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="category">Category:</label>
+                <select name="category" id="category" class="form-control" required>
+                    <option value="UTILITIES">Utilities (Water, Power)</option>
+                    <option value="SUPPLIES">Supplies (Stationery, Books)</option>
+                    <option value="MAINTENANCE">Maintenance & Repairs</option>
+                    <option value="TRANSPORT">School Transport Fuel</option>
+                    <option value="EVENTS">School Events / Seminars</option>
+                    <option value="OTHER">Other Operational Expense</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="amount">Amount (TZS):</label>
+                <input type="number" step="100" name="amount" id="amount" class="form-control" placeholder="e.g. 150000" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="paid_to">Recipient / Payee:</label>
+                <input type="text" name="paid_to" id="paid_to" class="form-control" placeholder="e.g. TANESCO" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="payment_method">Payment Method:</label>
+                <input type="text" name="payment_method" id="payment_method" class="form-control" placeholder="e.g. Mobile Money" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reference_number">Reference Number:</label>
+                <input type="text" name="reference_number" id="reference_number" class="form-control" placeholder="e.g. MP-12837">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">Expense Details / Description:</label>
+                <textarea name="description" id="description" class="form-control" rows="2" placeholder="Describe the operational cost..." required></textarea>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 15px;">
+                <input type="checkbox" name="receipt_attached" id="receipt_attached">
+                <label for="receipt_attached" style="font-weight: 700; color: var(--primary); font-size: 0.85rem; cursor: pointer;">
+                    Physical Receipt Attached / Verified
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Record Expense
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="list-card">
+        <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px;">
+            <i class="fa-solid fa-history"></i> Expense Ledger Logs
+        </h3>
+
+        <table class="expense-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Recipient</th>
+                    <th style="text-align: right;">Amount</th>
+                    <th style="text-align: center;">Receipt Attached</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in expenses %}
+                    <tr>
+                        <td>{{ e.date }}</td>
+                        <td style="font-weight: 600;">{{ e.get_category_display }}</td>
+                        <td>{{ e.paid_to }}</td>
+                        <td style="text-align: right; font-weight: 700; color: var(--danger);">TZS {{ e.amount }}</td>
+                        <td style="text-align: center;">
+                            {% if e.receipt_attached %}
+                                <span class="receipt-badge receipt-ok">✅ Verified</span>
+                            {% else %}
+                                <span class="receipt-badge receipt-missing">❌ Missing</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--gray-600); padding: 30px;">No operational expenses logged.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

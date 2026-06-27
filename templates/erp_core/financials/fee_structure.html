@@ -1,0 +1,410 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Fee Structure | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Fee Structure{% endblock %}
+
+{% block extra_css %}
+.fee-header-banner {
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 20px 25px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+.school-badge {
+    background-color: #e6f0fa;
+    color: #0d6efd;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-block;
+    margin-top: 8px;
+}
+.btn-print {
+    background-color: var(--white);
+    border: 1px solid var(--gray-300);
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    color: var(--primary);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+.btn-print:hover {
+    background-color: var(--gray-100);
+}
+.two-col-layout {
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+.setup-card {
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+}
+.setup-card-title {
+    color: var(--primary);
+    font-weight: 750;
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+    border-bottom: 1.5px solid var(--gray-200);
+    padding-bottom: 10px;
+}
+.setup-subtitle {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.85rem;
+}
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    background-color: var(--white);
+}
+.form-control:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+.checkbox-pill-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+.checkbox-pill-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: var(--white);
+    user-select: none;
+    transition: all 0.2s ease;
+}
+.checkbox-pill-label:hover {
+    border-color: var(--primary-light);
+    background-color: var(--gray-100);
+}
+.checkbox-pill-label input[type="checkbox"],
+.checkbox-pill-label input[type="radio"] {
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+.btn-save-vote {
+    width: 100%;
+    padding: 12px;
+    background-color: #1e40af;
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 750;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.2s ease;
+}
+.btn-save-vote:hover {
+    background-color: #1e3a8a;
+}
+.bottom-table-card {
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 30px;
+}
+.vote-head-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.vote-head-table th, .vote-head-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 0.85rem;
+}
+.vote-head-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 750;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+.vote-head-table tr:hover {
+    background-color: var(--gray-100);
+}
+.billing-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.billing-badge-yearly { background-color: #e2e8f0; color: #475569; }
+.billing-badge-termly { background-color: #dbeafe; color: #1e40af; }
+.billing-badge-lifetime { background-color: #d1fae5; color: #065f46; }
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="fee-header-banner">
+    <div>
+        <h2 style="color: var(--primary); font-weight: 800; font-size: 1.5rem; margin: 0;">Fee Structure</h2>
+        <p style="color: var(--gray-600); font-size: 0.85rem; margin: 3px 0 0 0;">Build vote heads, term schedules, and class mappings.</p>
+        <span class="school-badge">School: LEADERS INTERNATIONAL SCHOOL</span>
+    </div>
+    <div>
+        <button class="btn-print" onclick="window.print()">
+            <i class="fa-solid fa-print"></i> Print Fee Structure
+        </button>
+    </div>
+</div>
+
+<div class="two-col-layout">
+    <!-- Left Column: Add or Update Vote Head -->
+    <div class="setup-card">
+        <h3 class="setup-card-title">Add Or Update Vote Head</h3>
+        <p class="setup-subtitle">Selecting an existing vote head prefills this form. Saving creates a new entry unless an explicit record ID is submitted.</p>
+
+        <form method="POST" id="voteHeadForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label class="form-label" for="vote_head">Vote Head</label>
+                <input type="text" name="vote_head" id="vote_head" list="vote_heads_list" class="form-control" placeholder="Select existing or type new vote head" required>
+                <datalist id="vote_heads_list">
+                    <option value="Tuition Fee">
+                    <option value="Lunch Fee">
+                    <option value="Transport Fee">
+                    <option value="Exam Fee">
+                    <option value="Boarding Fee">
+                    <option value="Uniform Fee">
+                    <option value="Admission Fee">
+                </datalist>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="amount">Amount</label>
+                    <input type="number" step="100" name="amount" id="amount" class="form-control" placeholder="e.g. 500000" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="year">Year</label>
+                    <input type="number" name="year" id="year" class="form-control" value="2026" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="billing_mode">Billing Mode</label>
+                <select name="billing_mode" id="billing_mode" class="form-control" onchange="toggleDueTerm(this.value)">
+                    <option value="YEARLY">Once a year</option>
+                    <option value="TERMLY" selected>Termly</option>
+                    <option value="LIFETIME">One-time Lifetime Fee</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="dueTermGroup" style="display: none;">
+                <label class="form-label" for="due_term">Due Term (Once a year)</label>
+                <select name="due_term" id="due_term" class="form-control">
+                    <option value="">Select term</option>
+                    <option value="Term 1">Term 1</option>
+                    <option value="Term 2">Term 2</option>
+                    <option value="Term 3">Term 3</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin: 15px 0;">
+                <input type="checkbox" name="is_one_time" id="is_one_time" style="cursor: pointer;">
+                <label for="is_one_time" style="font-size: 0.85rem; font-weight: 600; color: var(--primary); cursor: pointer;">
+                    One-Time Lifetime Fee <span style="font-weight: 500; color: var(--gray-600);">(if checked, this fee is only billed once in the student's admission term and year)</span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Applicable Classes</label>
+                <div class="checkbox-pill-grid">
+                    {% for c in classes %}
+                        <label class="checkbox-pill-label">
+                            <input type="checkbox" name="class_ids" value="{{ c.id }}">
+                            <span>{{ c.name }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); display: block; margin-top: 8px;">Only classes in LEADERS INTERNATIONAL SCHOOL are listed.</span>
+            </div>
+
+            <button type="submit" class="btn-save-vote">Save Vote Head</button>
+        </form>
+    </div>
+
+    <!-- Right Column: Filter -->
+    <div class="setup-card">
+        <h3 class="setup-card-title">Filter</h3>
+        <p class="setup-subtitle">Refine the listed active vote heads below.</p>
+
+        <form method="GET">
+            <div class="form-group">
+                <label class="form-label" for="filter_term">Term</label>
+                <select name="term" id="filter_term" class="form-control">
+                    <option value="ALL" {% if filter_term == 'ALL' %}selected{% endif %}>All Terms</option>
+                    <option value="Term 1" {% if filter_term == 'Term 1' %}selected{% endif %}>Term 1</option>
+                    <option value="Term 2" {% if filter_term == 'Term 2' %}selected{% endif %}>Term 2</option>
+                    <option value="Term 3" {% if filter_term == 'Term 3' %}selected{% endif %}>Term 3</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="filter_year">Year</label>
+                <input type="number" name="year" id="filter_year" class="form-control" value="{{ filter_year|default:'2026' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Class / Group of Classes</label>
+                <div class="checkbox-pill-grid">
+                    <label class="checkbox-pill-label">
+                        <input type="radio" name="class_id" value="" {% if not filter_class %}checked{% endif %}>
+                        <span>All Classes</span>
+                    </label>
+                    {% for c in classes %}
+                        <label class="checkbox-pill-label">
+                            <input type="radio" name="class_id" value="{{ c.id }}" {% if filter_class == c.id|stringformat:"s" %}checked{% endif %}>
+                            <span>{{ c.name }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn-save-vote" style="background-color: var(--accent); margin-top: 15px;">Apply Filter</button>
+        </form>
+    </div>
+</div>
+
+<!-- Bottom Column: Vote Head Records -->
+<div class="bottom-table-card">
+    <h3 class="setup-card-title" style="border: none; margin-bottom: 0;">Vote Heads</h3>
+    
+    <table class="vote-head-table">
+        <thead>
+            <tr>
+                <th>Vote Head</th>
+                <th style="text-align: right;">Amount</th>
+                <th>Year</th>
+                <th>Billing</th>
+                <th>Terms</th>
+                <th>Classes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fs in fee_structures %}
+                <tr>
+                    <td style="font-weight: 700; color: var(--primary);">{{ fs.vote_head }}</td>
+                    <td style="text-align: right; font-weight: 700; color: var(--primary);">TZS {{ fs.amount }}</td>
+                    <td>{{ fs.year }}</td>
+                    <td>
+                        <span class="billing-badge billing-badge-{{ fs.billing_mode|lower }}">
+                            {{ fs.get_billing_mode_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if fs.billing_mode == 'YEARLY' %}
+                            {{ fs.due_term|default:"-" }}
+                        {% elif fs.billing_mode == 'TERMLY' %}
+                            All Terms
+                        {% else %}
+                            Lifetime
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600; color: var(--accent);">{{ fs.class_obj.name }}</td>
+                    <td>
+                        <button onclick="prefillForm('{{ fs.vote_head }}', '{{ fs.amount }}', '{{ fs.year }}', '{{ fs.billing_mode }}', '{{ fs.due_term|default:'' }}', '{{ fs.is_one_time|yesno:'true,false' }}', '{{ fs.class_obj.id }}')" style="background: none; border: none; color: #0d6efd; font-weight: 700; cursor: pointer; font-size: 0.8rem;">
+                            <i class="fa-solid fa-edit"></i> Edit
+                        </button>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--gray-600); padding: 30px; font-weight: 600;">No vote heads found for this school.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function toggleDueTerm(val) {
+    const dueTermGroup = document.getElementById('dueTermGroup');
+    if (val === 'YEARLY') {
+        dueTermGroup.style.display = 'block';
+    } else {
+        dueTermGroup.style.display = 'none';
+    }
+}
+
+function prefillForm(voteHead, amount, year, billingMode, dueTerm, isOneTime, classId) {
+    document.getElementById('vote_head').value = voteHead;
+    document.getElementById('amount').value = parseFloat(amount);
+    document.getElementById('year').value = year;
+    document.getElementById('billing_mode').value = billingMode;
+    toggleDueTerm(billingMode);
+    
+    if (dueTerm) {
+        document.getElementById('due_term').value = dueTerm;
+    }
+    
+    document.getElementById('is_one_time').checked = (isOneTime === 'true');
+    
+    // Check corresponding class checkbox
+    const checkboxes = document.getElementsByName('class_ids');
+    checkboxes.forEach(cb => {
+        cb.checked = (cb.value === classId);
+    });
+}
+</script>
+{% endblock %}

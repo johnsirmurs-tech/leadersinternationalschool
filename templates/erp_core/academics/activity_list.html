@@ -1,0 +1,119 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Activities | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Class Activities (Auto-Graded MCQ){% endblock %}
+
+{% block extra_css %}
+.plan-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+.btn-create {
+    padding: 10px 20px;
+    background-color: var(--accent);
+    color: var(--primary);
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+}
+.activities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+.activity-card {
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.activity-header h4 {
+    color: var(--primary);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+.activity-header span {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.btn-action {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    background-color: var(--primary);
+    color: var(--white);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    margin-top: 20px;
+}
+.btn-action:hover {
+    background-color: var(--primary-light);
+}
+.completed-text {
+    text-align: center;
+    color: var(--success);
+    font-weight: 700;
+    margin-top: 20px;
+    font-size: 0.95rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="plan-actions-row">
+    <h3 style="color: var(--primary);">Auto-Graded Activities</h3>
+    {% if is_teacher %}
+        <a href="{% url 'create_activity' %}" class="btn-create">
+            <i class="fa-solid fa-plus"></i> Create New Activity
+        </a>
+    {% endif %}
+</div>
+
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(26, 70, 128, 0.1); border: 1px solid var(--primary); color: var(--primary);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="activities-grid">
+    {% for activity in activities %}
+        <div class="activity-card">
+            <div class="activity-header">
+                <span>{{ activity.subject }} | {{ activity.class_obj.name }}</span>
+                <h4>{{ activity.title }}</h4>
+                <p style="font-size: 0.85rem; color: var(--gray-600); margin-top: 5px;">
+                    <i class="fa-solid fa-calendar-days"></i> Due: {{ activity.due_date }}
+                </p>
+            </div>
+            
+            {% if is_student %}
+                <!-- Check if student submitted -->
+                <a href="{% url 'take_activity' activity.id %}" class="btn-action">Take Assessment</a>
+            {% else %}
+                <span class="completed-text" style="color: var(--primary-light);">
+                    <i class="fa-solid fa-users-rectangle"></i> {{ activity.submissions.count }} Submissions
+                </span>
+            {% endif %}
+        </div>
+    {% empty %}
+        <div class="content-card" style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--gray-600);">
+            <i class="fa-solid fa-clipboard-question" style="font-size: 2.5rem; margin-bottom: 15px; color: var(--primary);"></i>
+            <p>No auto-graded MCQ activities created yet.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

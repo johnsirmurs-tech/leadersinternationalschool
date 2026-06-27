@@ -1,0 +1,238 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Payslip | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Payslip Detail{% endblock %}
+
+{% block extra_css %}
+.payslip-container {
+    background-color: var(--white);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    color: #333;
+}
+.payslip-header {
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.company-logo {
+    height: 60px;
+}
+.company-details {
+    text-align: right;
+}
+.payslip-metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 40px;
+    background-color: var(--gray-100);
+    padding: 20px;
+    border-radius: var(--radius-md);
+}
+.metadata-item span {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    display: block;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+.metadata-item h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+.payslip-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+.payslip-details-table th {
+    background-color: var(--primary);
+    color: var(--white);
+    padding: 10px 15px;
+    text-align: left;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+.payslip-details-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--gray-200);
+}
+.summary-row {
+    font-weight: 700;
+    background-color: var(--gray-100);
+    color: var(--primary);
+}
+.net-pay-box {
+    margin-top: 30px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    padding: 20px;
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.net-pay-amount {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .payslip-container, .payslip-container * {
+        visibility: visible;
+    }
+    .payslip-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none;
+        border: none;
+        padding: 0;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div style="text-align: right; max-width: 800px; margin: 0 auto 20px auto;">
+    <button onclick="window.print();" class="btn-submit" style="display: inline-block; width: auto; padding: 10px 20px;">
+        <i class="fa-solid fa-print"></i> Print Payslip
+    </button>
+</div>
+
+<div class="payslip-container">
+    <div class="payslip-header">
+        <div>
+            <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="School Logo" class="company-logo">
+            <h3 style="color: var(--primary); font-weight: 700; margin-top: 10px;">Leaders International School</h3>
+        </div>
+        <div class="company-details">
+            <h4 style="font-weight: 700; color: var(--primary);">PAY SLIP</h4>
+            <p style="font-size: 0.85rem; color: var(--gray-600);">Private Bag, Dar es Salaam, Tanzania</p>
+            <p style="font-size: 0.85rem; color: var(--gray-600);">Email: info@leadersinternational.ac.tz</p>
+        </div>
+    </div>
+
+    <div class="payslip-metadata-grid">
+        <div class="metadata-item">
+            <span>Employee Name</span>
+            <h5>{{ payslip.staff.get_full_name }}</h5>
+        </div>
+        <div class="metadata-item">
+            <span>Pay Period</span>
+            <h5>Month {{ payslip.payroll.month }} / {{ payslip.payroll.year }}</h5>
+        </div>
+        <div class="metadata-item">
+            <span>Status</span>
+            <h5 style="text-transform: uppercase;">{{ payslip.get_status_display }}</h5>
+        </div>
+        <div class="metadata-item">
+            <span>Academic Term</span>
+            <h5>{{ payslip.payroll.term }} ({{ payslip.payroll.academic_year }})</h5>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+        <!-- Earnings -->
+        <div style="flex: 1; min-width: 300px;">
+            <table class="payslip-details-table">
+                <thead>
+                    <tr>
+                        <th>Earnings Description</th>
+                        <th style="text-align: right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Basic Salary</td>
+                        <td style="text-align: right;">TZS {{ payslip.basic_pay }}</td>
+                    </tr>
+                    {% if payslip.housing_allowance > 0 %}
+                        <tr>
+                            <td>Housing Allowance</td>
+                            <td style="text-align: right;">TZS {{ payslip.housing_allowance }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if payslip.transport_allowance > 0 %}
+                        <tr>
+                            <td>Transport Allowance</td>
+                            <td style="text-align: right;">TZS {{ payslip.transport_allowance }}</td>
+                        </tr>
+                    {% endif %}
+                    <!-- Snapshot Line Items (Allowances) -->
+                    {% for item in allowance_items %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td style="text-align: right;">TZS {{ item.amount }}</td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="summary-row">
+                        <td>Gross Earnings</td>
+                        <td style="text-align: right;">TZS {{ payslip.gross_earnings }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Deductions -->
+        <div style="flex: 1; min-width: 300px;">
+            <table class="payslip-details-table">
+                <thead>
+                    <tr>
+                        <th>Deductions Description</th>
+                        <th style="text-align: right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if payslip.nssf_deduction > 0 %}
+                        <tr>
+                            <td>NSSF Contribution</td>
+                            <td style="text-align: right;">TZS {{ payslip.nssf_deduction }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if payslip.paye_tax > 0 %}
+                        <tr>
+                            <td>PAYE (Income Tax)</td>
+                            <td style="text-align: right;">TZS {{ payslip.paye_tax }}</td>
+                        </tr>
+                    {% endif %}
+                    <!-- Snapshot Line Items (Deductions) -->
+                    {% for item in deduction_items %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td style="text-align: right;">TZS {{ item.amount }}</td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="summary-row">
+                        <td>Total Deductions</td>
+                        <td style="text-align: right;">TZS {{ payslip.total_deductions }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="net-pay-box">
+        <div>
+            <h4 style="font-weight: 700; margin-bottom: 2px;">NET PAYOUT</h4>
+            <span style="font-size: 0.8rem; opacity: 0.85;">Disbursed Net Salary</span>
+        </div>
+        <div class="net-pay-amount">
+            TZS {{ payslip.net_salary }}
+        </div>
+    </div>
+</div>
+{% endblock %}

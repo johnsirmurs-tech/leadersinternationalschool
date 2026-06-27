@@ -1,0 +1,33 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Dean Dashboard | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Dean Dashboard{% endblock %}
+
+{% block sidebar_items %}
+<li><a href="#"><i class="fa-solid fa-users"></i> <span>Student Enrollment</span></a></li>
+<li><a href="#"><i class="fa-solid fa-chart-line"></i> <span>Marks Overview</span></a></li>
+<li><a href="#"><i class="fa-solid fa-file-signature"></i> <span>Teacher Submissions</span></a></li>
+<li><a href="#"><i class="fa-solid fa-circle-exclamation"></i> <span>Discipline Records</span></a></li>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Open Discipline Cases</h4>
+            <h2>0</h2>
+        </div>
+        <div class="card-icon card-icon-green">
+            <i class="fa-solid fa-check-circle"></i>
+        </div>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="card-header-flex">
+        <h4>Dean's Academic & Conduct Panel</h4>
+    </div>
+    <p>Welcome to the Dean Dashboard. Student discipline tracking and marks verification will be enabled in Phase 2 & 5.</p>
+</div>
+{% endblock %}

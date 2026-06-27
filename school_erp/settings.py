@@ -39,11 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'erp_core',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -138,4 +140,21 @@ LOGIN_REDIRECT_URL = 'dashboard'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['https://*.up.railway.app'])
+
+# CORS settings — allow the Railway deployment origin
+CORS_ALLOWED_ORIGINS = env.list(
+    'CORS_ALLOWED_ORIGINS',
+    default=['https://leadersinternationalschool.up.railway.app'],
+)
+CORS_ALLOW_CREDENTIALS = True
+
+# Session cookie settings — ensure mobile browsers accept and send the cookie
+SESSION_COOKIE_SECURE = False      # Set True when HTTPS is enforced end-to-end
+SESSION_COOKIE_HTTPONLY = True     # Prevent JavaScript access to session cookie
+SESSION_COOKIE_SAMESITE = 'Lax'   # Allow cookie on top-level cross-origin navigations
+
+# CSRF cookie settings — allow mobile clients to read and submit the token
+CSRF_COOKIE_SECURE = False         # Set True when HTTPS is enforced end-to-end
+CSRF_COOKIE_HTTPONLY = False       # JavaScript must be able to read the CSRF token
+CSRF_COOKIE_SAMESITE = 'Lax'      # Consistent with session cookie policy
 

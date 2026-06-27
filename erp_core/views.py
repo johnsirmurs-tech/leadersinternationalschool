@@ -18,20 +18,20 @@ def custom_login(request):
         return redirect('dashboard')
 
     if request.method == 'POST':
-        username_or_email = request.POST.get('username')
+        username_or_email = request.POST.get('username', '').strip()
         password = request.POST.get('password')
 
         if not username_or_email or not password:
             messages.error(request, "Please enter both username/email and password.")
             return render(request, 'erp_core/login.html')
 
-        # Find user by username or email
+        # Find user by username or email (case-insensitive)
         user = None
         try:
             if '@' in username_or_email:
-                user = CustomUser.objects.get(email=username_or_email)
+                user = CustomUser.objects.get(email__iexact=username_or_email)
             else:
-                user = CustomUser.objects.get(username=username_or_email)
+                user = CustomUser.objects.get(username__iexact=username_or_email)
         except CustomUser.DoesNotExist:
             pass
 

@@ -38,6 +38,7 @@ urlpatterns = [
     path('financials/payroll/', views.payroll_list, name='payroll_list'),
     path('financials/payroll/finalize/<int:payroll_id>/', views.finalize_payroll, name='finalize_payroll'),
     path('financials/payslip/<int:payslip_id>/', views.view_payslip, name='view_payslip'),
+    path('financials/payslip/edit/<int:payslip_id>/', views.edit_payslip, name='edit_payslip'),
     path('financials/expenses/', views.expense_list, name='expense_list'),
 
     # Phase 4 URLs

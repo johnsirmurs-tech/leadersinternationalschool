@@ -1494,6 +1494,50 @@ def view_payslip(request, payslip_id):
     })
 
 @login_required
+def edit_payslip(request, payslip_id):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Only Accountant or Director can edit payslips.")
+        return redirect('dashboard')
+
+    payslip = Payslip.objects.get(id=payslip_id)
+    if payslip.status != 'PENDING':
+        messages.error(request, "Only pending payroll drafts can be edited.")
+        return redirect('payroll_list')
+
+    if request.method == 'POST':
+        basic_pay = float(request.POST.get('basic_pay', 0))
+        housing = float(request.POST.get('housing_allowance', 0))
+        transport = float(request.POST.get('transport_allowance', 0))
+        nssf = float(request.POST.get('nssf_deduction', 0))
+        paye = float(request.POST.get('paye_tax', 0))
+
+        # Re-fetch custom allowances and deductions sums
+        custom_allowance_sum = payslip.line_items.filter(item_type='ALLOWANCE').exclude(name__in=['Basic Pay', 'Housing Allowance', 'Transport Allowance']).aggregate(Sum('amount'))['amount__sum'] or 0
+        custom_deduction_sum = payslip.line_items.filter(item_type='DEDUCTION').exclude(name__in=['NSSF Deduction', 'PAYE Tax']).aggregate(Sum('amount'))['amount__sum'] or 0
+
+        gross = basic_pay + housing + transport + float(custom_allowance_sum)
+        deductions_total = nssf + paye + float(custom_deduction_sum)
+        net = gross - deductions_total
+
+        payslip.basic_pay = basic_pay
+        payslip.housing_allowance = housing
+        payslip.transport_allowance = transport
+        payslip.nssf_deduction = nssf
+        payslip.paye_tax = paye
+        payslip.gross_earnings = gross
+        payslip.total_deductions = deductions_total
+        payslip.net_salary = net
+        payslip.save()
+
+        messages.success(request, f"Payslip updated for {payslip.staff.get_full_name()}.")
+        return redirect('payroll_list')
+
+    return render(request, 'erp_core/financials/payslip_edit_modal.html', {
+        'payslip': payslip,
+    })
+
+@login_required
 def expense_list(request):
     role_codes = [role.code for role in request.user.roles.all()]
     if 'R03' not in role_codes and 'R01' not in role_codes and 'R02' not in role_codes:

@@ -111,14 +111,16 @@
     </div>
 {% endif %}
 
-<div class="flex-container">
-    {% if is_accountant_or_director %}
-    <div class="form-card">
-        <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px;">
-            <i class="fa-solid fa-plus-circle"></i> Generate Payroll Draft
-        </h3>
+{% if request.GET.action == 'new' %}
+    <!-- Renders inside the modal popup overlay when 'New Payroll' is clicked -->
+    <div class="content-card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card-header-flex" style="border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
+            <h4 style="color: var(--primary); font-weight: 700; margin: 0;">
+                <i class="fa-solid fa-plus-circle"></i> Generate Payroll Draft
+            </h4>
+        </div>
 
-        <form method="POST">
+        <form method="POST" action="{% url 'payroll_list' %}">
             {% csrf_token %}
             <input type="hidden" name="action" value="generate">
 
@@ -159,36 +161,45 @@
                 </select>
             </div>
 
-            <button type="submit" class="btn-submit">
+            <button type="submit" class="btn-save" style="width: 100%;">
                 <i class="fa-solid fa-calculator"></i> Generate Draft Payroll
             </button>
         </form>
     </div>
-    {% endif %}
-
-    <div class="list-card">
-        <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px;">
-            <i class="fa-solid fa-folder-open"></i> Payroll Records
-        </h3>
+{% else %}
+    <!-- Renders as the main full workspace page -->
+    <div class="content-card">
+        <div class="card-header-flex" style="margin-bottom: 25px;">
+            <h4 style="margin: 0; color: var(--primary); font-weight: 700;">
+                <i class="fa-solid fa-folder-open"></i> Payroll Records
+            </h4>
+            {% if is_accountant_or_director %}
+                <a href="{% url 'payroll_list' %}?action=new" class="btn-submit" style="display: inline-flex; align-items: center; gap: 8px; width: auto; padding: 10px 20px; font-size: 0.9rem; text-decoration: none; border-radius: var(--radius-md); font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); box-shadow: var(--shadow-sm);">
+                    <i class="fa-solid fa-plus-circle"></i> New Payroll
+                </a>
+            {% endif %}
+        </div>
 
         {% for p in payrolls %}
-            <div class="payroll-item">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid var(--gray-300); padding-bottom: 10px;">
+            <div class="payroll-item" style="border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 25px; background-color: var(--bg-card); box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2.5px solid var(--border-color); padding-bottom: 12px; margin-bottom: 15px;">
                     <div>
-                        <h4 style="color: var(--primary); font-weight: 700; font-size: 1.1rem; margin-bottom: 3px;">
+                        <h4 style="color: var(--primary); font-weight: 700; font-size: 1.15rem; margin: 0 0 4px 0;">
                             Payroll: Month {{ p.month }} ({{ p.year }})
                         </h4>
-                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--accent);">
+                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--accent);">
                             {{ p.term }} | Academic Year: {{ p.academic_year }}
                         </span>
                     </div>
                     <div>
                         {% if p.is_finalized %}
-                            <span class="badge-status badge-finalized"><i class="fa-solid fa-circle-check"></i> Finalized & Locked</span>
+                            <span class="badge" style="background-color: rgba(25, 135, 84, 0.1); color: var(--success); padding: 6px 12px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.85rem;">
+                                <i class="fa-solid fa-circle-check"></i> Finalized & Locked
+                            </span>
                         {% else %}
                             <form method="POST" action="{% url 'finalize_payroll' p.id %}" style="display: inline;">
                                 {% csrf_token %}
-                                <button type="submit" class="btn-finalize" onclick="return confirm('Finalize and lock this payroll? Staff members will be notified and can view their payslips.');">
+                                <button type="submit" class="btn-save" style="height: 38px; padding: 0 16px !important; font-size: 0.85rem !important; box-shadow: none !important; background: var(--primary) !important;" onclick="return confirm('Finalize and lock this payroll? Staff members will be notified and can view their payslips.');">
                                     <i class="fa-solid fa-lock"></i> Finalize Payroll
                                 </button>
                             </form>
@@ -196,35 +207,40 @@
                     </div>
                 </div>
 
-                <table class="payslip-table">
+                <table class="payslip-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                     <thead>
-                        <tr>
-                            <th>Staff Member</th>
-                            <th style="text-align: right;">Gross Pay</th>
-                            <th style="text-align: right;">Deductions</th>
-                            <th style="text-align: right;">Net Salary</th>
-                            <th style="text-align: center;">Status</th>
-                            <th>Actions</th>
+                        <tr style="border-bottom: 1.5px solid var(--border-color); color: var(--text-muted); font-weight: 600;">
+                            <th style="padding: 10px 8px;">Staff Member</th>
+                            <th style="padding: 10px 8px; text-align: right;">Gross Pay</th>
+                            <th style="padding: 10px 8px; text-align: right;">Deductions</th>
+                            <th style="padding: 10px 8px; text-align: right;">Net Salary</th>
+                            <th style="padding: 10px 8px; text-align: center;">Status</th>
+                            <th style="padding: 10px 8px; text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for slip in p.payslips.all %}
-                            <tr>
-                                <td style="font-weight: 600;">{{ slip.staff.get_full_name }}</td>
-                                <td style="text-align: right; color: var(--primary);">TZS {{ slip.gross_earnings }}</td>
-                                <td style="text-align: right; color: var(--danger);">TZS {{ slip.total_deductions }}</td>
-                                <td style="text-align: right; font-weight: 700; color: var(--success);">TZS {{ slip.net_salary }}</td>
-                                <td style="text-align: center;">
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px 8px; font-weight: 700; color: var(--text-main);">{{ slip.staff.get_full_name }}</td>
+                                <td style="padding: 12px 8px; text-align: right; color: var(--text-main); font-weight: 500;">TZS {{ slip.gross_earnings }}</td>
+                                <td style="padding: 12px 8px; text-align: right; color: var(--danger); font-weight: 500;">TZS {{ slip.total_deductions }}</td>
+                                <td style="padding: 12px 8px; text-align: right; font-weight: 700; color: var(--success);">TZS {{ slip.net_salary }}</td>
+                                <td style="padding: 12px 8px; text-align: center;">
                                     {% if slip.status == 'PENDING' %}
-                                        <span class="badge-status badge-pending">Draft Pending</span>
+                                        <span class="badge" style="background-color: rgba(245, 158, 11, 0.1); color: var(--warning); padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 0.8rem;">Draft Pending</span>
                                     {% elif slip.status == 'FINALIZED' %}
-                                        <span class="badge-status badge-finalized">Finalized</span>
+                                        <span class="badge" style="background-color: rgba(30, 80, 200, 0.1); color: var(--primary); padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 0.8rem;">Finalized</span>
                                     {% else %}
-                                        <span class="badge-status badge-paid">Paid</span>
+                                        <span class="badge" style="background-color: rgba(25, 135, 84, 0.1); color: var(--success); padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 0.8rem;">Paid</span>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    <a href="{% url 'view_payslip' slip.id %}" style="color: var(--primary); font-weight: 600; text-decoration: none;">
+                                <td style="padding: 12px 8px; text-align: right; display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+                                    {% if not p.is_finalized and is_accountant_or_director %}
+                                        <a href="{% url 'edit_payslip' slip.id %}" style="color: var(--accent); font-weight: 700; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                                        </a>
+                                    {% endif %}
+                                    <a href="{% url 'view_payslip' slip.id %}" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
                                         <i class="fa-solid fa-print"></i> View
                                     </a>
                                 </td>
@@ -234,8 +250,8 @@
                 </table>
             </div>
         {% empty %}
-            <p style="color: var(--gray-600); text-align: center; padding: 40px;">No payrolls generated.</p>
+            <p style="color: var(--text-muted); text-align: center; padding: 40px; font-weight: 600;">No payrolls generated.</p>
         {% endfor %}
     </div>
-</div>
+{% endif %}
 {% endblock %}

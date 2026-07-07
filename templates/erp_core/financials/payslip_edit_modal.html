@@ -1,0 +1,49 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Edit Payslip | Leaders International School ERP{% endblock %}
+
+{% block content %}
+<div class="content-card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header-flex" style="border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
+        <h4 style="color: var(--primary); font-weight: 700; margin: 0;">
+            Edit Payslip: {{ payslip.staff.get_full_name }}
+        </h4>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="basic_pay">Basic Pay (TZS):</label>
+            <input type="number" name="basic_pay" id="basic_pay" class="form-control" value="{{ payslip.basic_pay }}" required>
+        </div>
+        
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="housing_allowance">Housing Allowance (TZS):</label>
+                <input type="number" name="housing_allowance" id="housing_allowance" class="form-control" value="{{ payslip.housing_allowance }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="transport_allowance">Transport Allowance (TZS):</label>
+                <input type="number" name="transport_allowance" id="transport_allowance" class="form-control" value="{{ payslip.transport_allowance }}" required>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="nssf_deduction">NSSF Deduction (TZS):</label>
+                <input type="number" name="nssf_deduction" id="nssf_deduction" class="form-control" value="{{ payslip.nssf_deduction }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="paye_tax">PAYE Tax (TZS):</label>
+                <input type="number" name="paye_tax" id="paye_tax" class="form-control" value="{{ payslip.paye_tax }}" required>
+            </div>
+        </div>
+
+        <div style="margin-top: 25px; display: flex; gap: 12px;">
+            <button type="submit" class="btn-save">
+                <i class="fa-solid fa-floppy-disk"></i> Save Payslip
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

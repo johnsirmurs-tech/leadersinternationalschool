@@ -1748,6 +1748,22 @@ def staff_enrollment(request):
         except Exception as e:
             messages.error(request, f"Error enrolling staff: {str(e)}")
 
+    # Automatically ensure all seeded staff users have a StaffProfile
+    staff_users = CustomUser.objects.filter(roles__code__in=['R01', 'R02', 'R03', 'R04', 'R05', 'R06'])
+    for u in staff_users:
+        if not hasattr(u, 'staff_profile'):
+            role_code = u.roles.first().code if u.roles.exists() else 'STAFF'
+            count = StaffProfile.objects.count() + 1
+            staff_id = f"LIS/{role_code}/{timezone.now().year}/{count:04d}"
+            StaffProfile.objects.create(
+                user=u,
+                staff_id=staff_id,
+                department="Academics" if role_code == 'R06' else "Administration",
+                education_level="Bachelor" if role_code == 'R06' else "Management",
+                age=35,
+                employment_status="PERMANENT"
+            )
+
     staff_profiles = StaffProfile.objects.all().select_related('user', 'user__salary_config').order_by('user__first_name')
     roles = Role.objects.exclude(code__in=['R07', 'R08']).order_by('name') # Exclude Student and Parent
 

@@ -56,6 +56,8 @@
             --sidebar-hover: rgba(255, 255, 255, 0.08);
             --sidebar-text: #FFFFFF;
             --sidebar-muted: rgba(255, 255, 255, 0.6);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.4);
         }
 
         /* Dark Theme Variables */
@@ -73,6 +75,8 @@
             --white: #1E293B;
             --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.3);
             --shadow-premium: 0 20px 40px rgba(0, 0, 0, 0.4);
+            --glass-bg: rgba(18, 24, 38, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.08);
         }
 
         * {
@@ -573,7 +577,7 @@
         {% block extra_css %}{% endblock %}
     </style>
 </head>
-<body>
+<body class="{% if not user.is_authenticated %}fullscreen{% endif %}">
 
     {% if user.is_authenticated %}
         <!-- Sidebar overlay for mobile drawer -->

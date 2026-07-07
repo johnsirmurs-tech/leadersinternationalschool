@@ -44,6 +44,7 @@ urlpatterns = [
     # Phase 4 URLs
     path('administration/users/', views.user_list, name='user_list'),
     path('administration/users/create/', views.user_create, name='user_create'),
+    path('administration/staff/enrollment/', views.staff_enrollment, name='staff_enrollment'),
     path('administration/users/edit/<int:user_id>/', views.user_edit, name='user_edit'),
     path('administration/users/toggle/<int:user_id>/', views.user_toggle_status, name='user_toggle_status'),
     path('administration/users/change-password/<int:user_id>/', views.admin_change_password, name='admin_change_password'),

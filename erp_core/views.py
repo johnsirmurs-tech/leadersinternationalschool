@@ -1695,6 +1695,68 @@ def user_create(request):
     })
 
 @login_required
+def staff_enrollment(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes:
+        messages.error(request, "Only the Director or Principal can enroll staff.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        role_id = request.POST.get('role_id')
+        staff_id = request.POST.get('staff_id')
+        department = request.POST.get('department')
+        education_level = request.POST.get('education_level')
+        age = request.POST.get('age')
+        employment_status = request.POST.get('employment_status')
+        basic_pay = request.POST.get('basic_pay', 0)
+        password = request.POST.get('password', 'Password123!')
+
+        try:
+            user = CustomUser.objects.create_user(
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password=password,
+                is_temporary_password=False
+            )
+            role = Role.objects.get(id=role_id)
+            user.roles.add(role)
+
+            # Create StaffProfile
+            StaffProfile.objects.create(
+                user=user,
+                staff_id=staff_id,
+                department=department,
+                education_level=education_level,
+                age=int(age) if age else None,
+                employment_status=employment_status
+            )
+
+            # Create ZSSF config
+            StaffSalaryConfig.objects.create(
+                staff=user,
+                basic_pay=float(basic_pay) if basic_pay else 0
+            )
+
+            messages.success(request, f"Staff member {first_name} {last_name} enrolled successfully.")
+            return redirect('staff_enrollment')
+        except Exception as e:
+            messages.error(request, f"Error enrolling staff: {str(e)}")
+
+    staff_profiles = StaffProfile.objects.all().select_related('user', 'user__salary_config').order_by('user__first_name')
+    roles = Role.objects.exclude(code__in=['R07', 'R08']).order_by('name') # Exclude Student and Parent
+
+    return render(request, 'erp_core/administration/staff_enrollment.html', {
+        'staff_profiles': staff_profiles,
+        'roles': roles
+    })
+
+@login_required
 def user_edit(request, user_id):
     role_codes = [role.code for role in request.user.roles.all()]
     if 'R01' not in role_codes and 'R02' not in role_codes:

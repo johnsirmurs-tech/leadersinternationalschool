@@ -1,0 +1,187 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Staff Enrollment | Leaders International School ERP{% blockend %}
+
+{% block content %}
+{% if request.GET.action == 'new' %}
+<!-- Form to Capture New Staff Member -->
+<div class="content-card" style="max-width: 750px; margin: 0 auto;">
+    <div class="card-header-flex" style="border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+        <h4 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-user-plus" style="color: var(--primary-light);"></i> Enroll New Staff Member
+        </h4>
+    </div>
+
+    <form method="POST" action="{% url 'staff_enrollment' %}" style="display: flex; flex-direction: column; gap: 20px;">
+        {% csrf_token %}
+        
+        <h5 style="color: var(--primary); font-weight: 700; margin-bottom: -5px; font-size: 0.95rem; border-left: 3px solid var(--accent); padding-left: 8px;">Account Details</h5>
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="username">Username:</label>
+                <input type="text" name="username" id="username" class="form-control" placeholder="e.g. jdoe" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address:</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="e.g. john.doe@leaders.sc.tz" required>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="first_name">First Name:</label>
+                <input type="text" name="first_name" id="first_name" class="form-control" placeholder="e.g. John" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="last_name">Last Name:</label>
+                <input type="text" name="last_name" id="last_name" class="form-control" placeholder="e.g. Doe" required>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="role_id">System Role:</label>
+                <select name="role_id" id="role_id" class="form-control" required>
+                    <option value="" disabled selected>Select Role</option>
+                    {% for role in roles %}
+                        <option value="{{ role.id }}">{{ role.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">Temporary Password:</label>
+                <input type="password" name="password" id="password" class="form-control" value="Password123!" required>
+            </div>
+        </div>
+
+        <h5 style="color: var(--primary); font-weight: 700; margin-bottom: -5px; font-size: 0.95rem; border-left: 3px solid var(--accent); padding-left: 8px;">Staff Details</h5>
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="staff_id">Staff ID / Number:</label>
+                <input type="text" name="staff_id" id="staff_id" class="form-control" placeholder="e.g. LIS/STAFF/2026/0045" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="department">Department:</label>
+                <input type="text" name="department" id="department" class="form-control" placeholder="e.g. Humanities, Administration">
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div class="form-group">
+                <label class="form-label" for="education_level">Education Level:</label>
+                <input type="text" name="education_level" id="education_level" class="form-control" placeholder="e.g. Bachelor, Master">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="age">Age:</label>
+                <input type="number" name="age" id="age" class="form-control" placeholder="e.g. 34">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="employment_status">Employment Status:</label>
+                <select name="employment_status" id="employment_status" class="form-control" required>
+                    <option value="PERMANENT" selected>Permanent</option>
+                    <option value="PROBATION">Probation</option>
+                    <option value="CONTRACT">Contract</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="basic_pay">Initial Basic Pay (TZS):</label>
+                <input type="number" name="basic_pay" id="basic_pay" class="form-control" value="0" required>
+            </div>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{% url 'staff_enrollment' %}" class="btn-action-white" style="text-decoration: none; padding: 12px 24px; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; justify-content: center;">Cancel</a>
+            <button type="submit" class="btn-save" style="padding: 12px 30px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer; box-shadow: 0 4px 12px rgba(30,80,200,0.25);">
+                <i class="fa-solid fa-check"></i> Enroll Staff
+            </button>
+        </div>
+    </form>
+</div>
+{% else %}
+<!-- Staff Profiles Directory -->
+<div class="content-card">
+    <div class="card-header-flex" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
+        <div>
+            <h3 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.5rem;">
+                <i class="fa-solid fa-users" style="color: var(--primary-light); margin-right: 8px;"></i> Staff Enrollment Directory
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 5px 0 0 0;">View enrolled school staff profiles, status, qualifications, and core demographics.</p>
+        </div>
+        <a href="{% url 'staff_enrollment' %}?action=new" class="btn-add" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); padding: 12px 22px; border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(30,80,200,0.25); transition: all 0.25s;">
+            <i class="fa-solid fa-user-plus"></i> New Staff Enrollment
+        </a>
+    </div>
+
+    <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
+        <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background-color: var(--bg-subtle); border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 15px; font-weight: 700; color: var(--text-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Staff ID</th>
+                    <th style="padding: 15px; font-weight: 700; color: var(--text-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Name</th>
+                    <th style="padding: 15px; font-weight: 700; color: var(--text-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Role</th>
+                    <th style="padding: 15px; font-weight: 700; color: var(--text-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Department</th>
+                    <th style="padding: 15px; font-weight: 700; color: var(--text-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Education</th>
+                    <th style="padding: 15px; font-weight: 700; color: var(--text-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Age</th>
+                    <th style="padding: 15px; font-weight: 700; color: var(--text-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Joining Date</th>
+                    <th style="padding: 15px; font-weight: 700; color: var(--text-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Status</th>
+                    <th style="padding: 15px; font-weight: 700; color: var(--text-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Basic Pay</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in staff_profiles %}
+                <tr class="table-row-hover" style="border-bottom: 1.5px solid var(--border-color); transition: background-color 0.2s;">
+                    <td style="padding: 15px; font-weight: 700; color: var(--primary);">{{ profile.staff_id }}</td>
+                    <td style="padding: 15px;">
+                        <div style="font-weight: 600; color: var(--text-main);">{{ profile.user.get_full_name }}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">{{ profile.user.email }}</div>
+                    </td>
+                    <td style="padding: 15px;">
+                        {% for role in profile.user.roles.all %}
+                            <span style="font-size: 0.75rem; font-weight: 700; background-color: rgba(30, 80, 200, 0.1); color: var(--primary); padding: 4px 10px; border-radius: var(--radius-sm);">{{ role.name }}</span>
+                        {% endfor %}
+                    </td>
+                    <td style="padding: 15px; color: var(--text-main);">{{ profile.department|default:"-" }}</td>
+                    <td style="padding: 15px; color: var(--text-main); font-weight: 500;">{{ profile.education_level|default:"-" }}</td>
+                    <td style="padding: 15px; text-align: center; color: var(--text-main);">{{ profile.age|default:"-" }}</td>
+                    <td style="padding: 15px; color: var(--text-muted);">{{ profile.date_joined|date:"d M Y" }}</td>
+                    <td style="padding: 15px; text-align: center;">
+                        {% if profile.employment_status == 'PERMANENT' %}
+                            <span style="font-size: 0.75rem; font-weight: 700; background-color: rgba(46, 204, 113, 0.15); color: #2ecc71; padding: 4px 10px; border-radius: var(--radius-sm);">Permanent</span>
+                        {% elif profile.employment_status == 'PROBATION' %}
+                            <span style="font-size: 0.75rem; font-weight: 700; background-color: rgba(241, 196, 15, 0.15); color: #f1c40f; padding: 4px 10px; border-radius: var(--radius-sm);">Probation</span>
+                        {% else %}
+                            <span style="font-size: 0.75rem; font-weight: 700; background-color: rgba(155, 89, 182, 0.15); color: #9b59b6; padding: 4px 10px; border-radius: var(--radius-sm);">Contract</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px; text-align: right; font-weight: 700; color: var(--text-main);">
+                        TZS {{ profile.user.salary_config.basic_pay|default:0|floatformat:0 }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 12px; display: block; color: var(--border-color);"></i>
+                        No staff members enrolled yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    .table-row-hover:hover {
+        background-color: rgba(30, 80, 200, 0.02) !important;
+    }
+</style>
+{% endblock %}

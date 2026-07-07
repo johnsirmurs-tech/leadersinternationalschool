@@ -1128,6 +1128,8 @@
                     <li
                         class="{% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_update' %}active{% endif %}">
                         <a href="{% url 'user_list' %}">Manage Users</a></li>
+                    <li class="{% if request.resolver_match.url_name == 'staff_enrollment' %}active{% endif %}">
+                        <a href="{% url 'staff_enrollment' %}">Staff Enrollment</a></li>
                     <li class="{% if request.resolver_match.url_name == 'teacher_assignment_setup' %}active{% endif %}">
                         <a href="{% url 'teacher_assignment_setup' %}">Teacher Assignments</a></li>
                     <li class="{% if request.resolver_match.url_name == 'salary_setup' %}active{% endif %}"><a

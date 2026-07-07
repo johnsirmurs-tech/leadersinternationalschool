@@ -171,6 +171,13 @@ class StaffProfile(models.Model):
     section = models.ForeignKey(Section, on_delete=models.SET_NULL, null=True, blank=True, related_name='staff_members')
     department = models.CharField(max_length=100, blank=True, null=True)
     date_joined = models.DateField(default=timezone.now)
+    education_level = models.CharField(max_length=100, blank=True, null=True)
+    age = models.IntegerField(blank=True, null=True)
+    employment_status = models.CharField(
+        max_length=20, 
+        choices=[('CONTRACT', 'Contract'), ('PROBATION', 'Probation'), ('PERMANENT', 'Permanent')],
+        default='PERMANENT'
+    )
 
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.staff_id})"

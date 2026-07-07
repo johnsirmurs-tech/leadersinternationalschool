@@ -1283,7 +1283,26 @@ def salary_setup(request):
         return redirect('dashboard')
 
     # Exclude students and parents
-    staff_members = CustomUser.objects.exclude(roles__code__in=['R07', 'R08']).distinct()
+    staff_list_raw = CustomUser.objects.exclude(roles__code__in=['R07', 'R08']).distinct().prefetch_related('roles')
+    staff_members = []
+    for s in staff_list_raw:
+        cfg, _ = StaffSalaryConfig.objects.get_or_create(
+            staff=s,
+            defaults={'basic_pay': 0}
+        )
+        roles = ", ".join([r.name for r in s.roles.all()])
+        staff_members.append({
+            'member': s,
+            'roles': roles,
+            'basic_pay': cfg.basic_pay,
+            'housing': cfg.housing_allowance,
+            'transport': cfg.transport_allowance,
+            'nssf': cfg.nssf_deduction,
+            'paye': cfg.paye_tax,
+            'total_allowances': cfg.housing_allowance + cfg.transport_allowance,
+            'total_deductions': cfg.nssf_deduction + cfg.paye_tax,
+        })
+
     selected_staff_id = request.GET.get('staff_id')
     selected_staff = None
     salary_config = None

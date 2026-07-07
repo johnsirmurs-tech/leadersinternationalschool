@@ -113,112 +113,150 @@
     </div>
 {% endif %}
 
-<div class="flex-container">
-    <div class="staff-card">
-        <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 1.5px solid var(--gray-200); padding-bottom: 8px;">
-            Staff Directory
-        </h3>
-        <ul class="staff-list">
-            {% for staff in staff_members %}
-                <li class="{% if selected_staff.id == staff.id %}active{% endif %}">
-                    <a href="?staff_id={{ staff.id }}">{{ staff.get_full_name }}</a>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <div class="details-card">
-        {% if selected_staff %}
-            <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid var(--gray-200); padding-bottom: 12px;">
+{% if selected_staff %}
+    <!-- This renders inside the modal popup overlay! -->
+    <div class="content-card" style="max-width: 800px; margin: 0 auto;">
+        <div class="card-header-flex" style="border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
+            <h4 style="color: var(--primary); font-weight: 700; margin: 0;">
                 Salary Configuration: {{ selected_staff.get_full_name }}
-            </h3>
+            </h4>
+        </div>
 
-            <form method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="save_config">
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_config">
+            
+            <h5 style="color: var(--primary); font-weight: 700; margin-top: 15px; margin-bottom: 15px; font-size: 0.95rem; border-left: 3px solid var(--accent); padding-left: 8px;">Fixed Components</h5>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="basic_pay">Basic Pay (TZS):</label>
+                    <input type="number" name="basic_pay" id="basic_pay" class="form-control" value="{{ salary_config.basic_pay|default:0 }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="housing_allowance">Housing Allowance (TZS):</label>
+                    <input type="number" name="housing_allowance" id="housing_allowance" class="form-control" value="{{ salary_config.housing_allowance|default:0 }}" required>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="transport_allowance">Transport Allowance (TZS):</label>
+                    <input type="number" name="transport_allowance" id="transport_allowance" class="form-control" value="{{ salary_config.transport_allowance|default:0 }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="nssf_deduction">NSSF Deduction (TZS):</label>
+                    <input type="number" name="nssf_deduction" id="nssf_deduction" class="form-control" value="{{ salary_config.nssf_deduction|default:0 }}" required>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label" for="paye_tax">PAYE Tax (TZS):</label>
+                    <input type="number" name="paye_tax" id="paye_tax" class="form-control" value="{{ salary_config.paye_tax|default:0 }}" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-save">
+                <i class="fa-solid fa-floppy-disk"></i> Save Salary Config
+            </button>
+        </form>
+
+        <div class="grid-2" style="margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 25px;">
+            <div>
+                <h5 style="color: var(--primary); font-weight: 700; margin-bottom: 15px; font-size: 0.95rem;">Itemized Allowances</h5>
+                <form method="POST" style="display: flex; gap: 8px; margin-bottom: 15px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_allowance">
+                    <input type="text" name="allowance_name" placeholder="Allowance Name" class="form-control" style="flex: 2;" required>
+                    <input type="number" name="allowance_amount" placeholder="Amount" class="form-control" style="flex: 1;" required>
+                    <button type="submit" class="btn-add">Add</button>
+                </form>
                 
-                <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px; font-size: 0.95rem; border-left: 3px solid var(--accent); padding-left: 8px;">Fixed Components</h4>
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="basic_pay">Basic Pay (TZS):</label>
-                        <input type="number" name="basic_pay" id="basic_pay" class="form-control" value="{{ salary_config.basic_pay|default:0 }}" required>
+                {% for a in allowances %}
+                    <div class="list-item-row" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border-color);">
+                        <span style="font-weight: 600;">{{ a.name }}</span>
+                        <span style="color: var(--success); font-weight: 700;">+ TZS {{ a.amount }}</span>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="housing_allowance">Housing Allowance (TZS):</label>
-                        <input type="number" name="housing_allowance" id="housing_allowance" class="form-control" value="{{ salary_config.housing_allowance|default:0 }}" required>
-                    </div>
-                </div>
-
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="transport_allowance">Transport Allowance (TZS):</label>
-                        <input type="number" name="transport_allowance" id="transport_allowance" class="form-control" value="{{ salary_config.transport_allowance|default:0 }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="nssf_deduction">NSSF Deduction (TZS):</label>
-                        <input type="number" name="nssf_deduction" id="nssf_deduction" class="form-control" value="{{ salary_config.nssf_deduction|default:0 }}" required>
-                    </div>
-                </div>
-
-                <div class="grid-2" style="margin-bottom: 20px;">
-                    <div class="form-group">
-                        <label class="form-label" for="paye_tax">PAYE Tax (TZS):</label>
-                        <input type="number" name="paye_tax" id="paye_tax" class="form-control" value="{{ salary_config.paye_tax|default:0 }}" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-save">
-                    <i class="fa-solid fa-floppy-disk"></i> Save Salary Config
-                </button>
-            </form>
-
-            <div class="grid-2" style="margin-top: 40px; border-top: 2px solid var(--gray-200); padding-top: 25px;">
-                <div>
-                    <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">Itemized Allowances</h4>
-                    <form method="POST" style="display: flex; gap: 8px; margin-bottom: 15px;">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="add_allowance">
-                        <input type="text" name="allowance_name" placeholder="Allowance Name" class="form-control" style="flex: 2;" required>
-                        <input type="number" name="allowance_amount" placeholder="Amount" class="form-control" style="flex: 1;" required>
-                        <button type="submit" class="btn-add">Add</button>
-                    </form>
-                    
-                    {% for a in allowances %}
-                        <div class="list-item-row">
-                            <span style="font-weight: 600;">{{ a.name }}</span>
-                            <span style="color: var(--success); font-weight: 700;">+ TZS {{ a.amount }}</span>
-                        </div>
-                    {% empty %}
-                        <p style="color: var(--gray-600); font-size: 0.85rem;">No custom allowances configured.</p>
-                    {% endfor %}
-                </div>
-
-                <div>
-                    <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">Itemized Deductions</h4>
-                    <form method="POST" style="display: flex; gap: 8px; margin-bottom: 15px;">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="add_deduction">
-                        <input type="text" name="deduction_name" placeholder="Deduction Name" class="form-control" style="flex: 2;" required>
-                        <input type="number" name="deduction_amount" placeholder="Amount" class="form-control" style="flex: 1;" required>
-                        <button type="submit" class="btn-add">Add</button>
-                    </form>
-
-                    {% for d in deductions %}
-                        <div class="list-item-row">
-                            <span style="font-weight: 600;">{{ d.name }}</span>
-                            <span style="color: var(--danger); font-weight: 700;">- TZS {{ d.amount }}</span>
-                        </div>
-                    {% empty %}
-                        <p style="color: var(--gray-600); font-size: 0.85rem;">No custom deductions configured.</p>
-                    {% endfor %}
-                </div>
+                {% empty %}
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">No custom allowances configured.</p>
+                {% endfor %}
             </div>
-        {% else %}
-            <div style="text-align: center; padding: 60px; color: var(--gray-600);">
-                <i class="fa-solid fa-user-tie" style="font-size: 3rem; margin-bottom: 15px; color: var(--primary);"></i>
-                <p>Please select a staff member from the left panel to configure their salary fields.</p>
+
+            <div>
+                <h5 style="color: var(--primary); font-weight: 700; margin-bottom: 15px; font-size: 0.95rem;">Itemized Deductions</h5>
+                <form method="POST" style="display: flex; gap: 8px; margin-bottom: 15px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_deduction">
+                    <input type="text" name="deduction_name" placeholder="Deduction Name" class="form-control" style="flex: 2;" required>
+                    <input type="number" name="deduction_amount" placeholder="Amount" class="form-control" style="flex: 1;" required>
+                    <button type="submit" class="btn-add">Add</button>
+                </form>
+
+                {% for d in deductions %}
+                    <div class="list-item-row" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border-color);">
+                        <span style="font-weight: 600;">{{ d.name }}</span>
+                        <span style="color: var(--danger); font-weight: 700;">- TZS {{ d.amount }}</span>
+                    </div>
+                {% empty %}
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">No custom deductions configured.</p>
+                {% endfor %}
             </div>
-        {% endif %}
+        </div>
     </div>
-</div>
+{% else %}
+    <!-- This renders as the full main directory table listing! -->
+    <div class="content-card">
+        <div class="card-header-flex" style="margin-bottom: 25px;">
+            <h4 style="margin: 0; color: var(--primary); font-weight: 700;">Staff Salary Directory</h4>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600;">
+                        <th style="padding: 12px 10px;">Staff Member</th>
+                        <th style="padding: 12px 10px;">Role</th>
+                        <th style="padding: 12px 10px;">Basic Pay</th>
+                        <th style="padding: 12px 10px;">Allowances</th>
+                        <th style="padding: 12px 10px;">Deductions</th>
+                        <th style="padding: 12px 10px; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for staff in staff_members %}
+                    <tr style="border-bottom: 1px solid var(--border-color); transition: background-color 0.25s;" onmouseover="this.style.backgroundColor='var(--bg-subtle)'" onmouseout="this.style.backgroundColor='transparent'">
+                        <td style="padding: 14px 10px;">
+                            <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">{{ staff.member.get_full_name }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">{{ staff.member.email }}</div>
+                        </td>
+                        <td style="padding: 14px 10px;">
+                            <span class="badge" style="background-color: rgba(30, 80, 200, 0.1); color: var(--primary); padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 0.8rem;">
+                                {{ staff.roles }}
+                            </span>
+                        </td>
+                        <td style="padding: 14px 10px; font-weight: 700; color: var(--text-main);">
+                            TZS {{ staff.basic_pay }}
+                        </td>
+                        <td style="padding: 14px 10px; color: var(--success); font-weight: 700;">
+                            + TZS {{ staff.total_allowances }}
+                        </td>
+                        <td style="padding: 14px 10px; color: var(--danger); font-weight: 700;">
+                            - TZS {{ staff.total_deductions }}
+                        </td>
+                        <td style="padding: 14px 10px; text-align: right;">
+                            <a href="{% url 'salary_setup' %}?staff_id={{ staff.member.id }}" class="btn-submit" style="display: inline-block; width: auto; padding: 8px 16px; font-size: 0.85rem; text-decoration: none; border-radius: var(--radius-md); font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); box-shadow: var(--shadow-sm);">
+                                <i class="fa-solid fa-gears"></i> Configure Salary
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding: 20px; text-align: center; color: var(--text-muted);">No staff members found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}
 {% endblock %}

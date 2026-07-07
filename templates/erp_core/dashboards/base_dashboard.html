@@ -434,128 +434,126 @@
             </button>
         </div>
         <ul class="sidebar-menu">
-            <li class="{% block active_dash %}active{% endblock %}">
+            <li class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <a href="{% url 'dashboard' %}">
                     <i class="fa-solid fa-gauge"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
-            {% block sidebar_items %}
-                {% for role in user_roles %}
+            {% for role in user_roles %}
                     {% if role.code == 'R01' %}
                         <!-- Human Resource Category -->
                         <span class="menu-category">Human Resource</span>
-                        <li><a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a></li>
-                        <li><a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a></li>
-                        <li><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
-                        <li><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_update' %}active{% endif %}"><a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'teacher_assignment_setup' %}active{% endif %}"><a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'salary_setup' %}active{% endif %}"><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}"><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
 
                         <!-- Finance & Operations Category -->
                         <span class="menu-category">Finance & Ops</span>
-                        <li><a href="{% url 'chart_of_accounts' %}"><i class="fa-solid fa-list"></i> <span>Chart of Accounts</span></a></li>
-                        <li><a href="{% url 'journal_entries_list' %}"><i class="fa-solid fa-book"></i> <span>Journal Entries</span></a></li>
-                        <li><a href="{% url 'bills_list' %}"><i class="fa-solid fa-file-invoice"></i> <span>Accounts Payable</span></a></li>
-                        <li><a href="{% url 'fixed_assets_list' %}"><i class="fa-solid fa-coins"></i> <span>Fixed Assets</span></a></li>
-                        <li><a href="{% url 'bank_reconciliation_list' %}"><i class="fa-solid fa-code-compare"></i> <span>Bank Recon</span></a></li>
-                        <li><a href="{% url 'financial_reports' %}"><i class="fa-solid fa-folder-open"></i> <span>Accounting Reports</span></a></li>
-                        <li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Statements</span></a></li>
-                        <li><a href="{% url 'fee_structure_setup' %}"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Fee Structure</span></a></li>
-                        <li><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
-                        <li><a href="{% url 'bank_deposits_list' %}"><i class="fa-solid fa-building-columns"></i> <span>Bank Deposits</span></a></li>
-                        <li><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
-                        <li><a href="{% url 'inventory_list' %}"><i class="fa-solid fa-boxes-stacked"></i> <span>Stock & Inventory</span></a></li>
-                        <li><a href="{% url 'transport_list' %}"><i class="fa-solid fa-bus"></i> <span>Transport Routes</span></a></li>
-                        <li><a href="{% url 'procurement_requisitions' %}"><i class="fa-solid fa-cart-shopping"></i> <span>Procurement Orders</span></a></li>
-                        <li><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'chart_of_accounts' %}active{% endif %}"><a href="{% url 'chart_of_accounts' %}"><i class="fa-solid fa-list"></i> <span>Chart of Accounts</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'journal_entries_list' %}active{% endif %}"><a href="{% url 'journal_entries_list' %}"><i class="fa-solid fa-book"></i> <span>Journal Entries</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'bills_list' %}active{% endif %}"><a href="{% url 'bills_list' %}"><i class="fa-solid fa-file-invoice"></i> <span>Accounts Payable</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'fixed_assets_list' %}active{% endif %}"><a href="{% url 'fixed_assets_list' %}"><i class="fa-solid fa-coins"></i> <span>Fixed Assets</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'bank_reconciliation_list' or request.resolver_match.url_name == 'bank_reconciliation_detail' %}active{% endif %}"><a href="{% url 'bank_reconciliation_list' %}"><i class="fa-solid fa-code-compare"></i> <span>Bank Recon</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'financial_reports' %}active{% endif %}"><a href="{% url 'financial_reports' %}"><i class="fa-solid fa-folder-open"></i> <span>Accounting Reports</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}"><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Statements</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'fee_structure_setup' %}active{% endif %}"><a href="{% url 'fee_structure_setup' %}"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Fee Structure</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'fee_balances' %}active{% endif %}"><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'bank_deposits_list' or request.resolver_match.url_name == 'allocate_bank_deposit' %}active{% endif %}"><a href="{% url 'bank_deposits_list' %}"><i class="fa-solid fa-building-columns"></i> <span>Bank Deposits</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}"><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}"><a href="{% url 'inventory_list' %}"><i class="fa-solid fa-boxes-stacked"></i> <span>Stock & Inventory</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'transport_list' %}active{% endif %}"><a href="{% url 'transport_list' %}"><i class="fa-solid fa-bus"></i> <span>Transport Routes</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'procurement_requisitions' %}active{% endif %}"><a href="{% url 'procurement_requisitions' %}"><i class="fa-solid fa-cart-shopping"></i> <span>Procurement Orders</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'kitchen_led_display' %}active{% endif %}"><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
 
                         <!-- Academics Category -->
                         <span class="menu-category">Academics</span>
-                        <li><a href="{% url 'subject_setup' %}"><i class="fa-solid fa-book-open"></i> <span>Subjects & Areas</span></a></li>
-                        <li><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
-                        <li><a href="{% url 'biometric_dashboard' %}"><i class="fa-solid fa-fingerprint"></i> <span>Biometric Logs</span></a></li>
-                        <li><a href="{% url 'biometric_registration' %}"><i class="fa-solid fa-address-card"></i> <span>Biometric Mapping</span></a></li>
-                        <li><a href="{% url 'attendance_exceptions' %}"><i class="fa-solid fa-file-circle-exclamation"></i> <span>Attendance Exceptions</span></a></li>
-                        <li><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-file-signature"></i> <span>Lesson Plans</span></a></li>
-                        <li><a href="{% url 'grade_boundaries' %}"><i class="fa-solid fa-calculator"></i> <span>Grade Boundaries</span></a></li>
-                        <li><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'subject_setup' %}active{% endif %}"><a href="{% url 'subject_setup' %}"><i class="fa-solid fa-book-open"></i> <span>Subjects & Areas</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'attendance_registry' %}active{% endif %}"><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'biometric_dashboard' %}active{% endif %}"><a href="{% url 'biometric_dashboard' %}"><i class="fa-solid fa-fingerprint"></i> <span>Biometric Logs</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'biometric_registration' %}active{% endif %}"><a href="{% url 'biometric_registration' %}"><i class="fa-solid fa-address-card"></i> <span>Biometric Mapping</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'attendance_exceptions' %}active{% endif %}"><a href="{% url 'attendance_exceptions' %}"><i class="fa-solid fa-file-circle-exclamation"></i> <span>Attendance Exceptions</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'lesson_plan_list' or request.resolver_match.url_name == 'lesson_plan_create' or request.resolver_match.url_name == 'lesson_plan_edit' %}active{% endif %}"><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-file-signature"></i> <span>Lesson Plans</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'grade_boundaries' %}active{% endif %}"><a href="{% url 'grade_boundaries' %}"><i class="fa-solid fa-calculator"></i> <span>Grade Boundaries</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'report_card_generator' %}active{% endif %}"><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
 
                         <!-- Settings Category -->
                         <span class="menu-category">Settings</span>
-                        <li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
-                        <li><a href="{% url 'integration_settings' %}"><i class="fa-solid fa-gears"></i> <span>Integration Settings</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}"><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'integration_settings' %}active{% endif %}"><a href="{% url 'integration_settings' %}"><i class="fa-solid fa-gears"></i> <span>Integration Settings</span></a></li>
                     {% elif role.code == 'R02' %}
                         <!-- Academics Category -->
                         <span class="menu-category">Academics</span>
-                        <li><a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a></li>
-                        <li><a href="{% url 'subject_setup' %}"><i class="fa-solid fa-book-open"></i> <span>Subjects & Areas</span></a></li>
-                        <li><a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a></li>
-                        <li><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
-                        <li><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
-                        <li><a href="{% url 'grade_boundaries' %}"><i class="fa-solid fa-calculator"></i> <span>Grade Boundaries</span></a></li>
-                        <li><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-file-signature"></i> <span>Lesson Plans</span></a></li>
-                        <li><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'user_list' %}active{% endif %}"><a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'subject_setup' %}active{% endif %}"><a href="{% url 'subject_setup' %}"><i class="fa-solid fa-book-open"></i> <span>Subjects & Areas</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'teacher_assignment_setup' %}active{% endif %}"><a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'attendance_registry' %}active{% endif %}"><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'report_card_generator' %}active{% endif %}"><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'grade_boundaries' %}active{% endif %}"><a href="{% url 'grade_boundaries' %}"><i class="fa-solid fa-calculator"></i> <span>Grade Boundaries</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'lesson_plan_list' %}active{% endif %}"><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-file-signature"></i> <span>Lesson Plans</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'kitchen_led_display' %}active{% endif %}"><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
 
                         <!-- Finance -->
                         <span class="menu-category">Finance</span>
-                        <li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Reports</span></a></li>
-                        <li><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
-                        <li><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
-                        <li><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}"><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Reports</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'fee_balances' %}active{% endif %}"><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}"><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}"><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
 
                         <!-- Settings -->
                         <span class="menu-category">Settings</span>
-                        <li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}"><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
                     {% elif role.code == 'R03' %}
                         <!-- Human Resource -->
                         <span class="menu-category">Human Resource</span>
-                        <li><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
-                        <li><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'salary_setup' %}active{% endif %}"><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}"><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
 
                         <!-- Finance & Operations -->
                         <span class="menu-category">Finance & Ops</span>
-                        <li><a href="{% url 'chart_of_accounts' %}"><i class="fa-solid fa-list"></i> <span>Chart of Accounts</span></a></li>
-                        <li><a href="{% url 'journal_entries_list' %}"><i class="fa-solid fa-book"></i> <span>Journal Entries</span></a></li>
-                        <li><a href="{% url 'bills_list' %}"><i class="fa-solid fa-file-invoice"></i> <span>Accounts Payable</span></a></li>
-                        <li><a href="{% url 'fixed_assets_list' %}"><i class="fa-solid fa-coins"></i> <span>Fixed Assets</span></a></li>
-                        <li><a href="{% url 'bank_reconciliation_list' %}"><i class="fa-solid fa-code-compare"></i> <span>Bank Recon</span></a></li>
-                        <li><a href="{% url 'financial_reports' %}"><i class="fa-solid fa-folder-open"></i> <span>Accounting Reports</span></a></li>
-                        <li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Statements</span></a></li>
-                        <li><a href="{% url 'fee_structure_setup' %}"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Fee Structure</span></a></li>
-                        <li><a href="{% url 'record_payment' %}"><i class="fa-solid fa-cash-register"></i> <span>Fee Payments</span></a></li>
-                        <li><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
-                        <li><a href="{% url 'bank_deposits_list' %}"><i class="fa-solid fa-building-columns"></i> <span>Bank Deposits</span></a></li>
-                        <li><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
-                        <li><a href="{% url 'inventory_list' %}"><i class="fa-solid fa-boxes-stacked"></i> <span>Stock & Inventory</span></a></li>
-                        <li><a href="{% url 'procurement_requisitions' %}"><i class="fa-solid fa-cart-shopping"></i> <span>Procurement Orders</span></a></li>
-                        <li><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
-                        <li><a href="{% url 'biometric_dashboard' %}"><i class="fa-solid fa-fingerprint"></i> <span>Biometric Logs</span></a></li>
-                        <li><a href="{% url 'biometric_registration' %}"><i class="fa-solid fa-address-card"></i> <span>Biometric Mapping</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'chart_of_accounts' %}active{% endif %}"><a href="{% url 'chart_of_accounts' %}"><i class="fa-solid fa-list"></i> <span>Chart of Accounts</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'journal_entries_list' %}active{% endif %}"><a href="{% url 'journal_entries_list' %}"><i class="fa-solid fa-book"></i> <span>Journal Entries</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'bills_list' %}active{% endif %}"><a href="{% url 'bills_list' %}"><i class="fa-solid fa-file-invoice"></i> <span>Accounts Payable</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'fixed_assets_list' %}active{% endif %}"><a href="{% url 'fixed_assets_list' %}"><i class="fa-solid fa-coins"></i> <span>Fixed Assets</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'bank_reconciliation_list' or request.resolver_match.url_name == 'bank_reconciliation_detail' %}active{% endif %}"><a href="{% url 'bank_reconciliation_list' %}"><i class="fa-solid fa-code-compare"></i> <span>Bank Recon</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'financial_reports' %}active{% endif %}"><a href="{% url 'financial_reports' %}"><i class="fa-solid fa-folder-open"></i> <span>Accounting Reports</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}"><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Statements</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'fee_structure_setup' %}active{% endif %}"><a href="{% url 'fee_structure_setup' %}"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Fee Structure</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'record_payment' %}active{% endif %}"><a href="{% url 'record_payment' %}"><i class="fa-solid fa-cash-register"></i> <span>Fee Payments</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'fee_balances' %}active{% endif %}"><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'bank_deposits_list' or request.resolver_match.url_name == 'allocate_bank_deposit' %}active{% endif %}"><a href="{% url 'bank_deposits_list' %}"><i class="fa-solid fa-building-columns"></i> <span>Bank Deposits</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}"><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}"><a href="{% url 'inventory_list' %}"><i class="fa-solid fa-boxes-stacked"></i> <span>Stock & Inventory</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'procurement_requisitions' %}active{% endif %}"><a href="{% url 'procurement_requisitions' %}"><i class="fa-solid fa-cart-shopping"></i> <span>Procurement Orders</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'kitchen_led_display' %}active{% endif %}"><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'biometric_dashboard' %}active{% endif %}"><a href="{% url 'biometric_dashboard' %}"><i class="fa-solid fa-fingerprint"></i> <span>Biometric Logs</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'biometric_registration' %}active{% endif %}"><a href="{% url 'biometric_registration' %}"><i class="fa-solid fa-address-card"></i> <span>Biometric Mapping</span></a></li>
 
                         <!-- Settings -->
                         <span class="menu-category">Settings</span>
-                        <li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}"><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
                     {% elif role.code == 'R06' %}
                         <!-- Academics -->
                         <span class="menu-category">Academics</span>
-                        <li><a href="{% url 'early_years_progress' %}"><i class="fa-solid fa-baby"></i> <span>Early Years Progress</span></a></li>
-                        <li><a href="{% url 'enter_raw_marks' %}"><i class="fa-solid fa-file-pen"></i> <span>Raw Marks Entry</span></a></li>
-                        <li><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
-                        <li><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
-                        <li><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-folder-open"></i> <span>Lesson Plans</span></a></li>
-                        <li><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
-                        <li><a href="{% url 'quiz_builder' %}"><i class="fa-solid fa-brain"></i> <span>Cambridge AI Quiz</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'early_years_progress' %}active{% endif %}"><a href="{% url 'early_years_progress' %}"><i class="fa-solid fa-baby"></i> <span>Early Years Progress</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'enter_raw_marks' %}active{% endif %}"><a href="{% url 'enter_raw_marks' %}"><i class="fa-solid fa-file-pen"></i> <span>Raw Marks Entry</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'attendance_registry' %}active{% endif %}"><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'report_card_generator' %}active{% endif %}"><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'lesson_plan_list' or request.resolver_match.url_name == 'lesson_plan_create' or request.resolver_match.url_name == 'lesson_plan_edit' %}active{% endif %}"><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-folder-open"></i> <span>Lesson Plans</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'activity_list' or request.resolver_match.url_name == 'activity_detail' %}active{% endif %}"><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'quiz_builder' or request.resolver_match.url_name == 'review_questions' or request.resolver_match.url_name == 'assign_quiz' %}active{% endif %}"><a href="{% url 'quiz_builder' %}"><i class="fa-solid fa-brain"></i> <span>Cambridge AI Quiz</span></a></li>
 
                         <!-- Settings -->
                         <span class="menu-category">Settings</span>
-                        <li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}"><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
                     {% elif role.code == 'R07' %}
                         <!-- Academics -->
                         <span class="menu-category">Academics</span>
-                        <li><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
-                        <li><a href="{% url 'student_quizzes' %}"><i class="fa-solid fa-brain"></i> <span>Cambridge AI Quizzes</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'activity_list' %}active{% endif %}"><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'student_quizzes' or request.resolver_match.url_name == 'take_quiz' or request.resolver_match.url_name == 'quiz_results' %}active{% endif %}"><a href="{% url 'student_quizzes' %}"><i class="fa-solid fa-brain"></i> <span>Cambridge AI Quizzes</span></a></li>
                     {% endif %}
                 {% endfor %}
-            {% endblock %}
         </ul>
         <div class="sidebar-footer">
             <a href="{% url 'logout' %}">

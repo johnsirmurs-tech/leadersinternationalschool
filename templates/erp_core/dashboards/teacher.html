@@ -4,15 +4,7 @@
 
 {% block page_title %}Teacher Dashboard{% endblock %}
 
-{% block sidebar_items %}
-<li><a href="{% url 'early_years_progress' %}"><i class="fa-solid fa-baby"></i> <span>Early Years Progress</span></a></li>
-<li><a href="{% url 'enter_raw_marks' %}"><i class="fa-solid fa-file-pen"></i> <span>Raw Marks Entry</span></a></li>
-<li><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
-<li><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
-<li><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-folder-open"></i> <span>Lesson Plans</span></a></li>
-<li><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
-<li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
-{% endblock %}
+
 
 {% block content %}
 <div class="dashboard-grid">

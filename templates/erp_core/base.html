@@ -959,6 +959,123 @@
             /* Make space for close button */
         }
 
+        /* Custom scrollbar for popup card */
+        .popup-form-card::-webkit-scrollbar {
+            width: 8px;
+        }
+        .popup-form-card::-webkit-scrollbar-track {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+        }
+        .popup-form-card::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: var(--radius-lg);
+        }
+        .popup-form-card::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Form elements styling in popups */
+        .popup-form-card .form-group {
+            margin-bottom: 20px;
+        }
+        .popup-form-card .form-label {
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            color: var(--text-muted) !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            margin-bottom: 8px !important;
+            display: block;
+        }
+        .popup-form-card .form-control {
+            width: 100%;
+            height: 46px;
+            padding: 10px 16px !important;
+            border-radius: var(--radius-md) !important;
+            border: 1.5px solid var(--border-color) !important;
+            background-color: var(--bg-subtle) !important;
+            color: var(--text-main) !important;
+            font-size: 0.95rem !important;
+            font-weight: 500 !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .popup-form-card .form-control:focus {
+            outline: none !important;
+            border-color: var(--primary) !important;
+            background-color: var(--bg-card) !important;
+            box-shadow: 0 0 0 4px rgba(30, 80, 200, 0.15) !important;
+        }
+        .popup-form-card button[type="submit"], 
+        .popup-form-card .btn-save {
+            height: 46px;
+            padding: 0 24px !important;
+            border-radius: var(--radius-md) !important;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
+            color: var(--white) !important;
+            font-weight: 700 !important;
+            border: none !important;
+            font-size: 0.95rem !important;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(30, 80, 200, 0.25) !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .popup-form-card button[type="submit"]:hover, 
+        .popup-form-card .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(30, 80, 200, 0.35) !important;
+        }
+        .popup-form-card button[type="submit"]:active, 
+        .popup-form-card .btn-save:active {
+            transform: translateY(0);
+        }
+
+        .popup-form-card .btn-add {
+            height: 46px;
+            padding: 0 20px !important;
+            background-color: var(--accent) !important;
+            color: var(--white) !important;
+            border: none !important;
+            border-radius: var(--radius-md) !important;
+            font-weight: 700 !important;
+            font-size: 0.9rem !important;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .popup-form-card .btn-add:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .popup-form-card .list-item-row {
+            background-color: var(--bg-subtle);
+            border-radius: var(--radius-md);
+            padding: 12px 16px !important;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color) !important;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
+        }
+        .popup-form-card .list-item-row:hover {
+            background-color: var(--bg-card);
+            border-color: var(--primary) !important;
+            transform: translateX(4px);
+        }
+
+        /* Clean submenus inside the popup if they show up */
+        .popup-form-card .content-card {
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+        }
+
             {
             % block extra_css %
         }

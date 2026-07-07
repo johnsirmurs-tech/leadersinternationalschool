@@ -1702,51 +1702,98 @@ def staff_enrollment(request):
         return redirect('dashboard')
 
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        role_id = request.POST.get('role_id')
-        staff_id = request.POST.get('staff_id')
-        department = request.POST.get('department')
-        education_level = request.POST.get('education_level')
-        age = request.POST.get('age')
-        employment_status = request.POST.get('employment_status')
-        basic_pay = request.POST.get('basic_pay', 0)
-        password = request.POST.get('password', 'Password123!')
+        action = request.POST.get('action')
+        
+        if action == 'edit_staff':
+            profile_id = request.POST.get('profile_id')
+            profile = StaffProfile.objects.get(id=profile_id)
+            user = profile.user
+            
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            role_id = request.POST.get('role_id')
+            staff_id = request.POST.get('staff_id')
+            department = request.POST.get('department')
+            education_level = request.POST.get('education_level')
+            age = request.POST.get('age')
+            employment_status = request.POST.get('employment_status')
+            basic_pay = request.POST.get('basic_pay', 0)
+            
+            try:
+                user.username = username
+                user.email = email
+                user.first_name = first_name
+                user.last_name = last_name
+                user.save()
+                
+                if role_id:
+                    role = Role.objects.get(id=role_id)
+                    user.roles.clear()
+                    user.roles.add(role)
+                    
+                profile.staff_id = staff_id
+                profile.department = department
+                profile.education_level = education_level
+                profile.age = int(age) if age else None
+                profile.employment_status = employment_status
+                profile.save()
+                
+                salary_config, _ = StaffSalaryConfig.objects.get_or_create(staff=user, defaults={'basic_pay': 0})
+                salary_config.basic_pay = float(basic_pay) if basic_pay else 0
+                salary_config.save()
+                
+                messages.success(request, f"Staff member {first_name} {last_name} updated successfully.")
+                return redirect('staff_enrollment')
+            except Exception as e:
+                messages.error(request, f"Error updating staff: {str(e)}")
+        else:
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            role_id = request.POST.get('role_id')
+            staff_id = request.POST.get('staff_id')
+            department = request.POST.get('department')
+            education_level = request.POST.get('education_level')
+            age = request.POST.get('age')
+            employment_status = request.POST.get('employment_status')
+            basic_pay = request.POST.get('basic_pay', 0)
+            password = request.POST.get('password', 'Password123!')
 
-        try:
-            user = CustomUser.objects.create_user(
-                username=username,
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-                password=password,
-                is_temporary_password=False
-            )
-            role = Role.objects.get(id=role_id)
-            user.roles.add(role)
+            try:
+                user = CustomUser.objects.create_user(
+                    username=username,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    password=password,
+                    is_temporary_password=False
+                )
+                role = Role.objects.get(id=role_id)
+                user.roles.add(role)
 
-            # Create StaffProfile
-            StaffProfile.objects.create(
-                user=user,
-                staff_id=staff_id,
-                department=department,
-                education_level=education_level,
-                age=int(age) if age else None,
-                employment_status=employment_status
-            )
+                # Create StaffProfile
+                StaffProfile.objects.create(
+                    user=user,
+                    staff_id=staff_id,
+                    department=department,
+                    education_level=education_level,
+                    age=int(age) if age else None,
+                    employment_status=employment_status
+                )
 
-            # Create ZSSF config
-            StaffSalaryConfig.objects.create(
-                staff=user,
-                basic_pay=float(basic_pay) if basic_pay else 0
-            )
+                # Create ZSSF config
+                StaffSalaryConfig.objects.create(
+                    staff=user,
+                    basic_pay=float(basic_pay) if basic_pay else 0
+                )
 
-            messages.success(request, f"Staff member {first_name} {last_name} enrolled successfully.")
-            return redirect('staff_enrollment')
-        except Exception as e:
-            messages.error(request, f"Error enrolling staff: {str(e)}")
+                messages.success(request, f"Staff member {first_name} {last_name} enrolled successfully.")
+                return redirect('staff_enrollment')
+            except Exception as e:
+                messages.error(request, f"Error enrolling staff: {str(e)}")
 
     # Automatically ensure all seeded staff users have a StaffProfile
     staff_users = CustomUser.objects.filter(roles__code__in=['R01', 'R02', 'R03', 'R04', 'R05', 'R06'])
@@ -1764,12 +1811,22 @@ def staff_enrollment(request):
                 employment_status="PERMANENT"
             )
 
+    selected_profile = None
+    if request.GET.get('action') == 'edit':
+        p_id = request.GET.get('profile_id')
+        if p_id:
+            try:
+                selected_profile = StaffProfile.objects.select_related('user', 'user__salary_config').get(id=p_id)
+            except StaffProfile.DoesNotExist:
+                pass
+
     staff_profiles = StaffProfile.objects.all().select_related('user', 'user__salary_config').order_by('user__first_name')
     roles = Role.objects.exclude(code__in=['R07', 'R08']).order_by('name') # Exclude Student and Parent
 
     return render(request, 'erp_core/administration/staff_enrollment.html', {
         'staff_profiles': staff_profiles,
-        'roles': roles
+        'roles': roles,
+        'selected_profile': selected_profile
     })
 
 @login_required

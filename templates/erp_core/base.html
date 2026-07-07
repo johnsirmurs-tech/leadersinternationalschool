@@ -362,6 +362,7 @@
         .sidebar.collapsed .menu-category,
         .sidebar.collapsed .sidebar-menu span,
         .sidebar.collapsed .submenu,
+        .sidebar.collapsed .submenu-arrow,
         .sidebar.collapsed .sidebar-footer span,
         .sidebar.collapsed .theme-toggle-btn span {
             display: none;
@@ -866,24 +867,25 @@
 
                 {% for role in user_roles %}
                     {% if role.code == 'R01' %}
-                        <!-- Human Resource -->
-                        <span class="menu-category">Human Resource</span>
-                        <li class="{% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_update' %}active{% endif %}" data-tooltip="Manage Users">
-                            <a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a>
-                        </li>
-                        <li class="{% if request.resolver_match.url_name == 'teacher_assignment_setup' %}active{% endif %}" data-tooltip="Teacher Assignments">
-                            <a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a>
-                        </li>
-                        <li class="{% if request.resolver_match.url_name == 'salary_setup' %}active{% endif %}" data-tooltip="Salaries Setup">
-                            <a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a>
-                        </li>
-                        <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}" data-tooltip="Monthly Payroll">
-                            <a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a>
+                        <!-- Human Resource Submenu -->
+                        <li class="has-submenu" id="menu-hr" data-tooltip="Human Resource">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-users-gear"></i>
+                                    <span>Human Resource</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_update' %}active{% endif %}"><a href="{% url 'user_list' %}">Manage Users</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'teacher_assignment_setup' %}active{% endif %}"><a href="{% url 'teacher_assignment_setup' %}">Teacher Assignments</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'salary_setup' %}active{% endif %}"><a href="{% url 'salary_setup' %}">Salaries Setup</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}"><a href="{% url 'payroll_list' %}">Monthly Payroll</a></li>
+                            </ul>
                         </li>
 
                         <!-- Finance Submenu -->
-                        <span class="menu-category">Finance & Ops</span>
-                        <li class="has-submenu" id="menu-finance">
+                        <li class="has-submenu" id="menu-finance" data-tooltip="Finance & Ops">
                             <a href="javascript:void(0);">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <i class="fa-solid fa-chart-line"></i>
@@ -911,8 +913,7 @@
                         </li>
 
                         <!-- Academics Submenu -->
-                        <span class="menu-category">Academics</span>
-                        <li class="has-submenu" id="menu-academics">
+                        <li class="has-submenu" id="menu-academics" data-tooltip="Academics">
                             <a href="javascript:void(0);">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <i class="fa-solid fa-book-open"></i>
@@ -932,45 +933,92 @@
                             </ul>
                         </li>
 
-                        <!-- Settings Category -->
-                        <span class="menu-category">Settings</span>
-                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}" data-tooltip="Change Password">
-                            <a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a>
+                        <!-- Settings Submenu -->
+                        <li class="has-submenu" id="menu-settings" data-tooltip="Settings">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-gears"></i>
+                                    <span>Settings</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}"><a href="{% url 'change_my_password' %}">Change Password</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'integration_settings' %}active{% endif %}"><a href="{% url 'integration_settings' %}">Integration Settings</a></li>
+                            </ul>
                         </li>
-                        <li class="{% if request.resolver_match.url_name == 'integration_settings' %}active{% endif %}" data-tooltip="Integration Settings">
-                            <a href="{% url 'integration_settings' %}"><i class="fa-solid fa-gears"></i> <span>Integration Settings</span></a>
-                        </li>
+
                     {% elif role.code == 'R02' %}
-                        <!-- Academics Category -->
-                        <span class="menu-category">Academics</span>
-                        <li class="{% if request.resolver_match.url_name == 'user_list' %}active{% endif %}" data-tooltip="Manage Users"><a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'subject_setup' %}active{% endif %}" data-tooltip="Subjects & Areas"><a href="{% url 'subject_setup' %}"><i class="fa-solid fa-book-open"></i> <span>Subjects & Areas</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'teacher_assignment_setup' %}active{% endif %}" data-tooltip="Teacher Assignments"><a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'attendance_registry' %}active{% endif %}" data-tooltip="Student Attendance"><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'report_card_generator' %}active{% endif %}" data-tooltip="Report Cards"><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'grade_boundaries' %}active{% endif %}" data-tooltip="Grade Boundaries"><a href="{% url 'grade_boundaries' %}"><i class="fa-solid fa-calculator"></i> <span>Grade Boundaries</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'lesson_plan_list' %}active{% endif %}" data-tooltip="Lesson Plans"><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-file-signature"></i> <span>Lesson Plans</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'kitchen_led_display' %}active{% endif %}" data-tooltip="Kitchen LED Display"><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
-
-                        <!-- Finance -->
-                        <span class="menu-category">Finance</span>
-                        <li class="{% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}" data-tooltip="Financial Reports"><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Reports</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'fee_balances' %}active{% endif %}" data-tooltip="Fee Balances"><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}" data-tooltip="Monthly Payroll"><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}" data-tooltip="Expenses"><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
-
-                        <!-- Settings -->
-                        <span class="menu-category">Settings</span>
-                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}" data-tooltip="Change Password"><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
-                    {% elif role.code == 'R03' %}
-                        <!-- Human Resource -->
-                        <span class="menu-category">Human Resource</span>
-                        <li class="{% if request.resolver_match.url_name == 'salary_setup' %}active{% endif %}" data-tooltip="Salaries Setup"><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}" data-tooltip="Monthly Payroll"><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+                        <!-- Academics Submenu -->
+                        <li class="has-submenu" id="menu-academics-r02" data-tooltip="Academics">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-book-open"></i>
+                                    <span>Academics</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'user_list' %}active{% endif %}"><a href="{% url 'user_list' %}">Manage Users</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'subject_setup' %}active{% endif %}"><a href="{% url 'subject_setup' %}">Subjects & Areas</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'teacher_assignment_setup' %}active{% endif %}"><a href="{% url 'teacher_assignment_setup' %}">Teacher Assignments</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'attendance_registry' %}active{% endif %}"><a href="{% url 'attendance_registry' %}">Student Attendance</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'report_card_generator' %}active{% endif %}"><a href="{% url 'report_card_generator' %}">Report Cards</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'grade_boundaries' %}active{% endif %}"><a href="{% url 'grade_boundaries' %}">Grade Boundaries</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'lesson_plan_list' %}active{% endif %}"><a href="{% url 'lesson_plan_list' %}">Lesson Plans</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'kitchen_led_display' %}active{% endif %}"><a href="{% url 'kitchen_led_display' %}">Kitchen LED Display</a></li>
+                            </ul>
+                        </li>
 
                         <!-- Finance Submenu -->
-                        <span class="menu-category">Finance & Ops</span>
-                        <li class="has-submenu" id="menu-finance-r03">
+                        <li class="has-submenu" id="menu-finance-r02" data-tooltip="Finance">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <span>Finance</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}"><a href="{% url 'financial_statements' %}">Financial Reports</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'fee_balances' %}active{% endif %}"><a href="{% url 'fee_balances' %}">Fee Balances</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}"><a href="{% url 'payroll_list' %}">Monthly Payroll</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}"><a href="{% url 'expense_list' %}">Expenses</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Settings Submenu -->
+                        <li class="has-submenu" id="menu-settings-r02" data-tooltip="Settings">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-gears"></i>
+                                    <span>Settings</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}"><a href="{% url 'change_my_password' %}">Change Password</a></li>
+                            </ul>
+                        </li>
+
+                    {% elif role.code == 'R03' %}
+                        <!-- Human Resource Submenu -->
+                        <li class="has-submenu" id="menu-hr-r03" data-tooltip="Human Resource">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-users-gear"></i>
+                                    <span>Human Resource</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'salary_setup' %}active{% endif %}"><a href="{% url 'salary_setup' %}">Salaries Setup</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}"><a href="{% url 'payroll_list' %}">Monthly Payroll</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Finance Submenu -->
+                        <li class="has-submenu" id="menu-finance-r03" data-tooltip="Finance & Ops">
                             <a href="javascript:void(0);">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <i class="fa-solid fa-chart-line"></i>
@@ -999,28 +1047,70 @@
                             </ul>
                         </li>
 
-                        <!-- Settings -->
-                        <span class="menu-category">Settings</span>
-                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}" data-tooltip="Change Password"><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
-                    {% elif role.code == 'R06' %}
-                        <!-- Academics -->
-                        <span class="menu-category">Academics</span>
-                        <li class="{% if request.resolver_match.url_name == 'early_years_progress' %}active{% endif %}" data-tooltip="Early Years Progress"><a href="{% url 'early_years_progress' %}"><i class="fa-solid fa-baby"></i> <span>Early Years Progress</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'enter_raw_marks' %}active{% endif %}" data-tooltip="Raw Marks Entry"><a href="{% url 'enter_raw_marks' %}"><i class="fa-solid fa-file-pen"></i> <span>Raw Marks Entry</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'attendance_registry' %}active{% endif %}" data-tooltip="Student Attendance"><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'report_card_generator' %}active{% endif %}" data-tooltip="Report Cards"><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'lesson_plan_list' or request.resolver_match.url_name == 'lesson_plan_create' or request.resolver_match.url_name == 'lesson_plan_edit' %}active{% endif %}" data-tooltip="Lesson Plans"><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-folder-open"></i> <span>Lesson Plans</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'activity_list' or request.resolver_match.url_name == 'activity_detail' %}active{% endif %}" data-tooltip="Auto-Graded Activities"><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'quiz_builder' or request.resolver_match.url_name == 'review_questions' or request.resolver_match.url_name == 'assign_quiz' %}active{% endif %}" data-tooltip="Cambridge AI Quiz"><a href="{% url 'quiz_builder' %}"><i class="fa-solid fa-brain"></i> <span>Cambridge AI Quiz</span></a></li>
+                        <!-- Settings Submenu -->
+                        <li class="has-submenu" id="menu-settings-r03" data-tooltip="Settings">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-gears"></i>
+                                    <span>Settings</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}"><a href="{% url 'change_my_password' %}">Change Password</a></li>
+                            </ul>
+                        </li>
 
-                        <!-- Settings -->
-                        <span class="menu-category">Settings</span>
-                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}" data-tooltip="Change Password"><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                    {% elif role.code == 'R06' %}
+                        <!-- Academics Submenu -->
+                        <li class="has-submenu" id="menu-academics-r06" data-tooltip="Academics">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-book-open"></i>
+                                    <span>Academics</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'early_years_progress' %}active{% endif %}"><a href="{% url 'early_years_progress' %}">Early Years Progress</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'enter_raw_marks' %}active{% endif %}"><a href="{% url 'enter_raw_marks' %}">Raw Marks Entry</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'attendance_registry' %}active{% endif %}"><a href="{% url 'attendance_registry' %}">Student Attendance</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'report_card_generator' %}active{% endif %}"><a href="{% url 'report_card_generator' %}">Report Cards</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'lesson_plan_list' or request.resolver_match.url_name == 'lesson_plan_create' or request.resolver_match.url_name == 'lesson_plan_edit' %}active{% endif %}"><a href="{% url 'lesson_plan_list' %}">Lesson Plans</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'activity_list' or request.resolver_match.url_name == 'activity_detail' %}active{% endif %}"><a href="{% url 'activity_list' %}">Auto-Graded Activities</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'quiz_builder' or request.resolver_match.url_name == 'review_questions' or request.resolver_match.url_name == 'assign_quiz' %}active{% endif %}"><a href="{% url 'quiz_builder' %}">Cambridge AI Quiz</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Settings Submenu -->
+                        <li class="has-submenu" id="menu-settings-r06" data-tooltip="Settings">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-gears"></i>
+                                    <span>Settings</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}"><a href="{% url 'change_my_password' %}">Change Password</a></li>
+                            </ul>
+                        </li>
+
                     {% elif role.code == 'R07' %}
-                        <!-- Academics -->
-                        <span class="menu-category">Academics</span>
-                        <li class="{% if request.resolver_match.url_name == 'activity_list' %}active{% endif %}" data-tooltip="Auto-Graded Activities"><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
-                        <li class="{% if request.resolver_match.url_name == 'student_quizzes' or request.resolver_match.url_name == 'take_quiz' or request.resolver_match.url_name == 'quiz_results' %}active{% endif %}" data-tooltip="Cambridge AI Quizzes"><a href="{% url 'student_quizzes' %}"><i class="fa-solid fa-brain"></i> <span>Cambridge AI Quizzes</span></a></li>
+                        <!-- Academics Submenu -->
+                        <li class="has-submenu" id="menu-academics-r07" data-tooltip="Academics">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-book-open"></i>
+                                    <span>Academics</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'activity_list' %}active{% endif %}"><a href="{% url 'activity_list' %}">Auto-Graded Activities</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'student_quizzes' or request.resolver_match.url_name == 'take_quiz' or request.resolver_match.url_name == 'quiz_results' %}active{% endif %}"><a href="{% url 'student_quizzes' %}">Cambridge AI Quizzes</a></li>
+                            </ul>
+                        </li>
                     {% endif %}
                 {% endfor %}
             </ul>

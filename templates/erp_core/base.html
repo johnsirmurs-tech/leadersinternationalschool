@@ -574,6 +574,160 @@
             color: var(--primary);
         }
 
+        /* Split-Screen Layout Styles */
+        .split-layout-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--bg-body);
+        }
+
+        .split-left-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #0A192F 0%, #0F2E59 50%, #1A4680 100%);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .split-left-panel::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            filter: blur(150px);
+            opacity: 0.12;
+            top: -100px;
+            left: -100px;
+            pointer-events: none;
+        }
+
+        .split-left-content {
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .split-school-link {
+            align-self: flex-start;
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+            backdrop-filter: blur(5px);
+        }
+
+        .split-school-link:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: var(--shadow-glow);
+            transform: translateX(-3px);
+        }
+
+        .split-brand-info {
+            margin: auto 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .split-logo {
+            width: 110px;
+            height: auto;
+            animation: floatLogo 6s ease-in-out infinite;
+        }
+
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .split-brand-info h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            background: linear-gradient(135deg, var(--white) 40%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .split-brand-info .slogan {
+            font-size: 1.25rem;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .split-footer-text {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .split-right-panel {
+            width: 550px;
+            background-color: var(--bg-body);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-left: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .split-right-content {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        @media (max-width: 991.98px) {
+            .split-layout-container {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+            .split-left-panel {
+                padding: 50px 30px;
+                height: auto;
+                min-height: 350px;
+                justify-content: center;
+                gap: 30px;
+            }
+            .split-school-link {
+                position: absolute;
+                top: 25px;
+                right: 25px;
+                align-self: unset;
+            }
+            .split-brand-info {
+                margin: 40px 0 0 0;
+            }
+            .split-brand-info h1 {
+                font-size: 2.2rem;
+            }
+            .split-right-panel {
+                width: 100%;
+                padding: 40px 20px;
+                border-left: none;
+                flex: 1;
+            }
+        }
+
         {% block extra_css %}{% endblock %}
     </style>
 </head>
@@ -806,57 +960,66 @@
                     </div>
                 </div>
             </header>
-
     {% else %}
-        <!-- Full-screen layout for non-authenticated pages (e.g. login) -->
-        <header class="school-header">
-            <div class="premium-container header-wrap">
-                <a href="/" class="logo-wrap">
-                    <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="Leaders International School Logo" class="logo-img">
-                    <div class="logo-text">
-                        <h1>Leaders International School</h1>
-                        <p>Learn Today, Leading Tomorrow</p>
-                    </div>
-                </a>
-                <div class="header-links">
-                    <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">
+        <!-- Split-Screen Login Layout for Non-Authenticated Users -->
+        <div class="split-layout-container">
+            <!-- Left Branding Panel -->
+            <div class="split-left-panel">
+                <div class="split-left-content">
+                    <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank" class="split-school-link">
                         <i class="fa-solid fa-arrow-left"></i> School Website
                     </a>
+                    <div class="split-brand-info">
+                        <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="School Logo" class="split-logo">
+                        <h1>Leaders International School</h1>
+                        <p class="slogan">Learn Today, Leading Tomorrow</p>
+                    </div>
+                    <div class="split-footer-text">
+                        <p>&copy; {% now "Y" %} Leaders International School ERP.</p>
+                    </div>
                 </div>
             </div>
-        </header>
+
+            <!-- Right Login Form Panel wrapper -->
+            <div class="split-right-panel">
+                <div class="split-right-content">
     {% endif %}
 
-    <!-- Consolidated Main Content Layout -->
-    <main class="{% if user.is_authenticated %}workspace-content{% else %}main-content{% endif %}">
-        {% if not user.is_authenticated %}
-            <div class="premium-container" style="max-width: 480px; padding: 60px 0 100px;">
-        {% endif %}
+    <!-- Consolidated Main Content Layout (used by both) -->
+    {% if user.is_authenticated %}
+        <!-- Workspace main tag structure -->
+        <main class="workspace-content">
+    {% endif %}
 
-        {% if messages %}
-            <div class="alert-messages">
-                {% for message in messages %}
-                    <div class="alert-item alert-{{ message.tags }}">
-                        {% if message.tags == 'error' %}
-                            <i class="fa-solid fa-circle-exclamation"></i>
-                        {% elif message.tags == 'success' %}
-                            <i class="fa-solid fa-circle-check"></i>
-                        {% else %}
-                            <i class="fa-solid fa-circle-info"></i>
-                        {% endif %}
-                        <span>{{ message }}</span>
-                    </div>
-                {% endfor %}
+    {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+                <div class="alert-item alert-{{ message.tags }}">
+                    {% if message.tags == 'error' %}
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="fa-solid fa-circle-check"></i>
+                    {% else %}
+                        <i class="fa-solid fa-circle-info"></i>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Single Content Block Definition (Always Evaluated) -->
+    {% block content %}{% endblock %}
+
+    {% if user.is_authenticated %}
+        </main>
+    {% endif %}
+
+    {% if not user.is_authenticated %}
+                </div>
             </div>
-        {% endif %}
-
-        <!-- Single Content Block Definition (Always Evaluated) -->
-        {% block content %}{% endblock %}
-
-        {% if not user.is_authenticated %}
-            </div>
-        {% endif %}
-    </main>
+        </div>
+    {% endif %}
 
     {% if user.is_authenticated %}
         </div> <!-- Close .workspace -->
@@ -981,12 +1144,6 @@
                 }
             });
         </script>
-    {% else %}
-        <footer class="school-footer">
-            <div class="premium-container">
-                <p>&copy; {% now "Y" %} Leaders International School ERP. All rights reserved. Managed by <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">Leaders International School</a></p>
-            </div>
-        </footer>
     {% endif %}
 
     {% block extra_js %}{% endblock %}

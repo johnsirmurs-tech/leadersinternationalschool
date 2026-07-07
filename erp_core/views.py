@@ -165,30 +165,35 @@ def dashboard(request):
                 total_expected_fees += class_fee_total * c.student_count
         outstanding_fees = max(0, total_expected_fees - fee_collected)
         
-        # Student attendance rate
-        today = timezone.now().date()
-        total_att = StudentAttendance.objects.filter(date=today).count()
-        present_att = StudentAttendance.objects.filter(date=today, status='PRESENT').count()
-        student_attendance_rate = (present_att / total_att * 100) if total_att > 0 else 94.2
-        
-        # Staff attendance (mock)
-        staff_attendance_rate = 98.5
-        
         # Section breakdown
+        today = timezone.now().date()
         sections = Section.objects.all()
         section_data = []
         for sec in sections:
             classes_in_sec = Class.objects.filter(section=sec)
             enrolled = StudentProfile.objects.filter(current_class__in=classes_in_sec).count()
             present = StudentAttendance.objects.filter(student__current_class__in=classes_in_sec, date=today, status='PRESENT').count()
-            rate = (present / enrolled * 100) if enrolled > 0 else 100.0
+            rate = (present / enrolled * 100) if enrolled > 0 else 0.0
             section_data.append({
                 'name': sec.name,
                 'enrolled': enrolled,
                 'present': present,
-                'rate': f"{rate:.1f}%" if enrolled > 0 else "N/A"
+                'rate': f"{rate:.1f}%" if enrolled > 0 else "0.0%"
             })
-            
+
+        # Calculate real student attendance rate
+        total_enrolled = sum(sec['enrolled'] for sec in section_data)
+        total_present = sum(sec['present'] for sec in section_data)
+        student_attendance_rate = (total_present / total_enrolled * 100) if total_enrolled > 0 else 0.0
+
+        # Calculate real staff attendance rate
+        total_staff_count = StaffProfile.objects.count()
+        present_staff_count = StaffAttendance.objects.filter(
+            date=today, 
+            status__in=['PRESENT', 'LATE']
+        ).count()
+        staff_attendance_rate = (present_staff_count / total_staff_count * 100) if total_staff_count > 0 else 0.0
+
         pending_plans_count = LessonPlan.objects.filter(status='SUBMITTED').count()
         
         # Format financial numbers for easy comprehension

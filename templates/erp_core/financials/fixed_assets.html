@@ -4,85 +4,6 @@
 
 {% block page_title %}Fixed Assets & Depreciation{% endblock %}
 
-{% block extra_css %}
-.flex-container {
-    display: flex;
-    gap: 30px;
-    flex-wrap: wrap;
-}
-.form-card {
-    flex: 1;
-    min-width: 320px;
-    background-color: var(--white);
-    padding: 25px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-premium);
-    border: 1px solid var(--gray-200);
-}
-.list-card {
-    flex: 2;
-    min-width: 500px;
-    background-color: var(--white);
-    padding: 25px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-premium);
-    border: 1px solid var(--gray-200);
-}
-.form-group {
-    margin-bottom: 15px;
-}
-.form-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 700;
-    color: var(--primary);
-    font-size: 0.9rem;
-}
-.form-control {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: var(--radius-md);
-    border: 1.5px solid var(--gray-300);
-}
-.asset-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-.asset-table th, .asset-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid var(--gray-200);
-}
-.asset-table th {
-    background-color: var(--gray-100);
-    color: var(--primary);
-}
-.btn-premium {
-    padding: 10px 20px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    color: var(--white);
-    border: none;
-    border-radius: var(--radius-md);
-    font-weight: 700;
-    cursor: pointer;
-    transition: var(--transition);
-}
-.btn-premium:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-.status-badge {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-.status-active { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
-.status-disposed { background-color: rgba(108, 117, 125, 0.15); color: var(--gray-600); }
-.status-fully_depreciated { background-color: rgba(15, 46, 89, 0.15); color: var(--primary); }
-{% endblock %}
-
 {% block content %}
 {% if messages %}
     <div style="margin-bottom: 20px;">
@@ -94,148 +15,204 @@
     </div>
 {% endif %}
 
-<!-- Run Depreciation Banner -->
-<div class="card" style="background: var(--white); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-    <div>
-        <h3 style="color: var(--primary); margin-bottom: 5px;"><i class="fa-solid fa-clock-rotate-left"></i> Run Monthly Depreciation</h3>
-        <p style="color: var(--gray-600); font-size: 0.9rem;">Runs straight-line/reducing-balance calculations and updates asset net book values.</p>
+{% if request.GET.action == 'new' %}
+<!-- Add New Asset Form -->
+<div class="content-card" style="max-width: 650px; margin: 0 auto;">
+    <div class="card-header-flex" style="border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px;">
+        <h4 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-square-plus" style="color: var(--primary-light);"></i> Register Fixed Asset
+        </h4>
     </div>
-    <form method="POST" action="{% url 'run_depreciation' %}" style="display: flex; gap: 15px; align-items: center;">
+    
+    <form method="POST" action="{% url 'fixed_assets_list' %}" style="display: flex; flex-direction: column; gap: 20px;">
         {% csrf_token %}
-        <input type="date" name="run_date" class="form-control" required style="width: 180px;">
-        <button type="submit" class="btn-premium">Execute Run</button>
-    </form>
-</div>
+        <input type="hidden" name="create_asset" value="1">
+        
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="asset_code">Asset Code / Tag Number</label>
+                <input type="text" name="asset_code" id="asset_code" class="form-control" placeholder="e.g. LIS/VEH/2026/001" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="name">Asset Name</label>
+                <input type="text" name="name" id="name" class="form-control" placeholder="e.g. School Bus - Toyota Coaster" required>
+            </div>
+        </div>
 
-<div class="flex-container">
-    <!-- Add New Asset Form -->
-    <div class="form-card">
-        <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-square-plus"></i> Register Asset</h3>
-        <form method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="create_asset" value="1">
+        <div class="form-group">
+            <label class="form-label" for="category">Asset Category</label>
+            <select name="category" id="category" class="form-control" required>
+                <option value="BUILDING">Buildings</option>
+                <option value="VEHICLE" selected>Vehicles</option>
+                <option value="FURNITURE">Furniture & Fittings</option>
+                <option value="EQUIPMENT">Equipment</option>
+                <option value="COMPUTER">Computers & Technology</option>
+            </select>
+        </div>
+
+        <div class="grid-2">
             <div class="form-group">
-                <label class="form-label">Asset Code / Tag Number</label>
-                <input type="text" name="asset_code" class="form-control" placeholder="e.g. LIS/VEH/2026/001" required>
+                <label class="form-label" for="purchase_date">Purchase Date</label>
+                <input type="date" name="purchase_date" id="purchase_date" class="form-control" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Asset Name</label>
-                <input type="text" name="name" class="form-control" placeholder="e.g. School Bus - Toyota Coaster" required>
+                <label class="form-label" for="purchase_cost">Purchase Cost (TZS)</label>
+                <input type="number" name="purchase_cost" id="purchase_cost" step="0.01" class="form-control" placeholder="e.g. 85000000" required>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="residual_value">Residual Value (TZS)</label>
+                <input type="number" name="residual_value" id="residual_value" step="0.01" value="0" class="form-control" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Asset Category</label>
-                <select name="category" class="form-control" required>
-                    <option value="BUILDING">Buildings</option>
-                    <option value="VEHICLE">Vehicles</option>
-                    <option value="FURNITURE">Furniture & Fittings</option>
-                    <option value="EQUIPMENT">Equipment</option>
-                    <option value="COMPUTER">Computers & Technology</option>
+                <label class="form-label" for="useful_life_years">Useful Life (Years)</label>
+                <input type="number" name="useful_life_years" id="useful_life_years" value="5" class="form-control" required>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="depreciation_method">Depreciation Method</label>
+                <select name="depreciation_method" id="depreciation_method" class="form-control" required>
+                    <option value="STRAIGHT_LINE" selected>Straight Line</option>
+                    <option value="REDUCING_BALANCE">Reducing Balance</option>
+                    <option value="NONE">No Depreciation</option>
                 </select>
             </div>
-            <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Purchase Date</label>
-                    <input type="date" name="purchase_date" class="form-control" required>
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Purchase Cost</label>
-                    <input type="number" name="purchase_cost" step="0.01" class="form-control" required>
-                </div>
-            </div>
-            <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Residual Value</label>
-                    <input type="number" name="residual_value" step="0.01" value="0" class="form-control" required>
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Useful Life (Years)</label>
-                    <input type="number" name="useful_life_years" value="5" class="form-control" required>
-                </div>
-            </div>
-            <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Depr. Method</label>
-                    <select name="depreciation_method" class="form-control" required>
-                        <option value="STRAIGHT_LINE">Straight Line</option>
-                        <option value="REDUCING_BALANCE">Reducing Balance</option>
-                        <option value="NONE">No Depreciation</option>
-                    </select>
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Depr. Rate (%)</label>
-                    <input type="number" name="depreciation_rate" step="0.1" value="0" class="form-control">
-                </div>
-            </div>
             <div class="form-group">
-                <label class="form-label">Asset GL Account</label>
-                <select name="asset_account_id" class="form-control" required>
-                    <option value="">Select Account</option>
-                    {% for account in asset_accounts %}
+                <label class="form-label" for="depreciation_rate">Depreciation Rate (%)</label>
+                <input type="number" name="depreciation_rate" id="depreciation_rate" step="0.1" value="0" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="asset_account_id">Asset GL Account</label>
+            <select name="asset_account_id" id="asset_account_id" class="form-control" required>
+                <option value="" disabled selected>Select Account</option>
+                {% for account in asset_accounts %}
+                    <option value="{{ account.id }}">{{ account.code }} - {{ account.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="depreciation_account_id">Depr. Expense Acc</label>
+                <select name="depreciation_account_id" id="depreciation_account_id" class="form-control">
+                    <option value="" disabled selected>Select Account</option>
+                    {% for account in dep_accounts %}
                         <option value="{{ account.id }}">{{ account.code }} - {{ account.name }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Depr. Expense Acc</label>
-                    <select name="depreciation_account_id" class="form-control">
-                        <option value="">Select Account</option>
-                        {% for account in dep_accounts %}
-                            <option value="{{ account.id }}">{{ account.code }} - {{ account.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Accum. Depr. Acc</label>
-                    <select name="accumulated_dep_account_id" class="form-control">
-                        <option value="">Select Account</option>
-                        {% for account in accum_accounts %}
-                            <option value="{{ account.id }}">{{ account.code }} - {{ account.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+            <div class="form-group">
+                <label class="form-label" for="accumulated_dep_account_id">Accum. Depr. Acc</label>
+                <select name="accumulated_dep_account_id" id="accumulated_dep_account_id" class="form-control">
+                    <option value="" disabled selected>Select Account</option>
+                    {% for account in accum_accounts %}
+                        <option value="{{ account.id }}">{{ account.code }} - {{ account.name }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <button type="submit" class="btn-submit">Register Asset</button>
-        </form>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{% url 'fixed_assets_list' %}" class="btn-action-white" style="text-decoration: none; padding: 12px 24px; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; justify-content: center;">Cancel</a>
+            <button type="submit" class="btn-save" style="padding: 12px 30px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer; box-shadow: 0 4px 12px rgba(30,80,200,0.25);">
+                <i class="fa-solid fa-check"></i> Register Asset
+            </button>
+        </div>
+    </form>
+</div>
+{% else %}
+<!-- Depreciation Control Block -->
+<div class="content-card" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-left: 5px solid var(--accent);">
+    <div>
+        <h4 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent);"></i> Run Monthly Depreciation
+        </h4>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 5px 0 0 0;">Executes straight-line or reducing-balance schedules and updates GL asset books.</p>
+    </div>
+    <form method="POST" action="{% url 'run_depreciation' %}" style="display: flex; gap: 10px; align-items: center;">
+        {% csrf_token %}
+        <input type="date" name="run_date" class="form-control" required style="width: 170px; height: 42px;">
+        <button type="submit" class="btn-save" style="height: 42px; padding: 0 20px; font-weight: 700; font-size: 0.88rem; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer;">
+            <i class="fa-solid fa-play"></i> Execute Run
+        </button>
+    </form>
+</div>
+
+<!-- Assets List -->
+<div class="content-card">
+    <div class="card-header-flex" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
+        <div>
+            <h3 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.5rem;">
+                <i class="fa-solid fa-cubes" style="color: var(--primary-light); margin-right: 8px;"></i> Fixed Asset Register
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 5px 0 0 0;">Track capital school acquisitions, accumulated depreciation balances, and net book values.</p>
+        </div>
+        <a href="{% url 'fixed_assets_list' %}?action=new" class="btn-add" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); padding: 12px 22px; border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(30,80,200,0.25); transition: all 0.25s;">
+            <i class="fa-solid fa-square-plus"></i> Register Asset
+        </a>
     </div>
 
-    <!-- Assets List -->
-    <div class="list-card">
-        <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-list"></i> Fixed Asset Register</h3>
-        <div style="overflow-x: auto;">
-            <table class="asset-table">
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Purchase Cost</th>
-                        <th>Accum. Depr.</th>
-                        <th>Net Book Value</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for asset in assets %}
-                        <tr>
-                            <td style="font-weight: 750; color: var(--primary);">{{ asset.asset_code }}</td>
-                            <td>{{ asset.name }}</td>
-                            <td style="font-weight: 700;">TZS {{ asset.purchase_cost|default:"0.00" }}</td>
-                            <td>TZS {{ asset.accumulated_depreciation|default:"0.00" }}</td>
-                            <td style="font-weight: 700; color: var(--primary);">TZS {{ asset.net_book_value|default:"0.00" }}</td>
-                            <td>
-                                <span class="status-badge status-{{ asset.status|lower }}">
-                                    {{ asset.get_status_display }}
-                                </span>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 30px; color: var(--gray-600);">No assets registered yet.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
+        <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background-color: var(--bg-subtle); border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Code</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Asset Name</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Purchase Cost</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Accum. Depr.</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Net Book Value</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asset in assets %}
+                <tr class="table-row-hover" style="border-bottom: 1.5px solid var(--border-color); transition: background-color 0.2s;">
+                    <td style="padding: 12px 15px; font-weight: 750; color: var(--primary);">{{ asset.asset_code }}</td>
+                    <td style="padding: 12px 15px; font-weight: 600; color: var(--text-main);">{{ asset.name }}</td>
+                    <td style="padding: 12px 15px; text-align: right; font-weight: 600; color: var(--text-main);">TZS {{ asset.purchase_cost|default:"0.00"|floatformat:2 }}</td>
+                    <td style="padding: 12px 15px; text-align: right; color: var(--danger); font-weight: 500;">TZS {{ asset.accumulated_depreciation|default:"0.00"|floatformat:2 }}</td>
+                    <td style="padding: 12px 15px; text-align: right; font-weight: 750; color: var(--primary);">TZS {{ asset.net_book_value|default:"0.00"|floatformat:2 }}</td>
+                    <td style="padding: 12px 15px; text-align: center;">
+                        {% if asset.status == 'ACTIVE' %}
+                            <span class="status-badge" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(46, 204, 113, 0.15); color: #2ecc71; padding: 4px 10px; border-radius: var(--radius-sm);">Active</span>
+                        {% elif asset.status == 'DISPOSED' %}
+                            <span class="status-badge" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(149, 165, 166, 0.15); color: #7f8c8d; padding: 4px 10px; border-radius: var(--radius-sm);">Disposed</span>
+                        {% else %}
+                            <span class="status-badge" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(52, 152, 219, 0.15); color: #3498db; padding: 4px 10px; border-radius: var(--radius-sm);">Fully Depreciated</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-cubes-stacked" style="font-size: 2rem; margin-bottom: 12px; display: block; color: var(--border-color);"></i>
+                        No assets registered in ledger yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+{% endif %}
+
+<style>
+    .table-row-hover:hover {
+        background-color: rgba(30, 80, 200, 0.02) !important;
+    }
+    .table th {
+        padding: 12px 15px !important;
+        font-size: 0.82rem !important;
+    }
+    .table td {
+        padding: 12px 15px !important;
+        font-size: 0.88rem !important;
+    }
+</style>
 {% endblock %}

@@ -15,109 +15,119 @@
     </div>
 {% endif %}
 
-<div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 25px; align-items: start;">
-    <!-- Add Form -->
-    <div class="content-card">
-        <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">Create Class-Subject Assignment</h4>
-        <form method="POST" style="display: flex; flex-direction: column; gap: 15px;">
-            {% csrf_token %}
-            <div>
-                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Select Teacher</label>
-                <select name="teacher_id" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
-                    <option value="">-- Choose Teacher --</option>
-                    {% for t in teachers %}
-                        <option value="{{ t.id }}">{{ t.get_full_name }} ({{ t.username }})</option>
-                    {% endfor %}
-                </select>
-            </div>
+{% if request.GET.action == 'new' %}
+<!-- Add Form -->
+<div class="content-card" style="max-width: 550px; margin: 0 auto;">
+    <div class="card-header-flex" style="border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px;">
+        <h4 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-link" style="color: var(--primary-light);"></i> Create Teacher Assignment
+        </h4>
+    </div>
+    
+    <form method="POST" action="{% url 'teacher_assignment_setup' %}" style="display: flex; flex-direction: column; gap: 20px;">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="teacher_id">Select Teacher</label>
+            <select name="teacher_id" id="teacher_id" class="form-control" required>
+                <option value="" disabled selected>-- Choose Teacher --</option>
+                {% for t in teachers %}
+                    <option value="{{ t.id }}">{{ t.get_full_name }} ({{ t.username }})</option>
+                {% endfor %}
+            </select>
+        </div>
 
-            <div>
-                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Select Class</label>
-                <select name="class_id" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
-                    <option value="">-- Choose Class --</option>
-                    {% for c in classes %}
-                        <option value="{{ c.id }}">{{ c.name }} ({{ c.get_level_type_display }})</option>
-                    {% endfor %}
-                </select>
-            </div>
+        <div class="form-group">
+            <label class="form-label" for="class_id">Select Class</label>
+            <select name="class_id" id="class_id" class="form-control" required>
+                <option value="" disabled selected>-- Choose Class --</option>
+                {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.name }} ({{ c.get_level_type_display }})</option>
+                {% endfor %}
+            </select>
+        </div>
 
-            <div>
-                <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 5px;">Select Subject / Area</label>
-                <select name="subject_id" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-family: var(--font-family);">
-                    <option value="">-- Choose Subject / Area --</option>
-                    {% for s in subjects %}
-                        <option value="{{ s.id }}">{{ s.name }} ({{ s.get_level_display }})</option>
-                    {% endfor %}
-                </select>
-            </div>
+        <div class="form-group">
+            <label class="form-label" for="subject_id">Select Subject / Area</label>
+            <select name="subject_id" id="subject_id" class="form-control" required>
+                <option value="" disabled selected>-- Choose Subject / Area --</option>
+                {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.name }} ({{ s.get_level_display }})</option>
+                {% endfor %}
+            </select>
+        </div>
 
-            <button type="submit" class="btn-action" style="padding: 12px; font-size: 0.95rem; font-weight: 700;">
+        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{% url 'teacher_assignment_setup' %}" class="btn-action-white" style="text-decoration: none; padding: 12px 24px; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; justify-content: center;">Cancel</a>
+            <button type="submit" class="btn-save" style="padding: 12px 30px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer; box-shadow: 0 4px 12px rgba(30,80,200,0.25);">
                 <i class="fa-solid fa-link"></i> Assign Teacher
             </button>
-        </form>
+        </div>
+    </form>
+</div>
+{% else %}
+<!-- Assignments List -->
+<div class="content-card">
+    <div class="card-header-flex" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
+        <div>
+            <h3 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.5rem;">
+                <i class="fa-solid fa-book-open-reader" style="color: var(--primary-light); margin-right: 8px;"></i> Teacher Assignments
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 5px 0 0 0;">View and manage class and subject allocations assigned to school teaching staff.</p>
+        </div>
+        <a href="{% url 'teacher_assignment_setup' %}?action=new" class="btn-add" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); padding: 12px 22px; border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(30,80,200,0.25); transition: all 0.25s;">
+            <i class="fa-solid fa-circle-plus"></i> New Assignment
+        </a>
     </div>
 
-    <!-- Assignments List -->
-    <div class="content-card">
-        <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">Active Assignments</h4>
-        <div style="overflow-x: auto;">
-            <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                <thead>
-                    <tr style="border-bottom: 2px solid var(--gray-200); background-color: var(--light); text-align: left;">
-                        <th style="padding: 10px 12px;">Teacher</th>
-                        <th style="padding: 10px 12px;">Class</th>
-                        <th style="padding: 10px 12px;">Subject / Area</th>
-                        <th style="padding: 10px 12px; text-align: right;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for a in assignments %}
-                        <tr style="border-bottom: 1px solid var(--gray-200);">
-                            <td style="padding: 10px 12px; font-weight: 700; color: var(--primary);">{{ a.teacher.get_full_name }}</td>
-                            <td style="padding: 10px 12px;">{{ a.class_obj.name }}</td>
-                            <td style="padding: 10px 12px; font-weight: 600; color: var(--accent);">{{ a.subject.name }}</td>
-                            <td style="padding: 10px 12px; text-align: right;">
-                                <a href="{% url 'teacher_assignment_delete' a.id %}" class="btn-delete" onclick="return confirm('Are you sure you want to remove this assignment?')">
-                                    <i class="fa-solid fa-unlink"></i> Remove
-                                </a>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="4" style="padding: 20px; text-align: center; color: var(--gray-600);">No teacher assignments set up yet.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
+        <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background-color: var(--bg-subtle); border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Teacher</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Class Allocation</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Assigned Subject / Learning Area</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in assignments %}
+                <tr class="table-row-hover" style="border-bottom: 1.5px solid var(--border-color); transition: background-color 0.2s;">
+                    <td style="padding: 12px 15px; font-weight: 700; color: var(--primary);">{{ a.teacher.get_full_name }}</td>
+                    <td style="padding: 12px 15px; color: var(--text-main); font-weight: 600;">{{ a.class_obj.name }}</td>
+                    <td style="padding: 12px 15px;">
+                        <span style="font-size: 0.75rem; font-weight: 700; background-color: rgba(230, 126, 34, 0.1); color: var(--accent); padding: 4px 10px; border-radius: var(--radius-sm);">{{ a.subject.name }}</span>
+                    </td>
+                    <td style="padding: 12px 15px; text-align: center;">
+                        <a href="{% url 'teacher_assignment_delete' a.id %}" class="btn-action-white" style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px; border: 1.5px solid var(--border-color); text-decoration: none; border-radius: var(--radius-sm); font-weight: 700; color: var(--danger);" onclick="return confirm('Are you sure you want to remove this assignment?')">
+                            <i class="fa-solid fa-trash-can" style="color: var(--danger);"></i> Remove
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-link-slash" style="font-size: 2rem; margin-bottom: 12px; display: block; color: var(--border-color);"></i>
+                        No class-subject assignments set up yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+{% endif %}
 
 <style>
-.btn-action {
-    background-color: var(--primary);
-    color: var(--white);
-    border: none;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-weight: 600;
-    transition: var(--transition);
-}
-.btn-action:hover {
-    background-color: var(--primary-light);
-}
-.btn-delete {
-    background-color: transparent;
-    color: var(--danger);
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-decoration: none;
-    transition: var(--transition);
-}
-.btn-delete:hover {
-    color: #a82230;
-}
+    .table-row-hover:hover {
+        background-color: rgba(30, 80, 200, 0.02) !important;
+    }
+    .table th {
+        padding: 12px 15px !important;
+        font-size: 0.82rem !important;
+    }
+    .table td {
+        padding: 12px 15px !important;
+        font-size: 0.88rem !important;
+    }
 </style>
 {% endblock %}

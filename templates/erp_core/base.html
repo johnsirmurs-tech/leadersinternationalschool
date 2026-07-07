@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,7 @@
     <title>{% block title %}Leaders International School | ERP Portal{% endblock %}</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png">
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com/">
@@ -741,7 +742,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
                 <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
-                    <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="School Logo" style="flex-shrink: 0;">
+                    <img src="{% static 'img/logo.png' %}" alt="School Logo" style="flex-shrink: 0;">
                     <h2>LIS ERP</h2>
                 </div>
                 <button id="sidebar-toggle" class="sidebar-toggle-btn" style="flex-shrink: 0;">
@@ -970,7 +971,7 @@
                         <i class="fa-solid fa-arrow-left"></i> School Website
                     </a>
                     <div class="split-brand-info">
-                        <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="School Logo" class="split-logo">
+                        <img src="{% static 'img/logo.png' %}" alt="School Logo" class="split-logo">
                         <h1>Leaders International School</h1>
                         <p class="slogan">Learn Today, Leading Tomorrow</p>
                     </div>

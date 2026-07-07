@@ -1549,50 +1549,139 @@
                 });
             }
 
-            // 5. Auto-convert data-entry forms to popup modals with close buttons
-            const dataEntryForm = document.querySelector('main.workspace-content form[method="POST"]');
-            if (dataEntryForm && !dataEntryForm.closest('.login-card') && !dataEntryForm.closest('.sidebar')) {
-                const dataInputs = dataEntryForm.querySelectorAll('input:not([type="hidden"]), select, textarea');
-                // Exclude search query, delete actions, or empty forms
-                if (dataInputs.length > 0 && !dataEntryForm.action.includes('delete') && !dataEntryForm.action.includes('post_journal_entry')) {
-                    const workspaceContent = document.querySelector('main.workspace-content');
-                    if (workspaceContent) {
-                        // Find the container card
-                        const formCard = workspaceContent.querySelector('.content-card') || workspaceContent;
-                        formCard.classList.add('popup-form-card');
+                // Helper to create a close button
+                function createCloseButton(closeFn) {
+                    const btn = document.createElement('button');
+                    btn.className = 'popup-close-btn';
+                    btn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                    btn.setAttribute('title', 'Close');
+                    btn.addEventListener('click', closeFn);
+                    return btn;
+                }
 
-                        // Create backdrop overlay
-                        const backdrop = document.createElement('div');
-                        backdrop.className = 'popup-backdrop';
-                        document.body.appendChild(backdrop);
+                // Function to open a URL inside a modal on the current page
+                function openModalFromUrl(url) {
+                    // Create backdrop
+                    const backdrop = document.createElement('div');
+                    backdrop.className = 'popup-backdrop';
+                    document.body.appendChild(backdrop);
 
-                        // Create close button
-                        const closeBtn = document.createElement('button');
-                        closeBtn.className = 'popup-close-btn';
-                        closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-                        closeBtn.setAttribute('title', 'Close and go back');
-                        formCard.appendChild(closeBtn);
+                    // Create modal container
+                    const modalContainer = document.createElement('div');
+                    modalContainer.className = 'popup-form-card';
+                    modalContainer.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; gap: 15px;">
+                            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                            <span style="font-weight: 600; color: var(--text-muted);">Loading form...</span>
+                        </div>
+                    `;
+                    document.body.appendChild(modalContainer);
 
-                        const handleClose = () => {
-                            backdrop.style.opacity = '0';
-                            formCard.style.transform = 'translate(-50%, -45%) scale(0.9)';
-                            formCard.style.opacity = '0';
-                            setTimeout(() => {
-                                if (document.referrer && document.referrer.includes(window.location.host)) {
-                                    window.location.href = document.referrer;
-                                } else {
-                                    window.history.back();
+                    const closeModal = () => {
+                        backdrop.style.opacity = '0';
+                        modalContainer.style.transform = 'translate(-50%, -45%) scale(0.9)';
+                        modalContainer.style.opacity = '0';
+                        setTimeout(() => {
+                            backdrop.remove();
+                            modalContainer.remove();
+                        }, 200);
+                    };
+
+                    modalContainer.appendChild(createCloseButton(closeModal));
+                    backdrop.addEventListener('click', closeModal);
+
+                    // Fetch the form page via AJAX
+                    fetch(url)
+                        .then(res => res.text())
+                        .then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const fetchedCard = doc.querySelector('.content-card') || doc.querySelector('form');
+                            
+                            if (fetchedCard) {
+                                modalContainer.innerHTML = '';
+                                modalContainer.appendChild(createCloseButton(closeModal));
+                                modalContainer.appendChild(fetchedCard);
+
+                                // Intercept redirect/cancel links inside form card to close modal
+                                const backLinks = modalContainer.querySelectorAll('a[href*="list"], a.btn-action-white');
+                                backLinks.forEach(lnk => {
+                                    lnk.addEventListener('click', (e) => {
+                                        e.preventDefault();
+                                        closeModal();
+                                    });
+                                });
+
+                                // Ensure form submits to the correct absolute URL
+                                const formEl = modalContainer.querySelector('form');
+                                if (formEl && !formEl.getAttribute('action')) {
+                                    formEl.setAttribute('action', url);
                                 }
-                            }, 200);
-                        };
+                            } else {
+                                modalContainer.innerHTML = `<p style="padding: 20px; text-align: center; color: var(--danger);">Failed to extract form.</p>`;
+                                modalContainer.appendChild(createCloseButton(closeModal));
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            modalContainer.innerHTML = `<p style="padding: 20px; text-align: center; color: var(--danger);">Error loading form.</p>`;
+                            modalContainer.appendChild(createCloseButton(closeModal));
+                        });
+                }
 
-                        closeBtn.addEventListener('click', handleClose);
-                        backdrop.addEventListener('click', handleClose);
+                // 1. Intercept link clicks pointing to data entry pages
+                document.body.addEventListener('click', (e) => {
+                    const link = e.target.closest('a');
+                    if (!link) return;
+
+                    const href = link.getAttribute('href');
+                    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+
+                    const formKeywords = ['/create/', '/edit/', '/setup/', '/record-payment/', '/add/', '/requisition/'];
+                    const isFormLink = formKeywords.some(kw => href.includes(kw));
+
+                    if (isFormLink) {
+                        e.preventDefault();
+                        openModalFromUrl(href);
+                    }
+                });
+
+                // 2. Direct page-load fallback: Convert loaded form content to modal overlay
+                const dataEntryForm = document.querySelector('main.workspace-content form[method="POST"]');
+                if (dataEntryForm && !dataEntryForm.closest('.login-card') && !dataEntryForm.closest('.sidebar')) {
+                    const dataInputs = dataEntryForm.querySelectorAll('input:not([type="hidden"]), select, textarea');
+                    if (dataInputs.length > 0 && !dataEntryForm.action.includes('delete') && !dataEntryForm.action.includes('post_journal_entry')) {
+                        const workspaceContent = document.querySelector('main.workspace-content');
+                        if (workspaceContent) {
+                            const formCard = workspaceContent.querySelector('.content-card') || dataEntryForm;
+
+                            const backdrop = document.createElement('div');
+                            backdrop.className = 'popup-backdrop';
+                            document.body.appendChild(backdrop);
+
+                            document.body.appendChild(formCard);
+                            formCard.classList.add('popup-form-card');
+
+                            const handleClose = () => {
+                                backdrop.style.opacity = '0';
+                                formCard.style.transform = 'translate(-50%, -45%) scale(0.9)';
+                                formCard.style.opacity = '0';
+                                setTimeout(() => {
+                                    if (document.referrer && document.referrer.includes(window.location.host)) {
+                                        window.location.href = document.referrer;
+                                    } else {
+                                        window.history.back();
+                                    }
+                                }, 200);
+                            };
+
+                            formCard.appendChild(createCloseButton(handleClose));
+                            backdrop.addEventListener('click', handleClose);
+                        }
                     }
                 }
-            }
-        });
-    </script>
+            });
+        </script>
     {% endif %}
 
     {% block extra_js %}{% endblock %}

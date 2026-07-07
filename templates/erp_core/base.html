@@ -803,27 +803,59 @@
                 </div>
             </header>
 
-            <main class="workspace-content">
-                {% if messages %}
-                    <div class="alert-messages">
-                        {% for message in messages %}
-                            <div class="alert-item alert-{{ message.tags }}">
-                                {% if message.tags == 'error' %}
-                                    <i class="fa-solid fa-circle-exclamation"></i>
-                                {% elif message.tags == 'success' %}
-                                    <i class="fa-solid fa-circle-check"></i>
-                                {% else %}
-                                    <i class="fa-solid fa-circle-info"></i>
-                                {% endif %}
-                                <span>{{ message }}</span>
-                            </div>
-                        {% endfor %}
+    {% else %}
+        <!-- Full-screen layout for non-authenticated pages (e.g. login) -->
+        <header class="school-header">
+            <div class="premium-container header-wrap">
+                <a href="/" class="logo-wrap">
+                    <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="Leaders International School Logo" class="logo-img">
+                    <div class="logo-text">
+                        <h1>Leaders International School</h1>
+                        <p>Learn Today, Leading Tomorrow</p>
                     </div>
-                {% endif %}
+                </a>
+                <div class="header-links">
+                    <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">
+                        <i class="fa-solid fa-arrow-left"></i> School Website
+                    </a>
+                </div>
+            </div>
+        </header>
+    {% endif %}
 
-                {% block content %}{% endblock %}
-            </main>
-        </div>
+    <!-- Consolidated Main Content Layout -->
+    <main class="{% if user.is_authenticated %}workspace-content{% else %}main-content{% endif %}">
+        {% if not user.is_authenticated %}
+            <div class="premium-container" style="max-width: 480px; padding: 60px 0 100px;">
+        {% endif %}
+
+        {% if messages %}
+            <div class="alert-messages">
+                {% for message in messages %}
+                    <div class="alert-item alert-{{ message.tags }}">
+                        {% if message.tags == 'error' %}
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                        {% elif message.tags == 'success' %}
+                            <i class="fa-solid fa-circle-check"></i>
+                        {% else %}
+                            <i class="fa-solid fa-circle-info"></i>
+                        {% endif %}
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Single Content Block Definition (Always Evaluated) -->
+        {% block content %}{% endblock %}
+
+        {% if not user.is_authenticated %}
+            </div>
+        {% endif %}
+    </main>
+
+    {% if user.is_authenticated %}
+        </div> <!-- Close .workspace -->
 
         <!-- Sidebar Collapse & Submenu Expand & Theme Toggle Script -->
         <script>
@@ -946,47 +978,6 @@
             });
         </script>
     {% else %}
-        <!-- Full-screen layout for non-authenticated pages (e.g. login) -->
-        <header class="school-header">
-            <div class="premium-container header-wrap">
-                <a href="/" class="logo-wrap">
-                    <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="Leaders International School Logo" class="logo-img">
-                    <div class="logo-text">
-                        <h1>Leaders International School</h1>
-                        <p>Learn Today, Leading Tomorrow</p>
-                    </div>
-                </a>
-                <div class="header-links">
-                    <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">
-                        <i class="fa-solid fa-arrow-left"></i> School Website
-                    </a>
-                </div>
-            </div>
-        </header>
-
-        <main class="main-content">
-            <div class="premium-container" style="max-width: 480px; padding: 60px 0 100px;">
-                {% if messages %}
-                    <div class="alert-messages">
-                        {% for message in messages %}
-                            <div class="alert-item alert-{{ message.tags }}">
-                                {% if message.tags == 'error' %}
-                                    <i class="fa-solid fa-circle-exclamation"></i>
-                                {% elif message.tags == 'success' %}
-                                    <i class="fa-solid fa-circle-check"></i>
-                                {% else %}
-                                    <i class="fa-solid fa-circle-info"></i>
-                                {% endif %}
-                                <span>{{ message }}</span>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                {% block content %}{% endblock %}
-            </div>
-        </main>
-
         <footer class="school-footer">
             <div class="premium-container">
                 <p>&copy; {% now "Y" %} Leaders International School ERP. All rights reserved. Managed by <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">Leaders International School</a></p>

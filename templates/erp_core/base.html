@@ -59,6 +59,8 @@
             --sidebar-muted: rgba(255, 255, 255, 0.6);
             --glass-bg: rgba(255, 255, 255, 0.85);
             --glass-border: rgba(255, 255, 255, 0.4);
+            --bg-subtle: #F8FAFC;
+            --border-subtle: #E2E8F0;
         }
 
         /* Dark Theme Variables */
@@ -78,6 +80,8 @@
             --shadow-premium: 0 20px 40px rgba(0, 0, 0, 0.4);
             --glass-bg: rgba(18, 24, 38, 0.85);
             --glass-border: rgba(255, 255, 255, 0.08);
+            --bg-subtle: #1E293B;
+            --border-subtle: #334155;
         }
 
         * {
@@ -726,6 +730,108 @@
                 padding: 40px 20px;
                 border-left: none;
                 flex: 1;
+            }
+        }
+
+        /* Core Dashboard Layout Classes */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .summary-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
+        }
+
+        .summary-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(229, 169, 60, 0.4);
+        }
+
+        .card-details h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+
+        .card-details h2 {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .card-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .card-icon-blue  { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
+        .card-icon-gold  { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
+        .card-icon-green { background: rgba(16, 185, 129, 0.12); color: #10B981; }
+        .card-icon-red   { background: rgba(239, 68, 68, 0.12); color: #EF4444; }
+
+        .content-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .card-header-flex {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Stat Box and Subtle Colors (Dark Mode Friendly) */
+        .stat-box {
+            background-color: var(--bg-subtle);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        /* Responsive Dashboard Rules */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .widgets-layout {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
             }
         }
 

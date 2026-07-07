@@ -191,11 +191,26 @@ def dashboard(request):
             
         pending_plans_count = LessonPlan.objects.filter(status='SUBMITTED').count()
         
+        # Format financial numbers for easy comprehension
+        def format_currency(val):
+            val_float = float(val)
+            if val_float >= 1_000_000_000:
+                return f"TZS {val_float / 1_000_000_000:.1f}B"
+            elif val_float >= 1_000_000:
+                return f"TZS {val_float / 1_000_000:.1f}M"
+            else:
+                return f"TZS {val_float:,.0f}"
+
+        fee_collected_formatted = format_currency(fee_collected)
+        outstanding_fees_formatted = format_currency(outstanding_fees)
+
         context.update({
             'total_students': total_students,
             'total_staff': total_staff,
             'fee_collected': fee_collected,
+            'fee_collected_formatted': fee_collected_formatted,
             'outstanding_fees': outstanding_fees,
+            'outstanding_fees_formatted': outstanding_fees_formatted,
             'student_attendance_rate': f"{student_attendance_rate:.1f}%" if isinstance(student_attendance_rate, float) else student_attendance_rate,
             'staff_attendance_rate': f"{staff_attendance_rate:.1f}%" if isinstance(staff_attendance_rate, float) else staff_attendance_rate,
             'section_data': section_data,

@@ -195,7 +195,7 @@
     <div class="summary-card">
         <div class="card-details">
             <h4>Fee Collected</h4>
-            <h2>TZS {{ fee_collected|floatformat:0 }}</h2>
+            <h2>{{ fee_collected_formatted }}</h2>
         </div>
         <div class="card-icon card-icon-green">
             <i class="fa-solid fa-wallet"></i>
@@ -204,7 +204,7 @@
     <div class="summary-card">
         <div class="card-details">
             <h4>Outstanding Fees</h4>
-            <h2>TZS {{ outstanding_fees|floatformat:0 }}</h2>
+            <h2>{{ outstanding_fees_formatted }}</h2>
         </div>
         <div class="card-icon card-icon-red">
             <i class="fa-solid fa-hand-holding-dollar"></i>
@@ -226,12 +226,12 @@
             </div>
             
             <div style="display: flex; gap: 30px; margin-bottom: 20px;">
-                <div style="flex: 1; text-align: center; padding: 15px; background-color: var(--gray-100); border-radius: var(--radius-md);">
-                    <h5 style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 5px;">Student Attendance</h5>
+                <div class="stat-box" style="flex: 1;">
+                    <h5 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Student Attendance</h5>
                     <h3 style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">{{ student_attendance_rate }}</h3>
                 </div>
-                <div style="flex: 1; text-align: center; padding: 15px; background-color: var(--gray-100); border-radius: var(--radius-md);">
-                    <h5 style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 5px;">Staff Attendance</h5>
+                <div class="stat-box" style="flex: 1;">
+                    <h5 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Staff Attendance</h5>
                     <h3 style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">{{ staff_attendance_rate }}</h3>
                 </div>
             </div>
@@ -239,7 +239,7 @@
             <!-- Table breakdown by section -->
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                 <thead>
-                    <tr style="border-bottom: 2px solid var(--gray-200); color: var(--gray-600); font-weight: 600;">
+                    <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600;">
                         <th style="padding: 10px 0;">Section</th>
                         <th style="padding: 10px 0;">Enrolled</th>
                         <th style="padding: 10px 0;">Present Today</th>
@@ -248,11 +248,19 @@
                 </thead>
                 <tbody>
                     {% for sec in section_data %}
-                    <tr style="border-bottom: 1px solid var(--gray-200);">
+                    <tr style="border-bottom: 1px solid var(--border-color);">
                         <td style="padding: 10px 0; font-weight: 600;">{{ sec.name }}</td>
                         <td style="padding: 10px 0;">{{ sec.enrolled }}</td>
                         <td style="padding: 10px 0;">{{ sec.present }}</td>
-                        <td style="padding: 10px 0; text-align: right; color: var(--success); font-weight: 600;">{{ sec.rate }}</td>
+                        <td style="padding: 10px 0; text-align: right; font-weight: 600;">
+                            {% if sec.present == 0 or sec.rate == '0.0%' or sec.enrolled == 0 %}
+                                <span style="background-color: rgba(220, 53, 69, 0.1); color: var(--danger); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> 0.0%
+                                </span>
+                            {% else %}
+                                <span style="color: var(--success);">{{ sec.rate }}</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>

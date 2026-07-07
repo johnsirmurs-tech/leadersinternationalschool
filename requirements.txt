@@ -79,4 +79,4 @@ urllib3==2.6.3
 whitenoise==6.12.0
 django-cors-headers
 pgvector>=0.2.0
-sentence-transformers>=3.0.0
+openai

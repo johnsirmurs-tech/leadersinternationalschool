@@ -1629,7 +1629,7 @@
                         });
                 }
 
-                // 1. Intercept link clicks pointing to data entry pages
+                // 1. Intercept link clicks pointing to data entry pages (excluding sidebar navigation)
                 document.body.addEventListener('click', (e) => {
                     const link = e.target.closest('a');
                     if (!link) return;
@@ -1637,8 +1637,15 @@
                     const href = link.getAttribute('href');
                     if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
 
+                    // Exclude sidebar navigation links from modal interception
+                    if (link.closest('.sidebar') || link.closest('.sidebar-menu') || link.closest('.sidebar-footer')) {
+                        return;
+                    }
+
                     const formKeywords = ['/create/', '/edit/', '/setup/', '/record-payment/', '/add/', '/requisition/'];
-                    const isFormLink = formKeywords.some(kw => href.includes(kw));
+                    // Exclude full dashboard setup tabs from being converted to inline modals
+                    const isExcludedPage = href.includes('/salary/setup/') || href.includes('/subjects/setup/') || href.includes('/teachers/setup/');
+                    const isFormLink = formKeywords.some(kw => href.includes(kw)) && !isExcludedPage;
 
                     if (isFormLink) {
                         e.preventDefault();
@@ -1648,7 +1655,8 @@
 
                 // 2. Direct page-load fallback: Convert loaded form content to modal overlay
                 const dataEntryForm = document.querySelector('main.workspace-content form[method="POST"]');
-                if (dataEntryForm && !dataEntryForm.closest('.login-card') && !dataEntryForm.closest('.sidebar')) {
+                const isDirectSetupPage = window.location.pathname.includes('/salary/setup/') || window.location.pathname.includes('/subjects/setup/') || window.location.pathname.includes('/teachers/setup/');
+                if (dataEntryForm && !dataEntryForm.closest('.login-card') && !dataEntryForm.closest('.sidebar') && !isDirectSetupPage) {
                     const dataInputs = dataEntryForm.querySelectorAll('input:not([type="hidden"]), select, textarea');
                     if (dataInputs.length > 0 && !dataEntryForm.action.includes('delete') && !dataEntryForm.action.includes('post_journal_entry')) {
                         const workspaceContent = document.querySelector('main.workspace-content');

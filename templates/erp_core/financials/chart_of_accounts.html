@@ -4,97 +4,6 @@
 
 {% block page_title %}Chart of Accounts{% endblock %}
 
-{% block extra_css %}
-.flex-container {
-    display: flex;
-    gap: 30px;
-    flex-wrap: wrap;
-}
-.form-card {
-    flex: 1;
-    min-width: 320px;
-    background-color: var(--white);
-    padding: 25px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-premium);
-    border: 1px solid var(--gray-200);
-}
-.list-card {
-    flex: 2;
-    min-width: 500px;
-    background-color: var(--white);
-    padding: 25px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-premium);
-    border: 1px solid var(--gray-200);
-}
-.form-group {
-    margin-bottom: 15px;
-}
-.form-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 700;
-    color: var(--primary);
-    font-size: 0.9rem;
-}
-.form-control {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: var(--radius-md);
-    border: 1.5px solid var(--gray-300);
-    font-family: var(--font-family);
-    transition: var(--transition);
-}
-.form-control:focus {
-    border-color: var(--primary);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(15, 46, 89, 0.1);
-}
-.btn-submit {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    color: var(--white);
-    border: none;
-    border-radius: var(--radius-md);
-    font-weight: 750;
-    cursor: pointer;
-    transition: var(--transition);
-}
-.btn-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-.coa-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-.coa-table th, .coa-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid var(--gray-200);
-}
-.coa-table th {
-    background-color: var(--gray-100);
-    color: var(--primary);
-    font-weight: 700;
-}
-.type-badge {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-.type-asset { background-color: rgba(25, 135, 84, 0.1); color: var(--success); }
-.type-liability { background-color: rgba(220, 53, 69, 0.1); color: var(--danger); }
-.type-equity { background-color: rgba(15, 46, 89, 0.1); color: var(--primary); }
-.type-revenue { background-color: rgba(229, 169, 60, 0.15); color: #b07817; }
-.type-expense { background-color: rgba(108, 117, 125, 0.1); color: var(--gray-600); }
-{% endblock %}
-
 {% block content %}
 {% if messages %}
     <div style="margin-bottom: 20px;">
@@ -106,90 +15,145 @@
     </div>
 {% endif %}
 
-<div class="flex-container">
-    <!-- Add New Account Form -->
-    <div class="form-card">
-        <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-folder-plus"></i> Add GL Account</h3>
-        <form method="POST">
-            {% csrf_token %}
+{% if request.GET.action == 'new' %}
+<!-- Add New Account Form -->
+<div class="content-card" style="max-width: 550px; margin: 0 auto;">
+    <div class="card-header-flex" style="border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px;">
+        <h4 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-folder-plus" style="color: var(--primary-light);"></i> Add GL Account
+        </h4>
+    </div>
+    
+    <form method="POST" action="{% url 'chart_of_accounts' %}" style="display: flex; flex-direction: column; gap: 20px;">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="code">Account Code (e.g. 1010)</label>
+            <input type="text" name="code" id="code" class="form-control" placeholder="Unique numeric code" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="name">Account Name</label>
+            <input type="text" name="name" id="name" class="form-control" placeholder="e.g. Cash at Bank" required>
+        </div>
+
+        <div class="grid-2">
             <div class="form-group">
-                <label class="form-label">Account Code (e.g. 1010)</label>
-                <input type="text" name="code" class="form-control" placeholder="Unique numeric code" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Account Name</label>
-                <input type="text" name="name" class="form-control" placeholder="e.g. Cash at Bank" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Account Type</label>
-                <select name="account_type" class="form-control" required>
-                    <option value="">Select Type</option>
+                <label class="form-label" for="account_type">Account Type</label>
+                <select name="account_type" id="account_type" class="form-control" required>
+                    <option value="" disabled selected>Select Type</option>
                     {% for val, label in types %}
                         <option value="{{ val }}">{{ label }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Account Subtype</label>
-                <select name="account_sub_type" class="form-control" required>
-                    <option value="">Select Subtype</option>
+                <label class="form-label" for="account_sub_type">Account Subtype</label>
+                <select name="account_sub_type" id="account_sub_type" class="form-control" required>
+                    <option value="" disabled selected>Select Subtype</option>
                     {% for val, label in sub_types %}
                         <option value="{{ val }}">{{ label }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="form-group">
-                <label class="form-label">Normal Balance Side</label>
-                <select name="normal_balance" class="form-control" required>
-                    <option value="DEBIT">Debit</option>
-                    <option value="CREDIT">Credit</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Description</label>
-                <textarea name="description" class="form-control" rows="3" placeholder="Account notes..."></textarea>
-            </div>
-            <button type="submit" class="btn-submit">Create Account</button>
-        </form>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="normal_balance">Normal Balance Side</label>
+            <select name="normal_balance" id="normal_balance" class="form-control" required>
+                <option value="DEBIT" selected>Debit</option>
+                <option value="CREDIT">Credit</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="description">Description</label>
+            <textarea name="description" id="description" class="form-control" rows="3" placeholder="Account notes..."></textarea>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{% url 'chart_of_accounts' %}" class="btn-action-white" style="text-decoration: none; padding: 12px 24px; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; justify-content: center;">Cancel</a>
+            <button type="submit" class="btn-save" style="padding: 12px 30px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer; box-shadow: 0 4px 12px rgba(30,80,200,0.25);">
+                <i class="fa-solid fa-check"></i> Create Account
+            </button>
+        </div>
+    </form>
+</div>
+{% else %}
+<!-- Chart of Accounts List -->
+<div class="content-card">
+    <div class="card-header-flex" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
+        <div>
+            <h3 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.5rem;">
+                <i class="fa-solid fa-list-check" style="color: var(--primary-light); margin-right: 8px;"></i> Chart of Accounts
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 5px 0 0 0;">Manage General Ledger account structures, normal balance sides, and computed ledger balances.</p>
+        </div>
+        <a href="{% url 'chart_of_accounts' %}?action=new" class="btn-add" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); padding: 12px 22px; border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(30,80,200,0.25); transition: all 0.25s;">
+            <i class="fa-solid fa-folder-plus"></i> Add GL Account
+        </a>
     </div>
 
-    <!-- Chart of Accounts List -->
-    <div class="list-card">
-        <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-list-check"></i> Chart of Accounts</h3>
-        <div style="overflow-x: auto;">
-            <table class="coa-table">
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Subtype</th>
-                        <th>Normal Balance</th>
-                        <th>Current Balance</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for account in accounts %}
-                        <tr>
-                            <td style="font-weight: 750; color: var(--primary);">{{ account.code }}</td>
-                            <td>{{ account.name }}</td>
-                            <td>
-                                <span class="type-badge type-{{ account.account_type|lower }}">
-                                    {{ account.get_account_type_display }}
-                                </span>
-                            </td>
-                            <td>{{ account.get_account_sub_type_display }}</td>
-                            <td style="font-weight: 600; font-size: 0.85rem;">{{ account.normal_balance }}</td>
-                            <td style="font-weight: 700; text-align: right;">TZS {{ account.balance|default:"0.00" }}</td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 30px; color: var(--gray-600);">No accounts registered yet.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
+        <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background-color: var(--bg-subtle); border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Code</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Account Name</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Type</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Subtype</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Normal Balance</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Current Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                <tr class="table-row-hover" style="border-bottom: 1.5px solid var(--border-color); transition: background-color 0.2s;">
+                    <td style="padding: 12px 15px; font-weight: 750; color: var(--primary);">{{ account.code }}</td>
+                    <td style="padding: 12px 15px; font-weight: 600; color: var(--text-main);">{{ account.name }}</td>
+                    <td style="padding: 12px 15px;">
+                        {% if account.account_type == 'ASSET' %}
+                            <span class="type-badge type-asset" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(46, 204, 113, 0.15); color: #2ecc71; padding: 4px 10px; border-radius: var(--radius-sm);">Asset</span>
+                        {% elif account.account_type == 'LIABILITY' %}
+                            <span class="type-badge type-liability" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(231, 76, 60, 0.15); color: #e74c3c; padding: 4px 10px; border-radius: var(--radius-sm);">Liability</span>
+                        {% elif account.account_type == 'EQUITY' %}
+                            <span class="type-badge type-equity" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(52, 152, 219, 0.15); color: #3498db; padding: 4px 10px; border-radius: var(--radius-sm);">Equity</span>
+                        {% elif account.account_type == 'REVENUE' %}
+                            <span class="type-badge type-revenue" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(230, 126, 34, 0.15); color: #e67e22; padding: 4px 10px; border-radius: var(--radius-sm);">Revenue</span>
+                        {% else %}
+                            <span class="type-badge type-expense" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(149, 165, 166, 0.15); color: #7f8c8d; padding: 4px 10px; border-radius: var(--radius-sm);">Expense</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px 15px; color: var(--text-muted);">{{ account.get_account_sub_type_display }}</td>
+                    <td style="padding: 12px 15px; text-align: center; font-weight: 600; font-size: 0.82rem; color: var(--text-main);">{{ account.normal_balance }}</td>
+                    <td style="padding: 12px 15px; text-align: right; font-weight: 750; color: var(--text-main);">
+                        TZS {{ account.balance|default:"0.00" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 12px; display: block; color: var(--border-color);"></i>
+                        No GL accounts registered yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+{% endif %}
+
+<style>
+    .table-row-hover:hover {
+        background-color: rgba(30, 80, 200, 0.02) !important;
+    }
+    .table th {
+        padding: 12px 15px !important;
+        font-size: 0.82rem !important;
+    }
+    .table td {
+        padding: 12px 15px !important;
+        font-size: 0.88rem !important;
+    }
+</style>
 {% endblock %}

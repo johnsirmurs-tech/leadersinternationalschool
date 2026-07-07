@@ -162,7 +162,7 @@ class FinancialTests(TestCase):
             basic_pay=1200000,
             housing_allowance=200000,
             transport_allowance=100000,
-            nssf_deduction=50000,
+            zssf_deduction=50000,
             paye_tax=100000
         )
         
@@ -528,7 +528,7 @@ class AccountingSystemTests(TestCase):
         payslip.gross_earnings = Decimal('2000000')
         payslip.net_salary = Decimal('1700000')
         payslip.paye_tax = Decimal('200000')
-        payslip.nssf_deduction = Decimal('100000')
+        payslip.zssf_deduction = Decimal('100000')
         payslip.staff.get_full_name.return_value = 'Test Teacher'
         payslip.payroll.month = 6
         payslip.payroll.year = 2026

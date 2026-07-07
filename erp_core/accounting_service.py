@@ -190,13 +190,13 @@ class AccountingService:
             debit_amount=Decimal('0'),
             credit_amount=payslip.net_salary
         )
-        # Cr Tax Payable (PAYE & NSSF)
-        total_tax = payslip.paye_tax + payslip.nssf_deduction
+        # Cr Tax Payable (PAYE & ZSSF)
+        total_tax = payslip.paye_tax + payslip.zssf_deduction
         if total_tax > 0:
             JournalEntryLine.objects.create(
                 journal=journal,
                 account=tax_payable,
-                description=f"PAYE/NSSF payable - {payslip.staff.get_full_name()}",
+                description=f"PAYE/ZSSF payable - {payslip.staff.get_full_name()}",
                 debit_amount=Decimal('0'),
                 credit_amount=total_tax
             )

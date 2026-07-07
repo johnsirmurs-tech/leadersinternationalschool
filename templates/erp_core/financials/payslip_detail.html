@@ -198,10 +198,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% if payslip.nssf_deduction > 0 %}
+                    {% if payslip.zssf_deduction > 0 %}
                         <tr>
-                            <td>NSSF Contribution</td>
-                            <td style="text-align: right;">TZS {{ payslip.nssf_deduction }}</td>
+                            <td>ZSSF Contribution</td>
+                            <td style="text-align: right;">TZS {{ payslip.zssf_deduction }}</td>
                         </tr>
                     {% endif %}
                     {% if payslip.paye_tax > 0 %}

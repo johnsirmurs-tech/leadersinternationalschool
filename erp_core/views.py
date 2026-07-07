@@ -1297,10 +1297,10 @@ def salary_setup(request):
             'basic_pay': cfg.basic_pay,
             'housing': cfg.housing_allowance,
             'transport': cfg.transport_allowance,
-            'nssf': cfg.nssf_deduction,
+            'zssf': cfg.zssf_deduction,
             'paye': cfg.paye_tax,
             'total_allowances': cfg.housing_allowance + cfg.transport_allowance,
-            'total_deductions': cfg.nssf_deduction + cfg.paye_tax,
+            'total_deductions': cfg.zssf_deduction + cfg.paye_tax,
         })
 
     selected_staff_id = request.GET.get('staff_id')
@@ -1324,13 +1324,13 @@ def salary_setup(request):
             basic_pay = request.POST.get('basic_pay')
             housing = request.POST.get('housing_allowance', 0)
             transport = request.POST.get('transport_allowance', 0)
-            nssf = request.POST.get('nssf_deduction', 0)
+            zssf = request.POST.get('zssf_deduction', 0)
             paye = request.POST.get('paye_tax', 0)
 
             salary_config.basic_pay = float(basic_pay)
             salary_config.housing_allowance = float(housing)
             salary_config.transport_allowance = float(transport)
-            salary_config.nssf_deduction = float(nssf)
+            salary_config.zssf_deduction = float(zssf)
             salary_config.paye_tax = float(paye)
             salary_config.save()
             messages.success(request, f"Salary config updated for {selected_staff.get_full_name()}.")
@@ -1403,7 +1403,7 @@ def payroll_list(request):
                 custom_deductions = StaffDeduction.objects.filter(staff=s)
 
                 allowances_total = cfg.housing_allowance + cfg.transport_allowance + (custom_allowances.aggregate(Sum('amount'))['amount__sum'] or 0)
-                deductions_total = cfg.nssf_deduction + cfg.paye_tax + (custom_deductions.aggregate(Sum('amount'))['amount__sum'] or 0)
+                deductions_total = cfg.zssf_deduction + cfg.paye_tax + (custom_deductions.aggregate(Sum('amount'))['amount__sum'] or 0)
                 
                 gross = cfg.basic_pay + cfg.housing_allowance + cfg.transport_allowance + (custom_allowances.aggregate(Sum('amount'))['amount__sum'] or 0)
                 net = gross - deductions_total
@@ -1414,7 +1414,7 @@ def payroll_list(request):
                     basic_pay=cfg.basic_pay,
                     housing_allowance=cfg.housing_allowance,
                     transport_allowance=cfg.transport_allowance,
-                    nssf_deduction=cfg.nssf_deduction,
+                    zssf_deduction=cfg.zssf_deduction,
                     paye_tax=cfg.paye_tax,
                     gross_earnings=gross,
                     total_deductions=deductions_total,
@@ -1509,21 +1509,21 @@ def edit_payslip(request, payslip_id):
         basic_pay = float(request.POST.get('basic_pay', 0))
         housing = float(request.POST.get('housing_allowance', 0))
         transport = float(request.POST.get('transport_allowance', 0))
-        nssf = float(request.POST.get('nssf_deduction', 0))
+        zssf = float(request.POST.get('zssf_deduction', 0))
         paye = float(request.POST.get('paye_tax', 0))
 
         # Re-fetch custom allowances and deductions sums
         custom_allowance_sum = payslip.line_items.filter(item_type='ALLOWANCE').exclude(name__in=['Basic Pay', 'Housing Allowance', 'Transport Allowance']).aggregate(Sum('amount'))['amount__sum'] or 0
-        custom_deduction_sum = payslip.line_items.filter(item_type='DEDUCTION').exclude(name__in=['NSSF Deduction', 'PAYE Tax']).aggregate(Sum('amount'))['amount__sum'] or 0
+        custom_deduction_sum = payslip.line_items.filter(item_type='DEDUCTION').exclude(name__in=['ZSSF Deduction', 'PAYE Tax']).aggregate(Sum('amount'))['amount__sum'] or 0
 
         gross = basic_pay + housing + transport + float(custom_allowance_sum)
-        deductions_total = nssf + paye + float(custom_deduction_sum)
+        deductions_total = zssf + paye + float(custom_deduction_sum)
         net = gross - deductions_total
 
         payslip.basic_pay = basic_pay
         payslip.housing_allowance = housing
         payslip.transport_allowance = transport
-        payslip.nssf_deduction = nssf
+        payslip.zssf_deduction = zssf
         payslip.paye_tax = paye
         payslip.gross_earnings = gross
         payslip.total_deductions = deductions_total

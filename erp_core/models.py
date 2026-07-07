@@ -351,7 +351,7 @@ class StaffSalaryConfig(models.Model):
     basic_pay = models.DecimalField(max_digits=12, decimal_places=2)
     housing_allowance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     transport_allowance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    nssf_deduction = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    zssf_deduction = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     paye_tax = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     effective_from = models.DateField(default=timezone.now)
 
@@ -399,7 +399,7 @@ class Payslip(models.Model):
     basic_pay = models.DecimalField(max_digits=12, decimal_places=2)
     housing_allowance = models.DecimalField(max_digits=12, decimal_places=2)
     transport_allowance = models.DecimalField(max_digits=12, decimal_places=2)
-    nssf_deduction = models.DecimalField(max_digits=12, decimal_places=2)
+    zssf_deduction = models.DecimalField(max_digits=12, decimal_places=2)
     paye_tax = models.DecimalField(max_digits=12, decimal_places=2)
     gross_earnings = models.DecimalField(max_digits=12, decimal_places=2)
     total_deductions = models.DecimalField(max_digits=12, decimal_places=2)

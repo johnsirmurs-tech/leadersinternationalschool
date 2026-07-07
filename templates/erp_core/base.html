@@ -912,6 +912,10 @@
             animation: popupAppear 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
+        .popup-form-card.wide-modal {
+            max-width: 1000px !important;
+        }
+
         @keyframes popupAppear {
             from {
                 opacity: 0;
@@ -1596,12 +1600,17 @@
                         .then(html => {
                             const parser = new DOMParser();
                             const doc = parser.parseFromString(html, 'text/html');
-                            const fetchedCard = doc.querySelector('.content-card') || doc.querySelector('form');
+                            const fetchedCard = doc.querySelector('.content-card') || doc.querySelector('.flex-container') || doc.querySelector('form');
                             
                             if (fetchedCard) {
                                 modalContainer.innerHTML = '';
                                 modalContainer.appendChild(createCloseButton(closeModal));
                                 modalContainer.appendChild(fetchedCard);
+
+                                // Add wide styling helper if container contains a split view layout
+                                if (fetchedCard.classList.contains('flex-container')) {
+                                    modalContainer.classList.add('wide-modal');
+                                }
 
                                 // Intercept redirect/cancel links inside form card to close modal
                                 const backLinks = modalContainer.querySelectorAll('a[href*="list"], a.btn-action-white');
@@ -1629,7 +1638,7 @@
                         });
                 }
 
-                // 1. Intercept link clicks pointing to data entry pages (excluding sidebar navigation)
+                // 1. Intercept link clicks pointing to data entry pages (excluding sidebar navigation except Salaries & Payroll)
                 document.body.addEventListener('click', (e) => {
                     const link = e.target.closest('a');
                     if (!link) return;
@@ -1637,14 +1646,15 @@
                     const href = link.getAttribute('href');
                     if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
 
-                    // Exclude sidebar navigation links from modal interception
+                    // Exclude sidebar navigation links from modal interception except Salaries Setup and Monthly Payroll
                     if (link.closest('.sidebar') || link.closest('.sidebar-menu') || link.closest('.sidebar-footer')) {
-                        return;
+                        const isHrOrFinanceModal = href.includes('/salary/setup/') || href.includes('/payroll/');
+                        if (!isHrOrFinanceModal) return;
                     }
 
-                    const formKeywords = ['/create/', '/edit/', '/setup/', '/record-payment/', '/add/', '/requisition/'];
-                    // Exclude full dashboard setup tabs from being converted to inline modals
-                    const isExcludedPage = href.includes('/salary/setup/') || href.includes('/subjects/setup/') || href.includes('/teachers/setup/');
+                    const formKeywords = ['/create/', '/edit/', '/setup/', '/record-payment/', '/add/', '/requisition/', '/payroll/'];
+                    // Exclude full subjects or teachers configuration dashboards
+                    const isExcludedPage = href.includes('/subjects/setup/') || href.includes('/teachers/setup/');
                     const isFormLink = formKeywords.some(kw => href.includes(kw)) && !isExcludedPage;
 
                     if (isFormLink) {
@@ -1655,13 +1665,13 @@
 
                 // 2. Direct page-load fallback: Convert loaded form content to modal overlay
                 const dataEntryForm = document.querySelector('main.workspace-content form[method="POST"]');
-                const isDirectSetupPage = window.location.pathname.includes('/salary/setup/') || window.location.pathname.includes('/subjects/setup/') || window.location.pathname.includes('/teachers/setup/');
+                const isDirectSetupPage = window.location.pathname.includes('/subjects/setup/') || window.location.pathname.includes('/teachers/setup/');
                 if (dataEntryForm && !dataEntryForm.closest('.login-card') && !dataEntryForm.closest('.sidebar') && !isDirectSetupPage) {
                     const dataInputs = dataEntryForm.querySelectorAll('input:not([type="hidden"]), select, textarea');
                     if (dataInputs.length > 0 && !dataEntryForm.action.includes('delete') && !dataEntryForm.action.includes('post_journal_entry')) {
                         const workspaceContent = document.querySelector('main.workspace-content');
                         if (workspaceContent) {
-                            const formCard = workspaceContent.querySelector('.content-card') || dataEntryForm;
+                            const formCard = workspaceContent.querySelector('.content-card') || workspaceContent.querySelector('.flex-container') || dataEntryForm;
 
                             const backdrop = document.createElement('div');
                             backdrop.className = 'popup-backdrop';
@@ -1669,6 +1679,9 @@
 
                             document.body.appendChild(formCard);
                             formCard.classList.add('popup-form-card');
+                            if (formCard.classList.contains('flex-container')) {
+                                formCard.classList.add('wide-modal');
+                            }
 
                             const handleClose = () => {
                                 backdrop.style.opacity = '0';

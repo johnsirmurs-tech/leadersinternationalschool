@@ -80,3 +80,4 @@ whitenoise==6.12.0
 django-cors-headers
 pgvector>=0.2.0
 openai
+numpy==1.26.4

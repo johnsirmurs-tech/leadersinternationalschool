@@ -11,6 +11,50 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--gray-200);
+    margin-bottom: 30px;
+}
+.filter-bar {
+    background-color: #f8fafc;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 25px;
+}
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    align-items: flex-end;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+.form-group label {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--primary);
+    margin-bottom: 6px;
+}
+.form-control {
+    padding: 8px 10px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    box-sizing: border-box;
+}
+.btn-filter {
+    padding: 9px 20px;
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-filter:hover {
+    background-color: var(--primary-light);
 }
 .balance-table {
     width: 100%;
@@ -60,6 +104,24 @@
 .btn-reminder:hover {
     background-color: #b58100;
 }
+.btn-action-whatsapp {
+    background: none;
+    border: 1px solid #25d366;
+    color: #25d366;
+    padding: 4px 8px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: var(--transition);
+}
+.btn-action-whatsapp:hover {
+    background-color: #25d366;
+    color: var(--white);
+}
 {% endblock %}
 
 {% block content %}
@@ -73,17 +135,67 @@
     </div>
 {% endif %}
 
+<!-- Filters Form -->
+<div class="balances-card" style="padding: 20px; margin-bottom: 20px;">
+    <form method="GET" action="{% url 'fee_balances' %}" class="filter-bar">
+        <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">
+            <i class="fa-solid fa-filter"></i> Filter Ledger Balances
+        </h4>
+        <div class="filter-grid">
+            <div class="form-group">
+                <label for="class_id">Class</label>
+                <select name="class_id" id="class_id" class="form-control">
+                    <option value="">-- All Classes --</option>
+                    {% for cls in classes %}
+                        <option value="{{ cls.id }}" {% if selected_class_id|stringformat:"s" == cls.id|stringformat:"s" %}selected{% endif %}>{{ cls.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="min_balance">Minimum Balance (TZS)</label>
+                <input type="number" name="min_balance" id="min_balance" class="form-control" placeholder="0.00" value="{{ min_balance|default:'' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="term">Calculate Up To Term</label>
+                <select name="term" id="term" class="form-control">
+                    <option value="Term 1" {% if selected_term == "Term 1" %}selected{% endif %}>Term 1</option>
+                    <option value="Term 2" {% if selected_term == "Term 2" %}selected{% endif %}>Term 2</option>
+                    <option value="Term 3" {% if selected_term == "Term 3" %}selected{% endif %}>Term 3</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="year">Year</label>
+                <select name="year" id="year" class="form-control">
+                    <option value="2025" {% if selected_year == "2025" %}selected{% endif %}>2025</option>
+                    <option value="2026" {% if selected_year == "2026" %}selected{% endif %}>2026</option>
+                    <option value="2027" {% if selected_year == "2027" %}selected{% endif %}>2027</option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-filter" style="width: 100%;">
+                    <i class="fa-solid fa-arrows-rotate"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Balances List -->
 <div class="balances-card">
-    <form method="POST">
+    <form method="POST" id="bulk-reminder-form">
         {% csrf_token %}
-        <input type="hidden" name="action" value="send_reminder">
+        <input type="hidden" name="action" value="send_whatsapp_bulk">
         
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gray-200); padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
             <h3 style="color: var(--primary); font-weight: 700;">
-                <i class="fa-solid fa-scale-balanced"></i> Fee Ledger Accounts & Balances
+                <i class="fa-solid fa-scale-balanced"></i> Fee Ledger Accounts & Balances (Retrospective to {{ selected_term }} {{ selected_year }})
             </h3>
             <button type="submit" class="btn-reminder">
-                <i class="fa-solid fa-bell"></i> Send Fee Reminder Alerts
+                <i class="fa-brands fa-whatsapp"></i> Send Bulk WhatsApp Reminders
             </button>
         </div>
 
@@ -93,10 +205,11 @@
                     <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all"></th>
                     <th>Student Name</th>
                     <th>Class</th>
-                    <th style="text-align: right;">Total Due</th>
+                    <th style="text-align: right;">Retrospective Dues</th>
                     <th style="text-align: right;">Total Paid</th>
-                    <th style="text-align: right;">Balance</th>
+                    <th style="text-align: right;">Outstanding Balance</th>
                     <th style="text-align: center;">Status</th>
+                    <th style="text-align: center;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -109,30 +222,51 @@
                         </td>
                         <td style="font-weight: 600;">{{ row.student.user.get_full_name }}</td>
                         <td>{{ row.student.current_class.name }}</td>
-                        <td style="text-align: right; color: var(--primary);">TZS {{ row.total_due }}</td>
-                        <td style="text-align: right; color: var(--success);">TZS {{ row.total_paid }}</td>
+                        <td style="text-align: right; color: var(--primary);">TZS {{ row.total_due|floatformat:2 }}</td>
+                        <td style="text-align: right; color: var(--success);">TZS {{ row.total_paid|floatformat:2 }}</td>
                         <td style="text-align: right; font-weight: 700; color: {% if row.balance > 0 %}var(--danger){% else %}var(--success){% endif %};">
-                            TZS {{ row.balance }}
+                            TZS {{ row.balance|floatformat:2 }}
                         </td>
                         <td style="text-align: center;">
-                            {% if row.status == 'PAID' %}
+                            {% if row.balance <= 0 %}
                                 <span class="status-badge status-paid">🟢 Fully Paid</span>
-                            {% elif row.status == 'PARTIAL' %}
+                            {% elif row.total_paid > 0 %}
                                 <span class="status-badge status-partial">🟡 Partial Payment</span>
                             {% else %}
                                 <span class="status-badge status-unpaid">🔴 Outstanding</span>
                             {% endif %}
                         </td>
+                        <td style="text-align: center;">
+                            {% if row.balance > 0 %}
+                                <button type="submit" 
+                                        name="student_id" 
+                                        value="{{ row.student.id }}" 
+                                        formaction="?action=send_whatsapp_individual" 
+                                        class="btn-action-whatsapp"
+                                        onclick="sendIndividualReminder(event, '{{ row.student.id }}')">
+                                    <i class="fa-brands fa-whatsapp"></i> Send Alert
+                                </button>
+                            {% else %}
+                                <span style="font-size: 0.8rem; color: var(--gray-600); font-style: italic;">No dues</span>
+                            {% endif %}
+                        </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 25px; color: var(--gray-600);">No accounts registered.</td>
+                        <td colspan="8" style="text-align: center; padding: 25px; color: var(--gray-600);">No accounts registered matching the filters.</td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </form>
 </div>
+
+<!-- Invisible form for individual submit -->
+<form id="individual-reminder-form" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="send_whatsapp_individual">
+    <input type="hidden" name="student_id" id="individual-student-id">
+</form>
 {% endblock %}
 
 {% block extra_js %}
@@ -141,5 +275,14 @@
         const checkboxes = document.querySelectorAll('.student-checkbox');
         checkboxes.forEach(cb => cb.checked = this.checked);
     });
+
+    function sendIndividualReminder(event, studentId) {
+        event.preventDefault();
+        if (confirm('Send WhatsApp balance reminder to the parent of this student?')) {
+            const form = document.getElementById('individual-reminder-form');
+            document.getElementById('individual-student-id').value = studentId;
+            form.submit();
+        }
+    }
 </script>
 {% endblock %}

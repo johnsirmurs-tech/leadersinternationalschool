@@ -1,0 +1,297 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Allocate Bank Deposit | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Allocate Bank Deposit{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.form-card {
+    flex: 2;
+    min-width: 600px;
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.sidebar-card {
+    flex: 1;
+    min-width: 300px;
+    background-color: #f8fafc;
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    align-self: flex-start;
+}
+.sibling-section {
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow-sm);
+}
+.sibling-header {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+    border-bottom: 1.5px solid var(--gray-200);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.dues-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.dues-table th, .dues-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.dues-table th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--gray-600);
+    background-color: var(--gray-100);
+}
+.form-control {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    box-sizing: border-box;
+}
+.btn-submit {
+    padding: 12px 25px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    width: 100%;
+    margin-top: 15px;
+}
+.btn-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 46, 89, 0.15);
+}
+.btn-cancel {
+    display: block;
+    text-align: center;
+    padding: 12px 25px;
+    background-color: var(--gray-200);
+    color: var(--gray-800);
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    text-decoration: none;
+    transition: var(--transition);
+    width: 100%;
+    margin-top: 10px;
+    box-sizing: border-box;
+}
+.btn-cancel:hover {
+    background-color: var(--gray-300);
+}
+.ledger-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="flex-container">
+    <div class="form-card">
+        <form method="POST" id="allocation-form" onsubmit="return validateAllocation()">
+            {% csrf_token %}
+            
+            <h3 style="color: var(--primary); font-weight: 700; font-size: 1.25rem; margin-bottom: 20px; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px;">
+                Allocate Dues for Siblings
+            </h3>
+            
+            {% if not siblings_data %}
+                <div style="padding: 20px; text-align: center; background-color: rgba(220, 53, 69, 0.05); color: var(--danger); border: 1px dashed var(--danger); border-radius: var(--radius-md);">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size: 1.5rem; margin-bottom: 10px;"></i>
+                    <p style="font-weight: 600;">No outstanding dues found for this parent's students.</p>
+                </div>
+            {% else %}
+                {% for data in siblings_data %}
+                    <div class="sibling-section">
+                        <div class="sibling-header">
+                            <div>
+                                <i class="fa-solid fa-user-graduate"></i> {{ data.student.user.get_full_name }}
+                                <small style="color: var(--gray-600); font-weight: 500; margin-left: 8px;">(Adm: {{ data.student.student_id }})</small>
+                            </div>
+                            <span style="font-size: 0.8rem; background-color: var(--primary-light); color: var(--white); padding: 4px 10px; border-radius: 12px;">
+                                {{ data.student.current_class.name }}
+                            </span>
+                        </div>
+                        
+                        <table class="dues-table">
+                            <thead>
+                                <tr>
+                                    <th>Votehead</th>
+                                    <th>Year / Billing</th>
+                                    <th>Outstanding Dues</th>
+                                    <th style="width: 180px;">Allocate Amount (TZS)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for due in data.dues %}
+                                <tr>
+                                    <td style="font-weight: 600; color: var(--primary);">{{ due.fee_structure.vote_head }}</td>
+                                    <td>{{ due.fee_structure.year }} - {% if due.fee_structure.due_term %}{{ due.fee_structure.due_term }}{% else %}Termly{% endif %}</td>
+                                    <td style="font-weight: 700; color: var(--danger);">{{ due.balance|floatformat:2 }}</td>
+                                    <td>
+                                        <input type="number" 
+                                               step="0.01" 
+                                               min="0" 
+                                               max="{{ due.balance }}" 
+                                               name="allocation_{{ data.student.id }}_{{ due.fee_structure.id }}" 
+                                               class="form-control allocation-input" 
+                                               placeholder="0.00" 
+                                               data-max="{{ due.balance }}"
+                                               oninput="calculateTotal()">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </form>
+    </div>
+    
+    <!-- Sidebar Ledger Card -->
+    <div class="sidebar-card">
+        <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px; border-bottom: 1.5px solid var(--gray-200); padding-bottom: 8px;">
+            Transaction Details
+        </h4>
+        
+        <div class="ledger-row">
+            <span style="color: var(--gray-600);">Bank Name:</span>
+            <span style="font-weight: 700;">{{ deposit.get_bank_name_display }}</span>
+        </div>
+        <div class="ledger-row">
+            <span style="color: var(--gray-600);">Ref Number:</span>
+            <span style="font-weight: 700; font-family: monospace;">{{ deposit.ref_number }}</span>
+        </div>
+        <div class="ledger-row">
+            <span style="color: var(--gray-600);">Student Ref:</span>
+            <span style="font-weight: 700; font-family: monospace;">{{ deposit.student_ref }}</span>
+        </div>
+        
+        <div style="border-top: 1px dashed var(--gray-300); margin: 15px 0;"></div>
+        
+        <div class="ledger-row">
+            <span style="color: var(--gray-600);">Total Deposit:</span>
+            <span style="font-weight: 700;">TZS {{ deposit.amount|floatformat:2 }}</span>
+        </div>
+        <div class="ledger-row" style="color: var(--danger);">
+            <span>Available to Allocate:</span>
+            <span style="font-weight: 700;" id="available-amount-label">TZS {{ unallocated_amount|floatformat:2 }}</span>
+        </div>
+        
+        <div style="border-top: 1px dashed var(--gray-300); margin: 15px 0;"></div>
+        
+        <div class="ledger-row" style="color: var(--success); font-size: 1.1rem; font-weight: 700;">
+            <span>This Allocation:</span>
+            <span id="current-allocation-label">TZS 0.00</span>
+        </div>
+        <div class="ledger-row" style="font-size: 1.1rem; font-weight: 700;">
+            <span>Remaining Balance:</span>
+            <span id="remaining-balance-label">TZS {{ unallocated_amount|floatformat:2 }}</span>
+        </div>
+        
+        {% if siblings_data %}
+            <button type="submit" form="allocation-form" class="btn-submit">
+                <i class="fa-solid fa-floppy-disk"></i> Confirm Allocation
+            </button>
+        {% endif %}
+        <a href="{% url 'bank_deposits_list' %}" class="btn-cancel">Back to Deposits</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const availableAmount = parseFloat("{{ unallocated_amount }}");
+
+    function calculateTotal() {
+        let totalAllocated = 0.0;
+        const inputs = document.querySelectorAll('.allocation-input');
+        
+        inputs.forEach(input => {
+            const val = parseFloat(input.value);
+            if (!isNaN(val) && val > 0) {
+                totalAllocated += val;
+            }
+        });
+        
+        const remaining = availableAmount - totalAllocated;
+        
+        // Update Labels
+        document.getElementById('current-allocation-label').innerText = 'TZS ' + totalAllocated.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        const remainingLabel = document.getElementById('remaining-balance-label');
+        remainingLabel.innerText = 'TZS ' + remaining.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        if (remaining < 0) {
+            remainingLabel.style.color = 'var(--danger)';
+        } else {
+            remainingLabel.style.color = 'inherit';
+        }
+    }
+
+    function validateAllocation() {
+        let totalAllocated = 0.0;
+        let isError = false;
+        
+        const inputs = document.querySelectorAll('.allocation-input');
+        inputs.forEach(input => {
+            const val = parseFloat(input.value);
+            const maxVal = parseFloat(input.getAttribute('data-max'));
+            
+            if (!isNaN(val) && val > 0) {
+                totalAllocated += val;
+                if (val > maxVal) {
+                    alert('Error: Allocation exceeds the outstanding dues balance.');
+                    input.focus();
+                    isError = true;
+                }
+            }
+        });
+        
+        if (isError) return false;
+        
+        if (totalAllocated <= 0) {
+            alert('Please allocate some amount to at least one votehead.');
+            return false;
+        }
+        
+        if (totalAllocated > availableAmount) {
+            alert('Error: Total allocation exceeds the available bank deposit amount.');
+            return false;
+        }
+        
+        return confirm('Are you sure you want to finalize this fee allocation? This will record payments and send receipt notifications via WhatsApp.');
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        calculateTotal();
+    });
+</script>
+{% endblock %}

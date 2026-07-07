@@ -130,8 +130,9 @@
     </div>
 </div>
 
-<div class="flex-container">
-    <div class="list-card">
+<div class="flex-container" style="flex-direction: column; gap: 30px; width: 100%;">
+    <!-- Card 1: Inventory Items -->
+    <div class="list-card" style="width: 100%; box-sizing: border-box;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="color: var(--primary); font-weight: 700; font-size: 1.25rem;">Inventory Items</h3>
             <a href="{% url 'inventory_create' %}" class="btn-create">
@@ -155,7 +156,7 @@
                 <tr>
                     <td style="font-weight: 600; color: var(--primary);">{{ item.name }}</td>
                     <td>{{ item.get_category_display }}</td>
-                    <td>{{ item.quantity }} {{ item.unit }}</td>
+                    <td>{{ item.quantity|floatformat:2 }} {{ item.unit }}</td>
                     <td>{{ item.unit_price|floatformat:0 }}</td>
                     <td>
                         {% if item.quantity == 0 %}
@@ -175,6 +176,57 @@
                 {% empty %}
                 <tr>
                     <td colspan="6" style="text-align: center; padding: 20px;">No inventory items recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Card 2: Stock Movements Log -->
+    <div class="list-card" style="width: 100%; box-sizing: border-box;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color: var(--primary); font-weight: 700; font-size: 1.25rem;">Stock Movements Log</h3>
+            <a href="{% url 'stock_movement_create' %}" class="btn-create" style="background: linear-gradient(135deg, var(--accent) 0%, #b27a00 100%);">
+                <i class="fa-solid fa-right-left"></i> Record Stock Movement
+            </a>
+        </div>
+
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Stock Item</th>
+                    <th>Movement Type</th>
+                    <th>Quantity</th>
+                    <th>Issued To</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movement in movements %}
+                <tr>
+                    <td style="font-weight: 600;">{{ movement.date }}</td>
+                    <td style="color: var(--primary);">{{ movement.stock_item.name }}</td>
+                    <td>
+                        {% if movement.movement_type == 'IN' %}
+                            <span class="stock-badge badge-ok" style="background-color: rgba(25, 135, 84, 0.15); color: var(--success);">Stock In</span>
+                        {% else %}
+                            <span class="stock-badge badge-out" style="background-color: rgba(220, 53, 69, 0.15); color: var(--danger);">Stock Out</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600;">{{ movement.quantity|floatformat:2 }} {{ movement.stock_item.unit }}</td>
+                    <td>
+                        {% if movement.issued_to %}
+                            {{ movement.issued_to.get_full_name }}
+                        {% else %}
+                            <span style="color: var(--gray-600); font-style: italic;">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ movement.remarks|default:"--" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">No stock movements recorded yet.</td>
                 </tr>
                 {% endfor %}
             </tbody>

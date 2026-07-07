@@ -1,0 +1,234 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Match Bank Reconciliation | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Matching Reconciliation: {{ recon.reference }}{% endblock %}
+
+{% block extra_css %}
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+.recon-summary {
+    background-color: var(--white);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+.summary-item {
+    padding: 10px;
+    border-left: 3px solid var(--primary);
+}
+.summary-item h4 {
+    color: var(--gray-600);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+.summary-item p {
+    font-size: 1.2rem;
+    font-weight: 750;
+    color: var(--primary);
+}
+.card {
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+    max-height: 500px;
+    overflow-y: auto;
+}
+.match-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.match-table th, .match-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 0.85rem;
+}
+.match-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    position: sticky;
+    top: 0;
+}
+.btn-premium {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.btn-premium:hover {
+    transform: translateY(-2px);
+}
+.row-selected {
+    background-color: rgba(229, 169, 60, 0.15) !important;
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Reconciliation Summary Stats -->
+<div class="recon-summary">
+    <div class="summary-item">
+        <h4>Statement Balance</h4>
+        <p>TZS {{ recon.statement_closing_balance|default:"0.00" }}</p>
+    </div>
+    <div class="summary-item">
+        <h4>Ledger (Book) Balance</h4>
+        <p>TZS {{ recon.book_closing_balance|default:"0.00" }}</p>
+    </div>
+    <div class="summary-item" style="border-left-color: var(--success);">
+        <h4>Deposits In Transit</h4>
+        <p>+ TZS {{ recon.deposits_in_transit|default:"0.00" }}</p>
+    </div>
+    <div class="summary-item" style="border-left-color: var(--danger);">
+        <h4>Outstanding Checks</h4>
+        <p>- TZS {{ recon.outstanding_checks|default:"0.00" }}</p>
+    </div>
+    <div class="summary-item" style="border-left-color: var(--accent);">
+        <h4>Unreconciled Diff</h4>
+        <p id="diff-span">TZS {{ recon.difference|default:"0.00" }}</p>
+    </div>
+</div>
+
+<div style="display: flex; gap: 20px; margin-bottom: 20px; align-items: center;">
+    <button class="btn-premium" id="btn-match" disabled onclick="executeMatch()"><i class="fa-solid fa-link"></i> Match Transactions</button>
+    
+    {% if recon.status == 'DRAFT' %}
+        <form method="POST" style="margin-left: auto;">
+            {% csrf_token %}
+            <input type="hidden" name="finalize" value="1">
+            <button type="submit" class="btn-premium" style="background: var(--success);"><i class="fa-solid fa-lock"></i> Finalize Reconciliation</button>
+        </form>
+    {% endif %}
+</div>
+
+<div class="grid-container">
+    <!-- Left Panel: Bank Statement Lines -->
+    <div class="card">
+        <h4 style="color: var(--primary); margin-bottom: 15px;"><i class="fa-solid fa-building-columns"></i> Unmatched Statement Entries</h4>
+        <table class="match-table" id="stmt-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stmt in unmatched_stmt %}
+                    <tr onclick="selectRow('stmt', '{{ stmt.id }}', this)" style="cursor: pointer;">
+                        <td>{{ stmt.transaction_date }}</td>
+                        <td>{{ stmt.description }}</td>
+                        <td style="font-weight: 700; color: {% if stmt.amount > 0 %}var(--success){% else %}var(--danger){% endif %};">
+                            TZS {{ stmt.amount|default:"0.00" }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--gray-600); padding: 20px;">All statement transactions matched!</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Right Panel: Ledger Book Lines -->
+    <div class="card">
+        <h4 style="color: var(--primary); margin-bottom: 15px;"><i class="fa-solid fa-book"></i> Unreconciled General Ledger Lines</h4>
+        <table class="match-table" id="book-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Reference</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in unreconciled_book %}
+                    <tr onclick="selectRow('book', '{{ book.id }}', this)" style="cursor: pointer;">
+                        <td>{{ book.journal.posting_date }}</td>
+                        <td style="font-weight: 650; color: var(--primary);">{{ book.journal.reference }}</td>
+                        <td>{{ book.description }}</td>
+                        <td style="font-weight: 700; color: {% if book.debit_amount > 0 %}var(--success){% else %}var(--danger){% endif %};">
+                            TZS {% if book.debit_amount > 0 %}{{ book.debit_amount }}{% else %}-{{ book.credit_amount }}{% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--gray-600); padding: 20px;">All GL lines matched!</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+let selectedStmtId = null;
+let selectedBookId = null;
+
+function selectRow(type, id, rowElement) {
+    if (type === 'stmt') {
+        document.querySelectorAll('#stmt-table tr').forEach(r => r.classList.remove('row-selected'));
+        selectedStmtId = id;
+    } else {
+        document.querySelectorAll('#book-table tr').forEach(r => r.classList.remove('row-selected'));
+        selectedBookId = id;
+    }
+    rowElement.classList.add('row-selected');
+    
+    document.getElementById('btn-match').disabled = !(selectedStmtId && selectedBookId);
+}
+
+function executeMatch() {
+    if (!selectedStmtId || !selectedBookId) return;
+    
+    fetch('/financials/accounting/recon/match/{{ recon.id }}/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `stmt_id=${selectedStmtId}&book_line_id=${selectedBookId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        } else {
+            alert('Error matching: ' + data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Network or server error matching records.');
+    });
+}
+</script>
+{% endblock %}

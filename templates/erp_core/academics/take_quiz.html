@@ -1,0 +1,135 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Taking Assessment | Leaders International School ERP{% endblock %}
+
+{% block page_title %}{{ quiz.title }}{% endblock %}
+
+{% block extra_css %}
+.take-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.timer-banner {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--white);
+    padding: 15px 25px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border: 1.5px solid var(--primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.question-card {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 25px;
+}
+.option-label {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.option-label:hover {
+    border-color: var(--primary);
+    background-color: rgba(15, 46, 89, 0.03);
+}
+.option-radio {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary);
+}
+.btn-premium {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 750;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: var(--transition);
+}
+.btn-premium:hover {
+    transform: translateY(-2px);
+}
+{% endblock %}
+
+{% block content %}
+<div class="take-container">
+    {% if remaining_seconds %}
+        <div class="timer-banner">
+            <span style="font-weight: 750; color: var(--primary);"><i class="fa-solid fa-clock-rotate-left"></i> Assessment In Progress</span>
+            <span id="countdown" style="font-size: 1.3rem; font-weight: 800; color: var(--danger);">00:00</span>
+        </div>
+    {% endif %}
+
+    <form method="POST" id="quiz-form">
+        {% csrf_token %}
+        {% for qq in questions %}
+            <div class="question-card">
+                <h4 style="color: var(--primary); margin-bottom: 15px;">Question {{ forloop.counter }} of {{ quiz.total_questions }}</h4>
+                <p style="font-size: 1.05rem; font-weight: 600; margin-bottom: 20px; color: #333;">{{ qq.question.question_text }}</p>
+                
+                <label class="option-label">
+                    <input type="radio" name="question_{{ qq.question.id }}" value="A" class="option-radio">
+                    <span>A. {{ qq.question.option_a }}</span>
+                </label>
+                <label class="option-label">
+                    <input type="radio" name="question_{{ qq.question.id }}" value="B" class="option-radio">
+                    <span>B. {{ qq.question.option_b }}</span>
+                </label>
+                <label class="option-label">
+                    <input type="radio" name="question_{{ qq.question.id }}" value="C" class="option-radio">
+                    <span>C. {{ qq.question.option_c }}</span>
+                </label>
+                <label class="option-label">
+                    <input type="radio" name="question_{{ qq.question.id }}" value="D" class="option-radio">
+                    <span>D. {{ qq.question.option_d }}</span>
+                </label>
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn-premium">Submit Quiz Assessment</button>
+    </form>
+</div>
+
+{% if remaining_seconds %}
+<script>
+let timeRemaining = parseInt("{{ remaining_seconds }}");
+
+function startTimer() {
+    const display = document.getElementById('countdown');
+    const timer = setInterval(() => {
+        let minutes = Math.floor(timeRemaining / 60);
+        let seconds = timeRemaining % 60;
+
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+
+        display.innerText = minutes + ':' + seconds;
+
+        if (--timeRemaining < 0) {
+            clearInterval(timer);
+            document.getElementById('quiz-form').submit();
+        }
+    }, 1000);
+}
+
+document.addEventListener('DOMContentLoaded', startTimer);
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Assessment Results | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Assessment Results: {{ attempt.quiz.title }}{% endblock %}
+
+{% block extra_css %}
+.results-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.score-card {
+    background-color: var(--white);
+    padding: 35px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+    text-align: center;
+    margin-bottom: 30px;
+}
+.score-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background-color: rgba(15, 46, 89, 0.05);
+    border: 5px solid var(--primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.2rem;
+    font-weight: 850;
+    color: var(--primary);
+    margin: 0 auto 20px;
+}
+.badge-status {
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-weight: 750;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+.badge-pass { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
+.badge-fail { background-color: rgba(220, 53, 69, 0.15); color: var(--danger); }
+.question-review-card {
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 25px;
+}
+.option-review {
+    padding: 10px 15px;
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.opt-correct { background-color: rgba(25, 135, 84, 0.12); border: 1px solid var(--success); color: var(--success); }
+.opt-incorrect { background-color: rgba(220, 53, 69, 0.12); border: 1px solid var(--danger); color: var(--danger); }
+.opt-neutral { background-color: var(--gray-100); border: 1px solid var(--gray-300); color: var(--gray-700); }
+.explanation-box {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: rgba(15, 46, 89, 0.05);
+    border-left: 4px solid var(--primary);
+    font-size: 0.85rem;
+    color: var(--gray-700);
+}
+{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <div class="score-card">
+        <div class="score-circle">
+            {{ attempt.percentage_score|floatformat:0 }}%
+        </div>
+        <h3 style="color: var(--primary); margin-bottom: 10px;">Your Score: {{ attempt.marks_obtained }} / {{ attempt.total_marks }} Marks</h3>
+        <p style="color: var(--gray-600); margin-bottom: 20px;">Time Taken: {{ attempt.time_taken_seconds }} seconds</p>
+        
+        {% if attempt.passed %}
+            <span class="badge-status badge-pass"><i class="fa-solid fa-circle-check"></i> Passed</span>
+        {% else %}
+            <span class="badge-status badge-fail"><i class="fa-solid fa-circle-xmark"></i> Fail</span>
+        {% endif %}
+    </div>
+
+    <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-circle-info"></i> Detailed Question Review</h3>
+
+    {% for ans in answers %}
+        <div class="question-review-card" style="border-left: 5px solid {% if ans.is_correct %}var(--success){% else %}var(--danger){% endif %};">
+            <h4 style="margin-bottom: 10px; color: var(--primary);">Question {{ forloop.counter }}</h4>
+            <p style="font-weight: 600; font-size: 1.05rem; margin-bottom: 15px;">{{ ans.question.question_text }}</p>
+
+            <div class="option-review {% if ans.question.correct_answer == 'A' %}opt-correct{% elif ans.selected_option == 'A' %}opt-incorrect{% else %}opt-neutral{% endif %}">
+                A. {{ ans.question.option_a }}
+            </div>
+            <div class="option-review {% if ans.question.correct_answer == 'B' %}opt-correct{% elif ans.selected_option == 'B' %}opt-incorrect{% else %}opt-neutral{% endif %}">
+                B. {{ ans.question.option_b }}
+            </div>
+            <div class="option-review {% if ans.question.correct_answer == 'C' %}opt-correct{% elif ans.selected_option == 'C' %}opt-incorrect{% else %}opt-neutral{% endif %}">
+                C. {{ ans.question.option_c }}
+            </div>
+            <div class="option-review {% if ans.question.correct_answer == 'D' %}opt-correct{% elif ans.selected_option == 'D' %}opt-incorrect{% else %}opt-neutral{% endif %}">
+                D. {{ ans.question.option_d }}
+            </div>
+
+            {% if ans.question.explanation %}
+                <div class="explanation-box">
+                    <strong>Explanation:</strong> {{ ans.question.explanation }}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Cambridge AI Quizzes | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Assigned Cambridge Quizzes{% endblock %}
+
+{% block extra_css %}
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+.quiz-card {
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.badge-status {
+    align-self: flex-start;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 750;
+    margin-bottom: 12px;
+}
+.badge-pending { background-color: rgba(255, 193, 7, 0.15); color: #b08205; }
+.badge-completed { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
+.btn-premium {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    display: inline-block;
+    transition: var(--transition);
+}
+.btn-premium:hover {
+    transform: translateY(-2px);
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="grid-container">
+    {% for quiz in quizzes %}
+        <div class="quiz-card">
+            <div>
+                {% if quiz.id in completed_quiz_ids %}
+                    <span class="badge-status badge-completed"><i class="fa-solid fa-circle-check"></i> Completed</span>
+                {% else %}
+                    <span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> Pending</span>
+                {% endif %}
+                <h4 style="color: var(--primary); margin-bottom: 10px;">{{ quiz.title }}</h4>
+                <p style="color: var(--gray-600); font-size: 0.85rem; margin-bottom: 6px;">Subject: <strong>{{ quiz.subject.name }}</strong></p>
+                <p style="color: var(--gray-600); font-size: 0.85rem; margin-bottom: 6px;">Questions: <strong>{{ quiz.total_questions }}</strong></p>
+                <p style="color: var(--gray-600); font-size: 0.85rem; margin-bottom: 15px;">Time Limit: <strong>{% if quiz.time_limit_minutes %}{{ quiz.time_limit_minutes }} mins{% else %}No Limit{% endif %}</strong></p>
+            </div>
+            <div>
+                {% if quiz.id in completed_quiz_ids %}
+                    {% for attempt in attempts %}
+                        {% if attempt.quiz_id == quiz.id and attempt.status == 'COMPLETED' %}
+                            <a href="{% url 'quiz_attempt_result' attempt.id %}" class="btn-premium" style="background: var(--gray-600);">View Results ({{ attempt.percentage_score }}%)</a>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <a href="{% url 'take_quiz' quiz.id %}" class="btn-premium">Start Assessment</a>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--gray-600);">
+            <i class="fa-solid fa-folder-open fa-3x" style="margin-bottom: 15px;"></i>
+            <p>No quizzes are currently assigned to you.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

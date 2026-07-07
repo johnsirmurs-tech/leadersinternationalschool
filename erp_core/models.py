@@ -2,6 +2,22 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from datetime import timedelta
+from .models_accounting import (
+    AccountType, AccountSubType, ChartOfAccounts, BankAccount,
+    FiscalYear, AccountingPeriod, JournalEntry, JournalEntryLine,
+    BankTransaction, BankReconciliation, Bill, BillPayment,
+    FixedAsset, DepreciationSchedule, BudgetLine
+)
+from .models_syllabus import (
+    CambridgeStage, CambridgeSubject, SubjectSyllabusMap,
+    SyllabusUnit, SyllabusTopic, SyllabusLearningObjective,
+    SyllabusKnowledgeBase
+)
+from .models_quiz import (
+    QuizBank, Quiz, QuizQuestion, QuizAttempt, StudentAnswer,
+    AIGenerationJob
+)
+from .models_syllabus_vectors import SyllabusEmbedding
 
 class Role(models.Model):
     ROLE_CHOICES = [
@@ -437,18 +453,35 @@ class StockItem(models.Model):
         ('FURNITURE', 'Furniture & Equipment'),
         ('CLEANING', 'Cleaning & Sanitation'),
         ('ELECTRONICS', 'IT & Electronics'),
+        ('KITCHEN', 'Kitchen Consumables'),
         ('OTHER', 'Other Supplies'),
     ]
     name = models.CharField(max_length=150)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='STATIONERY')
-    quantity = models.IntegerField(default=0)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     unit = models.CharField(max_length=20, default='pcs')
     unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    reorder_level = models.IntegerField(default=10)
+    reorder_level = models.DecimalField(max_digits=10, decimal_places=2, default=10.00)
     last_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.name} ({self.quantity} {self.unit})"
+
+class StockMovement(models.Model):
+    MOVEMENT_TYPES = [
+        ('IN', 'Stock In (Purchase/Restock)'),
+        ('OUT', 'Stock Out (Consumption/Issue)'),
+    ]
+    stock_item = models.ForeignKey(StockItem, on_delete=models.CASCADE, related_name='movements')
+    movement_type = models.CharField(max_length=10, choices=MOVEMENT_TYPES)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateField(default=timezone.now)
+    issued_to = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='received_stock')
+    remarks = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_movement_type_display()} - {self.quantity} {self.stock_item.unit} of {self.stock_item.name} on {self.date}"
 
 class TransportRoute(models.Model):
     name = models.CharField(max_length=150)
@@ -460,14 +493,6 @@ class TransportRoute(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.vehicle_number}"
-
-class LessonPlanMaterialRequirement(models.Model):
-    lesson_plan = models.ForeignKey(LessonPlan, on_delete=models.CASCADE, related_name='material_requirements')
-    stock_item = models.ForeignKey(StockItem, on_delete=models.CASCADE, related_name='lesson_plan_requirements')
-    quantity_needed = models.IntegerField(default=1)
-
-    def __str__(self):
-        return f"{self.lesson_plan} needs {self.quantity_needed} of {self.stock_item.name}"
 
 class BiometricDevice(models.Model):
     STATUS_CHOICES = [
@@ -547,3 +572,53 @@ class AttendanceException(models.Model):
 
     def __str__(self):
         return f"Exception: {self.user.get_full_name()} on {self.date} - {self.exception_type} ({self.reason})"
+
+class BankDeposit(models.Model):
+    BANK_CHOICES = [
+        ('EXIM', 'Exim Bank'),
+        ('CRDB', 'CRDB Bank'),
+        ('PBZ', 'People\'s Bank of Zanzibar (PBZ)'),
+    ]
+    ref_number = models.CharField(max_length=100, unique=True)
+    student_ref = models.CharField(max_length=50)
+    bank_name = models.CharField(max_length=20, choices=BANK_CHOICES, default='CRDB')
+    account_number = models.CharField(max_length=50, blank=True, null=True)
+    sender_name = models.CharField(max_length=150, blank=True, null=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    deposit_date = models.DateTimeField(default=timezone.now)
+    
+    parent = models.ForeignKey(ParentProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='bank_deposits')
+    student = models.ForeignKey(StudentProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='bank_deposits')
+    
+    allocated_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    is_fully_allocated = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def unallocated_amount(self):
+        return self.amount - self.allocated_amount
+
+    def __str__(self):
+        return f"BankDeposit: {self.bank_name} - {self.ref_number} - TZS {self.amount} (Ref: {self.student_ref})"
+
+class IntegrationConfig(models.Model):
+    crdb_account = models.CharField(max_length=50, default='01XXXXXXXXXX')
+    exim_account = models.CharField(max_length=50, default='XXXXXXXXXXXX')
+    pbz_account = models.CharField(max_length=50, default='XXXXXXXXXXXX')
+    
+    PROVIDER_CHOICES = [
+        ('TWILIO', 'Twilio WhatsApp Sandbox'),
+        ('AFRICASTALKING', 'Africa\'s Talking'),
+        ('META', 'Meta WhatsApp Business Direct'),
+    ]
+    whatsapp_provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='TWILIO')
+    whatsapp_api_url = models.CharField(max_length=255, blank=True, null=True)
+    whatsapp_api_key = models.CharField(max_length=255, blank=True, null=True)
+    whatsapp_sender_number = models.CharField(max_length=50, blank=True, null=True)
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(id=1)
+        return obj
+
+    def __str__(self):
+        return f"Integration Settings (Active Provider: {self.get_whatsapp_provider_display()})"

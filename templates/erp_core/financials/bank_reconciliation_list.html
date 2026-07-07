@@ -1,0 +1,180 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Bank Reconciliation Statements | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Bank Reconciliations{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.form-card {
+    flex: 1;
+    min-width: 320px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+}
+.list-card {
+    flex: 2;
+    min-width: 500px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+}
+.recon-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.recon-table th, .recon-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.recon-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+}
+.btn-premium {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: var(--transition);
+}
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.status-draft { background-color: rgba(108, 117, 125, 0.15); color: var(--gray-600); }
+.status-completed { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="flex-container">
+    <!-- Start New Reconciliation Statement -->
+    <div class="form-card">
+        <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-file-shield"></i> Reconcile Bank Account</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Bank Account</label>
+                <select name="bank_account_id" class="form-control" required>
+                    <option value="">Select Account</option>
+                    {% for account in bank_accounts %}
+                        <option value="{{ account.id }}">{{ account.name }} ({{ account.bank_name }} - {{ account.account_number }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Period Start</label>
+                    <input type="date" name="period_start" class="form-control" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Period End</label>
+                    <input type="date" name="period_end" class="form-control" required>
+                </div>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Statement Opening Bal</label>
+                    <input type="number" name="stmt_opening" step="0.01" class="form-control" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Statement Closing Bal</label>
+                    <input type="number" name="stmt_closing" step="0.01" class="form-control" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Prepare Statement</button>
+        </form>
+    </div>
+
+    <!-- Reconciliations Registry -->
+    <div class="list-card">
+        <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-clipboard-check"></i> Reconciliation Statements</h3>
+        <div style="overflow-x: auto;">
+            <table class="recon-table">
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Bank Account</th>
+                        <th>Period End</th>
+                        <th>Stmt Closing Bal</th>
+                        <th>Book Closing Bal</th>
+                        <th>Status</th>
+                        <th style="text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recon in reconciliations %}
+                        <tr>
+                            <td style="font-weight: 750; color: var(--primary);">{{ recon.reference }}</td>
+                            <td>{{ recon.bank_account.name }}</td>
+                            <td>{{ recon.period_end }}</td>
+                            <td style="font-weight: 700;">TZS {{ recon.statement_closing_balance|default:"0.00" }}</td>
+                            <td>TZS {{ recon.book_closing_balance|default:"0.00" }}</td>
+                            <td>
+                                <span class="status-badge status-{{ recon.status|lower }}">
+                                    {{ recon.get_status_display }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="{% url 'bank_reconciliation_detail' recon.id %}" class="btn-premium" style="padding: 5px 10px; font-size: 0.8rem;">Open</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 30px; color: var(--gray-600);">No bank reconciliations saved.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

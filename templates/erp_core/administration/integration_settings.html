@@ -1,0 +1,166 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Integration Settings | Leaders International School ERP{% endblock %}
+
+{% block page_title %}System Integration Settings{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.settings-card {
+    flex: 1;
+    min-width: 450px;
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-group label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    box-sizing: border-box;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+.form-control:focus {
+    border-color: var(--primary-light);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(15, 46, 89, 0.1);
+}
+.btn-save {
+    padding: 12px 25px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    width: 100%;
+    font-size: 1rem;
+    margin-top: 10px;
+}
+.btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 46, 89, 0.15);
+}
+.section-title {
+    font-size: 1.2rem;
+    color: var(--primary);
+    font-weight: 700;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--gray-200);
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.help-text {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    margin-top: 4px;
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form method="POST" action="{% url 'integration_settings' %}">
+    {% csrf_token %}
+    <div class="flex-container">
+        
+        <!-- Bank Accounts Card -->
+        <div class="settings-card">
+            <h3 class="section-title">
+                <i class="fa-solid fa-building-columns"></i> Bank Account Numbers
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 20px;">
+                Enter the official school bank accounts. The webhook uses these values to identify the destination bank.
+            </p>
+            
+            <div class="form-group">
+                <label for="crdb_account">CRDB Account Number</label>
+                <input type="text" id="crdb_account" name="crdb_account" class="form-control" value="{{ config.crdb_account }}">
+                <div class="help-text">e.g. 01XXXXXXXXXX</div>
+            </div>
+
+            <div class="form-group">
+                <label for="exim_account">Exim Bank Account Number</label>
+                <input type="text" id="exim_account" name="exim_account" class="form-control" value="{{ config.exim_account }}">
+                <div class="help-text">e.g. XXXXXXXXXXXX</div>
+            </div>
+
+            <div class="form-group">
+                <label for="pbz_account">PBZ Account Number</label>
+                <input type="text" id="pbz_account" name="pbz_account" class="form-control" value="{{ config.pbz_account }}">
+                <div class="help-text">e.g. XXXXXXXXXXXX</div>
+            </div>
+        </div>
+        
+        <!-- WhatsApp API Card -->
+        <div class="settings-card">
+            <h3 class="section-title">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp Business Provider
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 20px;">
+                Select your WhatsApp integration provider and enter the corresponding access tokens.
+            </p>
+            
+            <div class="form-group">
+                <label for="whatsapp_provider">Active Provider</label>
+                <select id="whatsapp_provider" name="whatsapp_provider" class="form-control">
+                    {% for code, name in providers %}
+                        <option value="{{ code }}" {% if config.whatsapp_provider == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="whatsapp_sender_number">Sender Number / Sender ID</label>
+                <input type="text" id="whatsapp_sender_number" name="whatsapp_sender_number" class="form-control" value="{{ config.whatsapp_sender_number|default_if_none:'' }}" placeholder="+255700000000">
+                <div class="help-text">Approved sender ID or verified WhatsApp number</div>
+            </div>
+
+            <div class="form-group">
+                <label for="whatsapp_api_url">API Gateway URL</label>
+                <input type="url" id="whatsapp_api_url" name="whatsapp_api_url" class="form-control" value="{{ config.whatsapp_api_url|default_if_none:'' }}" placeholder="https://api.provider.com/v1/messages">
+            </div>
+
+            <div class="form-group">
+                <label for="whatsapp_api_key">API Key / Auth Token</label>
+                <input type="password" id="whatsapp_api_key" name="whatsapp_api_key" class="form-control" value="{{ config.whatsapp_api_key|default_if_none:'' }}" placeholder="••••••••••••••••">
+            </div>
+
+            <button type="submit" class="btn-save">
+                <i class="fa-solid fa-floppy-disk"></i> Save Configurations
+            </button>
+        </div>
+        
+    </div>
+</form>
+{% endblock %}

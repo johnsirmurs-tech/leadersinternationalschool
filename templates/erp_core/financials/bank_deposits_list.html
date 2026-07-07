@@ -1,0 +1,144 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Bank Deposits | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Bank Deposits Integration{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.list-card {
+    flex: 1;
+    min-width: 600px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.deposits-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.deposits-table th, .deposits-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.deposits-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 700;
+}
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+}
+.badge-allocated { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
+* .badge-partial { background-color: rgba(255, 193, 7, 0.15); color: #b27a00; }
+.badge-unallocated { background-color: rgba(220, 53, 69, 0.15); color: var(--danger); }
+.action-btn {
+    text-decoration: none;
+    color: var(--primary-light);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    border: 1px solid var(--primary-light);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+.action-btn:hover {
+    background-color: var(--primary-light);
+    color: var(--white);
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="flex-container">
+    <div class="list-card">
+        <div style="margin-bottom: 20px; border-bottom: 2px solid var(--gray-200); padding-bottom: 15px;">
+            <h3 style="color: var(--primary); font-weight: 700; font-size: 1.25rem; margin-bottom: 5px;">Bank Transactions Log</h3>
+            <p style="font-size: 0.85rem; color: var(--gray-600);">Below is the log of all incoming bank deposits from Tanzanian banks (CRDB, Exim, PBZ). Accountants can allocate unallocated balances to the corresponding students' voteheads.</p>
+        </div>
+
+        <table class="deposits-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Bank</th>
+                    <th>Ref Number</th>
+                    <th>Student Ref</th>
+                    <th>Matched Student / Parent</th>
+                    <th>Amount (TZS)</th>
+                    <th>Unallocated (TZS)</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for deposit in deposits %}
+                <tr>
+                    <td style="font-weight: 600;">{{ deposit.deposit_date|date:"d M Y, H:i" }}</td>
+                    <td>
+                        <span style="font-weight: 700; color: var(--primary-light);">{{ deposit.get_bank_name_display }}</span>
+                    </td>
+                    <td><code>{{ deposit.ref_number }}</code></td>
+                    <td><code>{{ deposit.student_ref }}</code></td>
+                    <td>
+                        {% if deposit.student %}
+                            <div style="font-weight: 600; color: var(--primary);">{{ deposit.student.user.get_full_name }}</div>
+                            {% if deposit.parent %}
+                                <small style="color: var(--gray-600);">Parent: {{ deposit.parent.user.get_full_name }}</small>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: var(--danger); font-style: italic; font-size: 0.85rem;">Unmatched (check ref)</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600;">{{ deposit.amount|floatformat:2 }}</td>
+                    <td style="font-weight: 600; color: var(--danger);">{{ deposit.unallocated_amount|floatformat:2 }}</td>
+                    <td>
+                        {% if deposit.is_fully_allocated %}
+                            <span class="status-badge badge-allocated">Allocated</span>
+                        {% elif deposit.allocated_amount > 0 %}
+                            <span class="status-badge badge-partial">Partial</span>
+                        {% else %}
+                            <span class="status-badge badge-unallocated">Unallocated</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not deposit.is_fully_allocated %}
+                            <a href="{% url 'allocate_bank_deposit' deposit.id %}" class="action-btn">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> Allocate Dues
+                            </a>
+                        {% else %}
+                            <span style="color: var(--gray-600); font-style: italic; font-size: 0.85rem;">Completed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 25px;">No bank deposits received yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Record Stock Movement | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Record Stock Movement{% endblock %}
+
+{% block extra_css %}
+.form-card {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    max-width: 700px;
+    margin: 0 auto;
+}
+.form-group {
+    margin-bottom: 22px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+}
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    box-sizing: border-box;
+}
+.btn-submit {
+    padding: 12px 25px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 46, 89, 0.15);
+}
+.btn-cancel {
+    padding: 12px 25px;
+    background-color: var(--gray-200);
+    color: var(--gray-800);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    margin-right: 10px;
+    transition: var(--transition);
+}
+.btn-cancel:hover {
+    background-color: var(--gray-300);
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(220, 53, 69, 0.1); border: 1px solid var(--danger); color: var(--danger);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="form-card">
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label class="form-label" for="stock_item_id">Stock Item</label>
+            <select class="form-control" id="stock_item_id" name="stock_item_id" required>
+                <option value="">-- Select Inventory Item --</option>
+                {% for item in stock_items %}
+                    <option value="{{ item.id }}">{{ item.name }} (Current Stock: {{ item.quantity|floatformat:2 }} {{ item.unit }} - {{ item.get_category_display }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="movement_type">Movement Type</label>
+            <select class="form-control" id="movement_type" name="movement_type" onchange="toggleIssuedTo(this.value)" required>
+                <option value="IN">Stock In (Purchase / Restock)</option>
+                <option value="OUT">Stock Out (Consumption / Issued to Staff)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="quantity">Quantity</label>
+            <input class="form-control" type="number" step="0.01" id="quantity" name="quantity" min="0.01" placeholder="e.g. 5.5" required>
+        </div>
+
+        <div class="form-group" id="issued_to_group" style="display: none;">
+            <label class="form-label" for="issued_to">Issued To (Teacher / Staff)</label>
+            <select class="form-control" id="issued_to" name="issued_to">
+                <option value="">-- Select Staff Member (Optional) --</option>
+                {% for recipient in recipients %}
+                    <option value="{{ recipient.id }}">{{ recipient.get_full_name }} ({{ recipient.username }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="date">Date</label>
+            <input class="form-control" type="date" id="date" name="date" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="remarks">Remarks / Description</label>
+            <input class="form-control" type="text" id="remarks" name="remarks" placeholder="e.g. Weekly issue of whiteboard markers, Purchase Invoice #102">
+        </div>
+
+        <div style="text-align: right; margin-top: 30px;">
+            <a href="{% url 'inventory_list' %}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-submit">Record Movement</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleIssuedTo(val) {
+        const group = document.getElementById('issued_to_group');
+        const issuedToSelect = document.getElementById('issued_to');
+        if (val === 'OUT') {
+            group.style.display = 'block';
+        } else {
+            group.style.display = 'none';
+            issuedToSelect.value = ''; // Reset selection
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Set date to today if empty
+        const dateInput = document.getElementById('date');
+        if (!dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+        toggleIssuedTo(document.getElementById('movement_type').value);
+    });
+</script>
+{% endblock %}

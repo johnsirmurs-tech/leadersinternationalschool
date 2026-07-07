@@ -1,0 +1,258 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Accounts Payable (Bills) | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Accounts Payable & Bills{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.form-card {
+    flex: 1;
+    min-width: 320px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+}
+.list-card {
+    flex: 2;
+    min-width: 500px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+}
+.bill-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.bill-table th, .bill-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.bill-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+}
+.btn-premium {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.status-paid { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
+.status-pending { background-color: rgba(255, 193, 7, 0.15); color: #b08205; }
+.status-draft { background-color: rgba(108, 117, 125, 0.15); color: var(--gray-600); }
+.status-overdue { background-color: rgba(220, 53, 69, 0.15); color: var(--danger); }
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="flex-container">
+    <!-- Log New Bill -->
+    <div class="form-card">
+        <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-file-invoice"></i> Record Vendor Bill</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="create_bill" value="1">
+            <div class="form-group">
+                <label class="form-label">Vendor Name</label>
+                <input type="text" name="vendor_name" class="form-control" placeholder="Supplier / Vendor name" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Bill Category</label>
+                <select name="bill_type" class="form-control" required>
+                    <option value="VENDOR">Vendor Invoice</option>
+                    <option value="UTILITY">Utility Bill</option>
+                    <option value="RENT">Rent</option>
+                    <option value="SUPPLIES">Supplies</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Bill Date</label>
+                    <input type="date" name="bill_date" class="form-control" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Due Date</label>
+                    <input type="date" name="due_date" class="form-control" required>
+                </div>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Subtotal Amount</label>
+                    <input type="number" name="subtotal" step="0.01" class="form-control" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Tax Rate (%)</label>
+                    <input type="number" name="tax_rate" step="0.1" value="0" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Expense Account</label>
+                <select name="expense_account_id" class="form-control" required>
+                    <option value="">Select Account</option>
+                    {% for account in expense_accounts %}
+                        <option value="{{ account.id }}">{{ account.code }} - {{ account.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description / Memo</label>
+                <textarea name="description" class="form-control" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn-submit">Record Bill</button>
+        </form>
+    </div>
+
+    <!-- Bills Ledger -->
+    <div class="list-card">
+        <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-list-check"></i> Bill Registry</h3>
+        <div style="overflow-x: auto;">
+            <table class="bill-table">
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Vendor</th>
+                        <th>Due Date</th>
+                        <th>Total Amount</th>
+                        <th>Paid</th>
+                        <th>Status</th>
+                        <th style="text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bill in bills %}
+                        <tr>
+                            <td style="font-weight: 750; color: var(--primary);">{{ bill.reference }}</td>
+                            <td>{{ bill.vendor_name }}</td>
+                            <td {% if bill.is_overdue %}style="color: var(--danger); font-weight: 700;"{% endif %}>{{ bill.due_date }}</td>
+                            <td style="font-weight: 700;">TZS {{ bill.total_amount|default:"0.00" }}</td>
+                            <td>TZS {{ bill.amount_paid|default:"0.00" }}</td>
+                            <td>
+                                <span class="status-badge status-{{ bill.status|lower }}">
+                                    {{ bill.get_status_display }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                {% if bill.status != 'PAID' %}
+                                    <button class="btn-premium" style="padding: 5px 10px; font-size: 0.8rem;" onclick="openPaymentModal('{{ bill.id }}', '{{ bill.reference }}', '{{ bill.balance_due }}')">Pay</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 30px; color: var(--gray-600);">No bills found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Simple Payment Modal -->
+<div id="payment-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: var(--radius-lg); width: 400px;">
+        <h3 id="modal-title" style="margin-bottom: 20px; color: var(--primary);">Record Bill Payment</h3>
+        <form id="payment-form" method="POST" action="">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Payment Amount</label>
+                <input type="number" name="amount" id="modal-amount" step="0.01" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Payment Method</label>
+                <select name="payment_method" class="form-control" required>
+                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                    <option value="CASH">Cash</option>
+                    <option value="CHEQUE">Cheque</option>
+                    <option value="MOBILE_MONEY">Mobile Money</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cash/Bank Account</label>
+                <select name="bank_account_id" class="form-control" required>
+                    {% for bank in bank_accounts %}
+                        <option value="{{ bank.id }}">{{ bank.name }} ({{ bank.bank_name }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea name="notes" class="form-control" rows="2"></textarea>
+            </div>
+            <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 20px;">
+                <button type="button" class="btn-premium" style="background: var(--gray-600);" onclick="closePaymentModal()">Cancel</button>
+                <button type="submit" class="btn-premium">Submit Payment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openPaymentModal(billId, billRef, balDue) {
+    const modal = document.getElementById('payment-modal');
+    const form = document.getElementById('payment-form');
+    const title = document.getElementById('modal-title');
+    const amount = document.getElementById('modal-amount');
+
+    form.action = `/financials/accounting/bills/pay/${billId}/`;
+    title.innerText = `Pay Bill ${billRef}`;
+    amount.value = parseFloat(balDue);
+    modal.style.display = 'flex';
+}
+
+function closePaymentModal() {
+    document.getElementById('payment-modal').style.display = 'none';
+}
+</script>
+{% endblock %}

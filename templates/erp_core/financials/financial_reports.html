@@ -1,0 +1,354 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Accounting Reports | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Financial Reports & Statements{% endblock %}
+
+{% block extra_css %}
+.reports-container {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+}
+.report-tabs {
+    display: flex;
+    gap: 15px;
+    border-bottom: 2px solid var(--gray-200);
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+.report-tab-btn {
+    padding: 12px 20px;
+    border: none;
+    background: none;
+    font-weight: 700;
+    color: var(--gray-600);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: var(--transition);
+}
+.report-tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+.report-content {
+    display: none;
+}
+.report-content.active {
+    display: block;
+}
+.filter-bar {
+    background: var(--gray-100);
+    padding: 15px 20px;
+    border-radius: var(--radius-md);
+    margin-bottom: 25px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+.form-group {
+    margin-bottom: 0;
+}
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.85rem;
+}
+.form-control {
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+    background: var(--white);
+}
+.btn-premium {
+    padding: 9px 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.report-table th, .report-table td {
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 0.9rem;
+}
+.report-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 700;
+}
+.report-total-row {
+    font-weight: 750;
+    background-color: var(--gray-100);
+}
+.report-section-header {
+    font-weight: 800;
+    color: var(--primary);
+    background-color: var(--gray-200);
+    padding: 12px 15px !important;
+}
+{% endblock %}
+
+{% block content %}
+<div class="reports-container">
+    <!-- Filter bar -->
+    <form method="GET" class="filter-bar">
+        <div class="form-group">
+            <label class="form-label">As of Date (BS & Trial Bal)</label>
+            <input type="date" name="as_of_date" value="{{ as_of_date }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label class="form-label">P&L Start Date</label>
+            <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label class="form-label">P&L End Date</label>
+            <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
+        </div>
+        <button type="submit" class="btn-premium">Generate Reports</button>
+    </form>
+
+    <!-- Report navigation tabs -->
+    <div class="report-tabs">
+        <button class="report-tab-btn active" onclick="switchReportTab('tb', this)">Trial Balance</button>
+        <button class="report-tab-btn" onclick="switchReportTab('pl', this)">Profit & Loss (P&L)</button>
+        <button class="report-tab-btn" onclick="switchReportTab('bs', this)">Balance Sheet</button>
+        <button class="report-tab-btn" onclick="switchReportTab('bd', this)">Budget vs Actual</button>
+    </div>
+
+    <!-- Trial Balance Report -->
+    <div class="report-content active" id="report-tb">
+        <h3 style="color: var(--primary); margin-bottom: 20px;">Trial Balance (as of {{ as_of_date }})</h3>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Account Code</th>
+                    <th>Account Name</th>
+                    <th style="text-align: right;">Debits</th>
+                    <th style="text-align: right;">Credits</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in trial_balance.lines %}
+                    <tr>
+                        <td style="font-weight: 700; color: var(--primary);">{{ line.account.code }}</td>
+                        <td>{{ line.account.name }}</td>
+                        <td style="text-align: right;">
+                            {% if line.debit_balance > 0 %}TZS {{ line.debit_balance }}{% else %}-{% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            {% if line.credit_balance > 0 %}TZS {{ line.credit_balance }}{% else %}-{% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--gray-600); padding: 30px;">No postings matched for the trial balance.</td>
+                    </tr>
+                {% endfor %}
+                <tr class="report-total-row">
+                    <td colspan="2">Total Movements</td>
+                    <td style="text-align: right; color: var(--primary);">TZS {{ trial_balance.total_debits|default:"0.00" }}</td>
+                    <td style="text-align: right; color: var(--primary);">TZS {{ trial_balance.total_credits|default:"0.00" }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Profit and Loss (Income Statement) Report -->
+    <div class="report-content" id="report-pl">
+        <h3 style="color: var(--primary); margin-bottom: 20px;">Profit & Loss Statement (from {{ start_date }} to {{ end_date }})</h3>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Account Code</th>
+                    <th>Account Name</th>
+                    <th style="text-align: right;">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="report-section-header">
+                    <td colspan="3">Revenues</td>
+                </tr>
+                {% for line in profit_loss.revenue_lines %}
+                    <tr>
+                        <td style="font-weight: 700;">{{ line.account.code }}</td>
+                        <td>{{ line.account.name }}</td>
+                        <td style="text-align: right; font-weight: 700;">TZS {{ line.balance }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 15px; color: var(--gray-600);">No revenues recorded in this range.</td>
+                    </tr>
+                {% endfor %}
+                <tr class="report-total-row" style="background-color: rgba(25, 135, 84, 0.15); color: var(--success);">
+                    <td colspan="2">Total Operating Revenue</td>
+                    <td style="text-align: right;">TZS {{ profit_loss.total_revenue|default:"0.00" }}</td>
+                </tr>
+
+                <tr class="report-section-header">
+                    <td colspan="3">Operating Expenses</td>
+                </tr>
+                {% for line in profit_loss.expense_lines %}
+                    <tr>
+                        <td style="font-weight: 700;">{{ line.account.code }}</td>
+                        <td>{{ line.account.name }}</td>
+                        <td style="text-align: right; font-weight: 700;">TZS {{ line.balance }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 15px; color: var(--gray-600);">No expenses recorded in this range.</td>
+                    </tr>
+                {% endfor %}
+                <tr class="report-total-row" style="background-color: rgba(220, 53, 69, 0.15); color: var(--danger);">
+                    <td colspan="2">Total Operating Expenses</td>
+                    <td style="text-align: right;">TZS {{ profit_loss.total_expense|default:"0.00" }}</td>
+                </tr>
+
+                <!-- Net Income Summary -->
+                <tr class="report-total-row" style="background-color: var(--primary); color: var(--white); font-size: 1.15rem;">
+                    <td colspan="2">Net Income / Earnings</td>
+                    <td style="text-align: right;">TZS {{ profit_loss.net_profit|default:"0.00" }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Balance Sheet Report -->
+    <div class="report-content" id="report-bs">
+        <h3 style="color: var(--primary); margin-bottom: 20px;">Balance Sheet (as of {{ as_of_date }})</h3>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Account Code</th>
+                    <th>Account Name</th>
+                    <th style="text-align: right;">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Assets -->
+                <tr class="report-section-header">
+                    <td colspan="3">Assets</td>
+                </tr>
+                {% for line in balance_sheet.asset_lines %}
+                    <tr>
+                        <td style="font-weight: 700;">{{ line.account.code }}</td>
+                        <td>{{ line.account.name }}</td>
+                        <td style="text-align: right; font-weight: 700; color: var(--success);">TZS {{ line.balance }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 15px; color: var(--gray-600);">No asset records matched.</td>
+                    </tr>
+                {% endfor %}
+                <tr class="report-total-row" style="background-color: rgba(25, 135, 84, 0.15);">
+                    <td colspan="2">Total Assets</td>
+                    <td style="text-align: right; color: var(--success);">TZS {{ balance_sheet.total_assets|default:"0.00" }}</td>
+                </tr>
+
+                <!-- Liabilities -->
+                <tr class="report-section-header">
+                    <td colspan="3">Liabilities</td>
+                </tr>
+                {% for line in balance_sheet.liability_lines %}
+                    <tr>
+                        <td style="font-weight: 700;">{{ line.account.code }}</td>
+                        <td>{{ line.account.name }}</td>
+                        <td style="text-align: right; font-weight: 700; color: var(--danger);">TZS {{ line.balance }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 15px; color: var(--gray-600);">No liabilities records matched.</td>
+                    </tr>
+                {% endfor %}
+                <tr class="report-total-row" style="background-color: rgba(220, 53, 69, 0.15);">
+                    <td colspan="2">Total Liabilities</td>
+                    <td style="text-align: right; color: var(--danger);">TZS {{ balance_sheet.total_liabilities|default:"0.00" }}</td>
+                </tr>
+
+                <!-- Equities -->
+                <tr class="report-section-header">
+                    <td colspan="3">Equity</td>
+                </tr>
+                {% for line in balance_sheet.equity_lines %}
+                    <tr>
+                        <td style="font-weight: 700;">{{ line.account.code }}</td>
+                        <td>{{ line.account.name }}</td>
+                        <td style="text-align: right; font-weight: 700; color: var(--primary);">TZS {{ line.balance }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 15px; color: var(--gray-600);">No equity records matched.</td>
+                    </tr>
+                {% endfor %}
+                <tr class="report-total-row" style="background-color: rgba(15, 46, 89, 0.15);">
+                    <td colspan="2">Total Capital & Reserves</td>
+                    <td style="text-align: right; color: var(--primary);">TZS {{ balance_sheet.total_equity|default:"0.00" }}</td>
+                </tr>
+
+                <!-- Final check -->
+                <tr class="report-total-row" style="background-color: var(--primary); color: var(--white);">
+                    <td colspan="2">Total Liabilities & Equity</td>
+                    <td style="text-align: right;">TZS {{ balance_sheet.total_liabilities_and_equity|default:"0.00" }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Budget vs Actual Report -->
+    <div class="report-content" id="report-bd">
+        <h3 style="color: var(--primary); margin-bottom: 20px;">Budget vs Actual Statement (Yearly to {{ end_date }})</h3>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Account Code</th>
+                    <th>Account Name</th>
+                    <th style="text-align: right;">Annual Budget</th>
+                    <th style="text-align: right;">Actual Value</th>
+                    <th style="text-align: right;">Variance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bl in budget_lines %}
+                    <tr>
+                        <td style="font-weight: 700; color: var(--primary);">{{ bl.account.code }}</td>
+                        <td>{{ bl.account.name }}</td>
+                        <td style="text-align: right;">TZS {{ bl.budget|default:"0.00" }}</td>
+                        <td style="text-align: right; font-weight: 700;">TZS {{ bl.actual|default:"0.00" }}</td>
+                        <td style="text-align: right; font-weight: 700; color: {% if bl.variance < 0 %}var(--danger){% else %}var(--success){% endif %};">
+                            TZS {{ bl.variance|default:"0.00" }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--gray-600); padding: 30px;">No budgets configured for the active fiscal year.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function switchReportTab(reportId, btn) {
+    // Deactivate all
+    document.querySelectorAll('.report-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.report-content').forEach(c => c.classList.remove('active'));
+
+    // Activate selected
+    btn.classList.add('active');
+    document.getElementById('report-' + reportId).classList.add('active');
+}
+</script>
+{% endblock %}

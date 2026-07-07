@@ -6,8 +6,15 @@ from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from .models import CustomUser, Role, GradeBoundary, LearningAreaProgress, RawMark, LessonPlan, AutoGradedActivity, ActivityQuestion, StudentActivitySubmission, Class, StudentProfile, FeeStructure, FeePayment, StaffSalaryConfig, StaffAllowance, StaffDeduction, Payroll, Payslip, PayslipLineItem, Expense, Subject, TeacherSubjectAssignment, StudentAttendance, ParentProfile, StaffProfile, Section, StockItem, TransportRoute, LessonPlanMaterialRequirement, BiometricDevice, BiometricLog, StaffAttendance, AttendanceException
+from .models import CustomUser, Role, GradeBoundary, LearningAreaProgress, RawMark, LessonPlan, AutoGradedActivity, ActivityQuestion, StudentActivitySubmission, Class, StudentProfile, FeeStructure, FeePayment, StaffSalaryConfig, StaffAllowance, StaffDeduction, Payroll, Payslip, PayslipLineItem, Expense, Subject, TeacherSubjectAssignment, StudentAttendance, ParentProfile, StaffProfile, Section, StockItem, TransportRoute, StockMovement, BiometricDevice, BiometricLog, StaffAttendance, AttendanceException, BankDeposit, IntegrationConfig
 from django.http import HttpResponse, JsonResponse
+from .accounting_service import AccountingService, TrialBalanceService
+from .models_accounting import (
+    ChartOfAccounts, BankAccount, FiscalYear, AccountingPeriod,
+    JournalEntry, JournalEntryLine, BankTransaction, BankReconciliation,
+    Bill, BillPayment, FixedAsset, DepreciationSchedule, BudgetLine,
+    AccountType, AccountSubType
+)
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.db.models import Sum, Q, Count, Avg
@@ -485,7 +492,6 @@ def create_lesson_plan(request):
         return redirect('lesson_plan_list')
 
     classes = Class.objects.all()
-    stock_items = StockItem.objects.all().order_by('name')
 
     if request.method == 'POST':
         class_id = request.POST.get('class_id')
@@ -514,28 +520,11 @@ def create_lesson_plan(request):
         plan.status = 'SUBMITTED'
         plan.save()
 
-        # Save material requirements from inventory
-        item_ids = request.POST.getlist('item_id[]')
-        quantities = request.POST.getlist('quantity[]')
-        
-        for item_id, qty in zip(item_ids, quantities):
-            if item_id and qty:
-                try:
-                    stock_item = StockItem.objects.get(id=item_id)
-                    LessonPlanMaterialRequirement.objects.create(
-                        lesson_plan=plan,
-                        stock_item=stock_item,
-                        quantity_needed=int(qty)
-                    )
-                except (StockItem.DoesNotExist, ValueError):
-                    pass
-
         messages.success(request, "Lesson plan submitted for review.")
         return redirect('lesson_plan_list')
 
     return render(request, 'erp_core/academics/lesson_plan_form.html', {
         'classes': classes,
-        'stock_items': stock_items
     })
 
 @login_required
@@ -1015,7 +1004,7 @@ def record_payment(request):
                     if amount <= 0:
                         continue
                     fs = FeeStructure.objects.get(id=fs_id)
-                    FeePayment.objects.create(
+                    payment = FeePayment.objects.create(
                         student=student,
                         fee_structure=fs,
                         amount_paid=amount,
@@ -1024,6 +1013,7 @@ def record_payment(request):
                         notes=notes,
                         recorded_by=request.user
                     )
+                    AccountingService.record_fee_payment(payment, request.user)
 
                 messages.success(request, f"Successfully recorded payment. Receipt {receipt_no} generated.")
                 return redirect('view_receipt', receipt_no=receipt_no)
@@ -1082,15 +1072,71 @@ def fee_balances(request):
         messages.error(request, "No permission to view fee balances.")
         return redirect('dashboard')
 
-    student_balances = []
+    # Get filter options
+    classes = Class.objects.all()
+    
+    # Selected filters from request
+    class_id = request.GET.get('class_id')
+    min_balance_str = request.GET.get('min_balance')
+    
+    # Retrospective Term/Year logic
+    today = timezone.now().date()
+    current_year_str = str(today.year)
+    current_month = today.month
+    if current_month <= 4:
+        default_term = 'Term 1'
+    elif current_month <= 8:
+        default_term = 'Term 2'
+    else:
+        default_term = 'Term 3'
+        
+    selected_term = request.GET.get('term', default_term)
+    selected_year = request.GET.get('year', current_year_str)
+
+    # Determine term index number
+    import re
+    from decimal import Decimal
+    digits = re.findall(r'\d+', selected_term)
+    selected_term_idx = int(digits[0]) if digits else 1
+
+    # Base query for students
     students = StudentProfile.objects.all()
+    if class_id:
+        students = students.filter(current_class_id=class_id)
+
+    student_balances = []
 
     for student in students:
-        # Sum total fee due for student's class
-        total_due = FeeStructure.objects.filter(class_obj=student.current_class).aggregate(Sum('amount'))['amount__sum'] or 0
-        # Sum payments made by student
-        total_paid = FeePayment.objects.filter(student=student).aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
-        balance = total_due - total_paid
+        # Get fee structures applicable retrospectively
+        fee_structures = FeeStructure.objects.filter(class_obj=student.current_class)
+        retrospective_fees = []
+        
+        for fs in fee_structures:
+            try:
+                fs_year = int(fs.year)
+                sel_year = int(selected_year)
+            except ValueError:
+                fs_year = 0
+                sel_year = 0
+                
+            if fs_year < sel_year:
+                retrospective_fees.append(fs)
+            elif fs_year == sel_year:
+                if fs.billing_mode == 'TERMLY' and fs.due_term:
+                    fs_digits = re.findall(r'\d+', fs.due_term)
+                    fs_term_idx = int(fs_digits[0]) if fs_digits else 1
+                    if fs_term_idx <= selected_term_idx:
+                        retrospective_fees.append(fs)
+                else:
+                    # Non-termly fees (yearly, lifetime) in the selected year
+                    retrospective_fees.append(fs)
+                    
+        # Sum total dues retrospectively
+        total_due = sum(fs.amount for fs in retrospective_fees)
+        
+        # Sum payments made by student to date
+        total_paid = FeePayment.objects.filter(student=student).aggregate(Sum('amount_paid'))['amount_paid__sum'] or Decimal('0.00')
+        balance = Decimal(str(total_due)) - total_paid
 
         if balance <= 0:
             status = 'PAID'
@@ -1099,22 +1145,114 @@ def fee_balances(request):
         else:
             status = 'UNPAID'
 
-        student_balances.append({
+        row = {
             'student': student,
             'total_due': total_due,
             'total_paid': total_paid,
             'balance': balance,
             'status': status
-        })
+        }
+        
+        # Apply min_balance filter
+        if min_balance_str:
+            try:
+                min_bal = Decimal(min_balance_str)
+                if balance < min_bal:
+                    continue
+            except ValueError:
+                pass
+                
+        student_balances.append(row)
 
-    if request.method == 'POST' and request.POST.get('action') == 'send_reminder':
-        student_ids = request.POST.getlist('student_ids')
-        if student_ids:
-            messages.success(request, f"Fee reminders successfully sent to parents of {len(student_ids)} students.")
-            return redirect('fee_balances')
+    # POST handling for WhatsApp alerts
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        # Helper to log WhatsApp balance reminder
+        def send_whatsapp_balance_reminder(parent_phone, student_name, balance_val, term_name):
+            import os
+            from django.conf import settings
+            from .models import IntegrationConfig
+            config = IntegrationConfig.get_solo()
+            logs_dir = settings.MEDIA_ROOT
+            if not os.path.exists(logs_dir):
+                os.makedirs(logs_dir)
+            log_file_path = os.path.join(logs_dir, 'whatsapp_logs.txt')
+            timestamp = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            log_message = (
+                f"[{timestamp}] SENDING TO {parent_phone} | Balance Reminder\n"
+                f"  Active WhatsApp Provider: {config.get_whatsapp_provider_display()}\n"
+                f"  Sender Number: {config.whatsapp_sender_number or 'N/A'}\n"
+                f"  API Key: {config.whatsapp_api_key or 'N/A'}\n"
+                f"  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance "
+                f"for {student_name} is TZS {balance_val:,.2f} calculated up to {term_name}. Please settle the dues. Thank you.\n"
+                f"--------------------------------------------------\n"
+            )
+            with open(log_file_path, "a", encoding="utf-8") as f:
+                f.write(log_message)
+            print(f"[WHATSAPP] Successfully sent balance reminder for {student_name} to parent phone {parent_phone} via {config.get_whatsapp_provider_display()}")
+
+        if action == 'send_whatsapp_individual':
+            student_id = request.POST.get('student_id')
+            student = StudentProfile.objects.get(id=student_id)
+            parent = student.parents.first()
+            parent_phone = parent.user.phone_number if parent else None
+            
+            # Recalculate balance for this student
+            total_due = sum(
+                fs.amount for fs in FeeStructure.objects.filter(class_obj=student.current_class)
+                if int(fs.year) < int(selected_year) or 
+                (int(fs.year) == int(selected_year) and 
+                 (fs.billing_mode != 'TERMLY' or (fs.due_term and int((re.findall(r'\d+', fs.due_term) or [1])[0]) <= selected_term_idx)))
+            )
+            total_paid = FeePayment.objects.filter(student=student).aggregate(Sum('amount_paid'))['amount_paid__sum'] or Decimal('0.00')
+            balance = Decimal(str(total_due)) - total_paid
+
+            if parent_phone:
+                send_whatsapp_balance_reminder(parent_phone, student.user.get_full_name(), balance, f"{selected_term} {selected_year}")
+                messages.success(request, f"Balance reminder sent successfully via WhatsApp to parent of {student.user.get_full_name()}.")
+            else:
+                messages.error(request, f"Could not send reminder: No phone number configured for parent of {student.user.get_full_name()}.")
+                
+            return redirect(f"{reverse('fee_balances')}?{request.META.get('QUERY_STRING', '')}")
+
+        elif action in ['send_reminder', 'send_whatsapp_bulk']:
+            student_ids = request.POST.getlist('student_ids')
+            sent_count = 0
+            for sid in student_ids:
+                student = StudentProfile.objects.get(id=sid)
+                parent = student.parents.first()
+                parent_phone = parent.user.phone_number if parent else None
+                
+                if parent_phone:
+                    # Recalculate balance
+                    total_due = sum(
+                        fs.amount for fs in FeeStructure.objects.filter(class_obj=student.current_class)
+                        if int(fs.year) < int(selected_year) or 
+                        (int(fs.year) == int(selected_year) and 
+                         (fs.billing_mode != 'TERMLY' or (fs.due_term and int((re.findall(r'\d+', fs.due_term) or [1])[0]) <= selected_term_idx)))
+                    )
+                    total_paid = FeePayment.objects.filter(student=student).aggregate(Sum('amount_paid'))['amount_paid__sum'] or Decimal('0.00')
+                    balance = Decimal(str(total_due)) - total_paid
+                    
+                    send_whatsapp_balance_reminder(parent_phone, student.user.get_full_name(), balance, f"{selected_term} {selected_year}")
+                    sent_count += 1
+            
+            if sent_count > 0:
+                messages.success(request, f"Successfully sent WhatsApp balance reminders to {sent_count} parents.")
+            else:
+                messages.warning(request, "No reminders were sent (check parent phone configurations).")
+                
+            return redirect(f"{reverse('fee_balances')}?{request.META.get('QUERY_STRING', '')}")
 
     return render(request, 'erp_core/financials/fee_balances.html', {
-        'student_balances': student_balances
+        'student_balances': student_balances,
+        'classes': classes,
+        'selected_class_id': class_id,
+        'min_balance': min_balance_str,
+        'selected_term': selected_term,
+        'selected_year': selected_year,
     })
 
 @login_required
@@ -1286,8 +1424,12 @@ def finalize_payroll(request, payroll_id):
         payroll.finalized_at = timezone.now()
         payroll.save()
 
-        # Update payslip statuses
-        payroll.payslips.filter(status='PENDING').update(status='FINALIZED')
+        # Update payslip statuses and record in accounting
+        pending_payslips = payroll.payslips.filter(status='PENDING')
+        for payslip in pending_payslips:
+            payslip.status = 'FINALIZED'
+            payslip.save()
+            AccountingService.record_payroll(payslip, request.user)
 
         messages.success(request, f"Payroll for {payroll.month}/{payroll.year} finalized. Notifications dispatched to staff.")
     return redirect('payroll_list')
@@ -1336,7 +1478,7 @@ def expense_list(request):
 
         if category and amount and paid_to:
             try:
-                Expense.objects.create(
+                expense = Expense.objects.create(
                     category=category,
                     description=description,
                     amount=float(amount),
@@ -1346,6 +1488,7 @@ def expense_list(request):
                     receipt_attached=receipt_attached,
                     recorded_by=request.user
                 )
+                AccountingService.record_expense(expense, request.user)
                 messages.success(request, f"Expense recorded successfully: TZS {amount}")
                 return redirect('expense_list')
             except Exception as e:
@@ -1911,6 +2054,7 @@ def inventory_list(request):
         return redirect('dashboard')
 
     items = StockItem.objects.all().order_by('name')
+    movements = StockMovement.objects.all().order_by('-date', '-created_at')
     
     total_items = items.count()
     low_stock_count = sum(1 for item in items if item.quantity <= item.reorder_level and item.quantity > 0)
@@ -1919,6 +2063,7 @@ def inventory_list(request):
 
     return render(request, 'erp_core/inventory/inventory_list.html', {
         'items': items,
+        'movements': movements,
         'total_items': total_items,
         'low_stock_count': low_stock_count,
         'out_of_stock_count': out_of_stock_count,
@@ -1932,13 +2077,14 @@ def inventory_create(request):
         messages.error(request, "Access denied.")
         return redirect('dashboard')
 
+    from decimal import Decimal
     if request.method == 'POST':
         name = request.POST.get('name')
         category = request.POST.get('category')
-        quantity = int(request.POST.get('quantity', 0))
+        quantity = Decimal(request.POST.get('quantity', '0'))
         unit = request.POST.get('unit', 'pcs')
-        unit_price = float(request.POST.get('unit_price', 0))
-        reorder_level = int(request.POST.get('reorder_level', 10))
+        unit_price = Decimal(request.POST.get('unit_price', '0'))
+        reorder_level = Decimal(request.POST.get('reorder_level', '10'))
 
         StockItem.objects.create(
             name=name,
@@ -1965,14 +2111,15 @@ def inventory_update(request, item_id):
         return redirect('dashboard')
 
     item = StockItem.objects.get(id=item_id)
+    from decimal import Decimal
 
     if request.method == 'POST':
         item.name = request.POST.get('name')
         item.category = request.POST.get('category')
-        item.quantity = int(request.POST.get('quantity', 0))
+        item.quantity = Decimal(request.POST.get('quantity', '0'))
         item.unit = request.POST.get('unit', 'pcs')
-        item.unit_price = float(request.POST.get('unit_price', 0))
-        item.reorder_level = int(request.POST.get('reorder_level', 10))
+        item.unit_price = Decimal(request.POST.get('unit_price', '0'))
+        item.reorder_level = Decimal(request.POST.get('reorder_level', '10'))
         item.save()
 
         messages.success(request, f"Inventory item '{item.name}' updated successfully.")
@@ -1984,6 +2131,58 @@ def inventory_update(request, item_id):
         'categories': categories,
         'is_create': False
     })
+
+@login_required
+def stock_movement_create(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes and 'R03' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    from decimal import Decimal
+    if request.method == 'POST':
+        stock_item_id = request.POST.get('stock_item_id')
+        movement_type = request.POST.get('movement_type')
+        quantity = Decimal(request.POST.get('quantity', '0'))
+        issued_to_id = request.POST.get('issued_to')
+        date = request.POST.get('date', timezone.now().date())
+        remarks = request.POST.get('remarks')
+
+        try:
+            stock_item = StockItem.objects.get(id=stock_item_id)
+            issued_to = None
+            if issued_to_id:
+                issued_to = CustomUser.objects.get(id=issued_to_id)
+
+            if movement_type == 'OUT' and stock_item.quantity < quantity:
+                messages.error(request, f"Insufficient stock for {stock_item.name}. Available: {stock_item.quantity} {stock_item.unit}.")
+            else:
+                StockMovement.objects.create(
+                    stock_item=stock_item,
+                    movement_type=movement_type,
+                    quantity=quantity,
+                    date=date,
+                    issued_to=issued_to,
+                    remarks=remarks
+                )
+                if movement_type == 'IN':
+                    stock_item.quantity += quantity
+                else:
+                    stock_item.quantity -= quantity
+                stock_item.save()
+                messages.success(request, f"Stock movement recorded successfully.")
+                return redirect('inventory_list')
+        except Exception as e:
+            messages.error(request, f"Error saving stock movement: {str(e)}")
+
+    stock_items = StockItem.objects.all().order_by('name')
+    recipients = CustomUser.objects.exclude(roles__code__in=['R07', 'R08']).distinct().order_by('first_name')
+    
+    return render(request, 'erp_core/inventory/stock_movement_form.html', {
+        'stock_items': stock_items,
+        'recipients': recipients,
+    })
+
 
 
 # 8. Transport Management Views
@@ -2076,47 +2275,24 @@ def procurement_requisitions(request):
         messages.error(request, "Access denied.")
         return redirect('dashboard')
 
-    active_requirements = LessonPlanMaterialRequirement.objects.filter(
-        lesson_plan__status__in=['SUBMITTED', 'APPROVED']
-    )
-
-    compiled_requisitions = {}
-    for req in active_requirements:
-        item = req.stock_item
-        if item.id not in compiled_requisitions:
-            compiled_requisitions[item.id] = {
-                'item': item,
-                'total_demanded': 0,
-                'breakdown': []
-            }
-        compiled_requisitions[item.id]['total_demanded'] += req.quantity_needed
-        compiled_requisitions[item.id]['breakdown'].append({
-            'teacher': req.lesson_plan.teacher.get_full_name(),
-            'subject': req.lesson_plan.subject,
-            'class': req.lesson_plan.class_obj.name,
-            'quantity': req.quantity_needed,
-            'date': req.lesson_plan.date
-        })
-
+    # Get items where quantity is below or equal to reorder_level
+    from django.db.models import F
+    low_stock_items = StockItem.objects.filter(quantity__lte=F('reorder_level')).order_by('name')
+    
     requisition_list = []
-    for item_id, data in compiled_requisitions.items():
-        item = data['item']
-        total_demanded = data['total_demanded']
-        deficit = max(0, total_demanded - item.quantity)
-        
+    for item in low_stock_items:
+        deficit = max(0, item.reorder_level - item.quantity)
         requisition_list.append({
             'item': item,
-            'total_demanded': total_demanded,
             'stock': item.quantity,
+            'reorder_level': item.reorder_level,
             'deficit': deficit,
-            'breakdown': data['breakdown']
         })
-
-    requisition_list.sort(key=lambda x: x['deficit'], reverse=True)
 
     return render(request, 'erp_core/inventory/procurement_requisitions.html', {
         'requisition_list': requisition_list
     })
+
 
 # 9. Biometric Integration Views
 @csrf_exempt
@@ -2359,4 +2535,784 @@ def attendance_exceptions(request):
     return render(request, 'erp_core/administration/attendance_exceptions.html', {
         'users': users,
         'exceptions': exceptions
+    })
+
+@login_required
+def kitchen_led_display(request):
+    today = timezone.now().date()
+    students_present = StudentAttendance.objects.filter(date=today, status__in=['PRESENT', 'LATE']).count()
+    staff_present = StaffAttendance.objects.filter(date=today, status__in=['PRESENT', 'LATE']).count()
+    
+    return render(request, 'erp_core/kitchen/led_display.html', {
+        'students_present': students_present,
+        'staff_present': staff_present,
+        'today': today,
+    })
+
+@login_required
+def kitchen_led_data_api(request):
+    today = timezone.now().date()
+    students_present = StudentAttendance.objects.filter(date=today, status__in=['PRESENT', 'LATE']).count()
+    staff_present = StaffAttendance.objects.filter(date=today, status__in=['PRESENT', 'LATE']).count()
+    
+    return JsonResponse({
+        'students_present': students_present,
+        'staff_present': staff_present,
+        'total_present': students_present + staff_present,
+        'date': today.isoformat()
+    })
+
+@csrf_exempt
+@require_POST
+def bank_deposit_webhook(request):
+    import json
+    import hashlib
+    from decimal import Decimal
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
+
+    # Expected payload: {ref, amount, account_number, date, sender_name}
+    student_ref = data.get("ref")
+    amount_str = data.get("amount")
+    account_number = data.get("account_number", "")
+    deposit_date_str = data.get("date")
+    sender_name = data.get("sender_name", "")
+
+    if not student_ref or not amount_str:
+        return JsonResponse({"status": "error", "message": "Missing required fields (ref, amount)"}, status=400)
+
+    try:
+        amount = Decimal(str(amount_str))
+    except ValueError:
+        return JsonResponse({"status": "error", "message": "Invalid amount value"}, status=400)
+
+    # Determine unique reference number (use transaction_id if sent, else hash key details)
+    payload_str = f"{student_ref}-{amount_str}-{account_number}-{deposit_date_str}-{sender_name}"
+    ref_number = data.get("transaction_id") or data.get("ref_number") or hashlib.md5(payload_str.encode('utf-8')).hexdigest().upper()[:12]
+
+    # Map account_number dynamically based on database config
+    config = IntegrationConfig.get_solo()
+    bank_name = 'CRDB' # Default
+    account_number_str = str(account_number).strip()
+    if account_number_str == config.crdb_account:
+        bank_name = 'CRDB'
+    elif account_number_str == config.exim_account:
+        bank_name = 'EXIM'
+    elif account_number_str == config.pbz_account:
+        bank_name = 'PBZ'
+    else:
+        # Fallback to substring mapping if exact account is not matched
+        account_number_clean = account_number_str.lower()
+        if 'exim' in account_number_clean or account_number_clean.startswith('112'):
+            bank_name = 'EXIM'
+        elif 'pbz' in account_number_clean or account_number_clean.startswith('212'):
+            bank_name = 'PBZ'
+        elif 'crdb' in account_number_clean or account_number_clean.startswith('015') or account_number_clean.startswith('01'):
+            bank_name = 'CRDB'
+
+    # Parse date if sent
+    deposit_date = timezone.now()
+    if deposit_date_str:
+        try:
+            deposit_date = timezone.datetime.fromisoformat(deposit_date_str.replace('Z', '+00:00'))
+        except ValueError:
+            pass
+
+    # 1. Match Student (exact or substring check)
+    student = StudentProfile.objects.filter(student_id__iexact=student_ref.strip()).first()
+    parent = None
+    
+    if not student:
+        # Try finding if student ID is a substring of the reference
+        for s in StudentProfile.objects.all():
+            if s.student_id.lower() in student_ref.lower():
+                student = s
+                break
+                
+    if student:
+        parent = student.parents.first()
+
+    # 2. Create BankDeposit record
+    try:
+        deposit = BankDeposit.objects.create(
+            ref_number=ref_number,
+            student_ref=student_ref,
+            bank_name=bank_name,
+            account_number=account_number,
+            sender_name=sender_name,
+            amount=amount,
+            deposit_date=deposit_date,
+            student=student,
+            parent=parent
+        )
+        return JsonResponse({
+            "status": "success",
+            "message": f"Bank deposit {ref_number} logged successfully",
+            "matched_student": student.user.get_full_name() if student else "None",
+            "matched_parent": parent.user.get_full_name() if parent else "None"
+        })
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Database error: {str(e)}"}, status=500)
+
+@login_required
+def bank_deposits_list(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes and 'R02' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    deposits = BankDeposit.objects.all().order_by('-created_at')
+    return render(request, 'erp_core/financials/bank_deposits_list.html', {
+        'deposits': deposits
+    })
+
+@login_required
+def allocate_bank_deposit(request, deposit_id):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes:
+        messages.error(request, "Only Accountant can allocate bank deposits.")
+        return redirect('bank_deposits_list')
+
+    deposit = BankDeposit.objects.get(id=deposit_id)
+    if deposit.is_fully_allocated:
+        messages.warning(request, "This deposit is already fully allocated.")
+        return redirect('bank_deposits_list')
+
+    from decimal import Decimal
+    
+    # Find the siblings (students sharing the same parent)
+    siblings = []
+    if deposit.parent:
+        siblings = deposit.parent.students.all()
+    elif deposit.student:
+        siblings = [deposit.student]
+
+    # Calculate outstanding dues for each sibling
+    siblings_data = []
+    for sibling in siblings:
+        fee_structures = FeeStructure.objects.filter(class_obj=sibling.current_class)
+        dues = []
+        for fs in fee_structures:
+            paid = FeePayment.objects.filter(student=sibling, fee_structure=fs).aggregate(Sum('amount_paid'))['amount_paid__sum'] or Decimal('0.00')
+            balance = fs.amount - paid
+            if balance > 0:
+                dues.append({
+                    'fee_structure': fs,
+                    'balance': balance
+                })
+        if dues:
+            siblings_data.append({
+                'student': sibling,
+                'dues': dues
+            })
+
+    if request.method == 'POST':
+        import random
+        rand_part = random.randint(1000, 9999)
+        receipt_no = f"BANK-{timezone.now().strftime('%Y%m%d')}-{rand_part}"
+
+        allocated_payments = []
+        total_allocated_this_time = Decimal('0.00')
+        idx = 1
+
+        for key, val in request.POST.items():
+            if key.startswith('allocation_') and val:
+                try:
+                    allocated_val = Decimal(val)
+                    if allocated_val <= 0:
+                        continue
+                        
+                    parts = key.split('_')
+                    student_id = int(parts[1])
+                    fs_id = int(parts[2])
+                    
+                    student = StudentProfile.objects.get(id=student_id)
+                    fs = FeeStructure.objects.get(id=fs_id)
+                    
+                    unique_receipt_no = f"{receipt_no}-{idx}"
+                    payment = FeePayment.objects.create(
+                        student=student,
+                        fee_structure=fs,
+                        amount_paid=allocated_val,
+                        payment_method='BANK',
+                        reference_number=deposit.ref_number,
+                        receipt_number=unique_receipt_no,
+                        notes=f"Allocated from bank deposit {deposit.ref_number} ({deposit.bank_name})",
+                        recorded_by=request.user
+                    )
+                    AccountingService.record_fee_payment(payment, request.user)
+                    allocated_payments.append(payment)
+                    total_allocated_this_time += allocated_val
+                    idx += 1
+                except Exception as e:
+                    messages.error(request, f"Error processing allocation: {str(e)}")
+
+        if total_allocated_this_time > 0:
+            deposit.allocated_amount += total_allocated_this_time
+            if deposit.allocated_amount >= deposit.amount:
+                deposit.is_fully_allocated = True
+            deposit.save()
+
+            messages.success(request, f"Successfully allocated TZS {total_allocated_this_time:,.2f}. Receipt {receipt_no} generated.")
+
+            # Trigger WhatsApp PDF Receipt sending
+            from .whatsapp_service import generate_receipt_pdf, send_whatsapp_receipt_pdf
+            
+            parent_phone = None
+            if deposit.parent and deposit.parent.user.phone_number:
+                parent_phone = deposit.parent.user.phone_number
+            elif deposit.student and deposit.student.parents.exists():
+                parent_phone = deposit.student.parents.first().user.phone_number
+            elif deposit.student and deposit.student.user.phone_number:
+                parent_phone = deposit.student.user.phone_number
+
+            if parent_phone:
+                pdf_path = generate_receipt_pdf(allocated_payments, receipt_no)
+                if pdf_path:
+                    send_whatsapp_receipt_pdf(parent_phone, pdf_path, receipt_no)
+
+            return redirect('bank_deposits_list')
+        else:
+            messages.warning(request, "No allocations were made.")
+
+    return render(request, 'erp_core/financials/allocate_bank_deposit.html', {
+        'deposit': deposit,
+        'siblings_data': siblings_data,
+        'unallocated_amount': deposit.unallocated_amount(),
+    })
+
+@login_required
+def integration_settings(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes:
+        messages.error(request, "Access denied. Only Directors can access integration settings.")
+        return redirect('dashboard')
+
+    config = IntegrationConfig.get_solo()
+
+    if request.method == 'POST':
+        config.crdb_account = request.POST.get('crdb_account')
+        config.exim_account = request.POST.get('exim_account')
+        config.pbz_account = request.POST.get('pbz_account')
+        
+        config.whatsapp_provider = request.POST.get('whatsapp_provider')
+        config.whatsapp_api_url = request.POST.get('whatsapp_api_url')
+        config.whatsapp_api_key = request.POST.get('whatsapp_api_key')
+        config.whatsapp_sender_number = request.POST.get('whatsapp_sender_number')
+        config.save()
+        
+        messages.success(request, "Integration configurations updated successfully.")
+        return redirect('integration_settings')
+
+    providers = IntegrationConfig.PROVIDER_CHOICES
+    return render(request, 'erp_core/administration/integration_settings.html', {
+        'config': config,
+        'providers': providers,
+    })
+
+
+# ==============================================================================
+#                      COMPREHENSIVE ACCOUNTING MODULE VIEWS
+# ==============================================================================
+
+@login_required
+def chart_of_accounts(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    accounts = ChartOfAccounts.objects.all().order_by('code')
+    types = AccountType.choices
+    sub_types = AccountSubType.choices
+
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        name = request.POST.get('name')
+        account_type = request.POST.get('account_type')
+        account_sub_type = request.POST.get('account_sub_type')
+        normal_balance = request.POST.get('normal_balance')
+        description = request.POST.get('description', '')
+
+        if code and name and account_type and normal_balance:
+            try:
+                ChartOfAccounts.objects.create(
+                    code=code,
+                    name=name,
+                    account_type=account_type,
+                    account_sub_type=account_sub_type,
+                    normal_balance=normal_balance,
+                    description=description
+                )
+                messages.success(request, f"Account {code} - {name} created successfully.")
+                return redirect('chart_of_accounts')
+            except Exception as e:
+                messages.error(request, f"Error: {str(e)}")
+
+    return render(request, 'erp_core/financials/chart_of_accounts.html', {
+        'accounts': accounts,
+        'types': types,
+        'sub_types': sub_types,
+    })
+
+@login_required
+def journal_entries_list(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    entries = JournalEntry.objects.all().prefetch_related('lines').order_by('-posting_date', '-created_at')
+    accounts = ChartOfAccounts.objects.filter(is_active=True)
+
+    if request.method == 'POST':
+        description = request.POST.get('description')
+        posting_date = request.POST.get('posting_date')
+        entry_type = request.POST.get('entry_type', 'MANUAL')
+
+        # Extract lines
+        line_indices = [k.replace('line_account_', '') for k in request.POST.keys() if k.startswith('line_account_')]
+        
+        try:
+            with transaction.atomic():
+                period = AccountingService.get_or_create_period(timezone.datetime.strptime(posting_date, '%Y-%m-%d').date())
+                journal = JournalEntry.objects.create(
+                    entry_type=entry_type,
+                    description=description,
+                    posting_date=posting_date,
+                    period=period,
+                    created_by=request.user,
+                    status='DRAFT'
+                )
+
+                total_debits = Decimal('0')
+                total_credits = Decimal('0')
+
+                for idx in line_indices:
+                    acc_id = request.POST.get(f'line_account_{idx}')
+                    desc = request.POST.get(f'line_desc_{idx}', '')
+                    debit = Decimal(request.POST.get(f'line_debit_{idx}') or '0')
+                    credit = Decimal(request.POST.get(f'line_credit_{idx}') or '0')
+
+                    if not acc_id:
+                        continue
+                    if debit == 0 and credit == 0:
+                        continue
+
+                    account = ChartOfAccounts.objects.get(id=acc_id)
+                    JournalEntryLine.objects.create(
+                        journal=journal,
+                        account=account,
+                        description=desc or description,
+                        debit_amount=debit,
+                        credit_amount=credit
+                    )
+                    total_debits += debit
+                    total_credits += credit
+
+                if abs(total_debits - total_credits) >= Decimal('0.01'):
+                    raise ValueError(f"Journal entry is not balanced. Debits: {total_debits}, Credits: {total_credits}")
+
+                if 'post_directly' in request.POST:
+                    journal.post(request.user)
+                    messages.success(request, f"Journal entry {journal.reference} created and posted.")
+                else:
+                    messages.success(request, f"Journal entry {journal.reference} created as Draft.")
+                
+                return redirect('journal_entries_list')
+        except Exception as e:
+            messages.error(request, f"Failed to save Journal: {str(e)}")
+
+    return render(request, 'erp_core/financials/journal_entries.html', {
+        'entries': entries,
+        'accounts': accounts,
+    })
+
+@login_required
+def post_journal_entry(request, entry_id):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        try:
+            entry = JournalEntry.objects.get(id=entry_id)
+            entry.post(request.user)
+            messages.success(request, f"Successfully posted Journal Entry {entry.reference}")
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+    return redirect('journal_entries_list')
+
+@login_required
+def reverse_journal_entry(request, entry_id):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        reason = request.POST.get('reason', 'Manual Reversal')
+        try:
+            entry = JournalEntry.objects.get(id=entry_id)
+            reversal = entry.reverse(request.user, reason=reason)
+            messages.success(request, f"Journal entry reversed. Reversal entry {reversal.reference} created and posted.")
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+    return redirect('journal_entries_list')
+
+@login_required
+def bills_list(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    bills = Bill.objects.all().order_by('-bill_date')
+    expense_accounts = ChartOfAccounts.objects.filter(account_type='EXPENSE', is_active=True)
+    bank_accounts = BankAccount.objects.filter(is_active=True)
+
+    if request.method == 'POST':
+        if 'create_bill' in request.POST:
+            vendor_name = request.POST.get('vendor_name')
+            bill_type = request.POST.get('bill_type')
+            bill_date = request.POST.get('bill_date')
+            due_date = request.POST.get('due_date')
+            subtotal = Decimal(request.POST.get('subtotal') or '0')
+            tax_rate = Decimal(request.POST.get('tax_rate') or '0')
+            expense_acc_id = request.POST.get('expense_account_id')
+            description = request.POST.get('description', '')
+
+            try:
+                expense_account = ChartOfAccounts.objects.get(id=expense_acc_id)
+                bill = Bill.objects.create(
+                    vendor_name=vendor_name,
+                    bill_type=bill_type,
+                    bill_date=bill_date,
+                    due_date=due_date,
+                    subtotal=subtotal,
+                    tax_rate=tax_rate,
+                    expense_account=expense_account,
+                    description=description,
+                    created_by=request.user,
+                    status='DRAFT'
+                )
+                # Auto post double entry for the bill
+                AccountingService.record_bill(bill, request.user)
+                messages.success(request, f"Bill {bill.reference} created and approved.")
+            except Exception as e:
+                messages.error(request, f"Error: {str(e)}")
+            return redirect('bills_list')
+
+    return render(request, 'erp_core/financials/bills.html', {
+        'bills': bills,
+        'expense_accounts': expense_accounts,
+        'bank_accounts': bank_accounts,
+    })
+
+@login_required
+def pay_bill(request, bill_id):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        amount = Decimal(request.POST.get('amount') or '0')
+        payment_method = request.POST.get('payment_method')
+        bank_acc_id = request.POST.get('bank_account_id')
+        notes = request.POST.get('notes', '')
+
+        try:
+            bill = Bill.objects.get(id=bill_id)
+            bank_account = BankAccount.objects.get(id=bank_acc_id) if bank_acc_id else None
+            
+            bill_payment = BillPayment.objects.create(
+                bill=bill,
+                payment_date=timezone.now().date(),
+                amount=amount,
+                payment_method=payment_method,
+                bank_account=bank_account,
+                notes=notes,
+                created_by=request.user
+            )
+            # Create payment journal entries
+            AccountingService.record_bill_payment(bill_payment, request.user)
+            messages.success(request, f"Recorded payment of TZS {amount:,.2f} for Bill {bill.reference}")
+        except Exception as e:
+            messages.error(request, f"Error paying bill: {str(e)}")
+
+    return redirect('bills_list')
+
+@login_required
+def fixed_assets_list(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    assets = FixedAsset.objects.all().order_by('asset_code')
+    asset_accounts = ChartOfAccounts.objects.filter(account_sub_type='FIXED_ASSET', is_active=True)
+    dep_accounts = ChartOfAccounts.objects.filter(account_sub_type='DEPRECIATION', is_active=True)
+    accum_accounts = ChartOfAccounts.objects.filter(account_type='ASSET', is_active=True)
+
+    if request.method == 'POST':
+        if 'create_asset' in request.POST:
+            asset_code = request.POST.get('asset_code')
+            name = request.POST.get('name')
+            category = request.POST.get('category')
+            purchase_date = request.POST.get('purchase_date')
+            purchase_cost = Decimal(request.POST.get('purchase_cost') or '0')
+            residual_value = Decimal(request.POST.get('residual_value') or '0')
+            depreciation_method = request.POST.get('depreciation_method')
+            useful_life_years = int(request.POST.get('useful_life_years') or '5')
+            depreciation_rate = Decimal(request.POST.get('depreciation_rate') or '0')
+            asset_acc_id = request.POST.get('asset_account_id')
+            dep_acc_id = request.POST.get('depreciation_account_id')
+            accum_acc_id = request.POST.get('accumulated_dep_account_id')
+
+            try:
+                asset_account = ChartOfAccounts.objects.get(id=asset_acc_id)
+                depreciation_account = ChartOfAccounts.objects.get(id=dep_acc_id) if dep_acc_id else None
+                accumulated_dep_account = ChartOfAccounts.objects.get(id=accum_acc_id) if accum_acc_id else None
+
+                FixedAsset.objects.create(
+                    asset_code=asset_code,
+                    name=name,
+                    category=category,
+                    purchase_date=purchase_date,
+                    purchase_cost=purchase_cost,
+                    residual_value=residual_value,
+                    depreciation_method=depreciation_method,
+                    useful_life_years=useful_life_years,
+                    depreciation_rate=depreciation_rate,
+                    asset_account=asset_account,
+                    depreciation_account=depreciation_account,
+                    accumulated_dep_account=accumulated_dep_account,
+                    created_by=request.user
+                )
+                messages.success(request, f"Asset {asset_code} - {name} added to register.")
+            except Exception as e:
+                messages.error(request, f"Error: {str(e)}")
+            return redirect('fixed_assets_list')
+
+    return render(request, 'erp_core/financials/fixed_assets.html', {
+        'assets': assets,
+        'asset_accounts': asset_accounts,
+        'dep_accounts': dep_accounts,
+        'accum_accounts': accum_accounts,
+    })
+
+@login_required
+def run_depreciation(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        date_str = request.POST.get('run_date')
+        if date_str:
+            try:
+                run_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+                period = AccountingService.get_or_create_period(run_date)
+                
+                assets = FixedAsset.objects.filter(status='ACTIVE')
+                depreciated_count = 0
+
+                with transaction.atomic():
+                    for asset in assets:
+                        if DepreciationSchedule.objects.filter(asset=asset, period=period).exists():
+                            continue
+                        
+                        monthly_dep = asset.monthly_depreciation
+                        if monthly_dep <= 0:
+                            continue
+
+                        journal = AccountingService.post_depreciation(asset, period, request.user)
+                        if journal:
+                            DepreciationSchedule.objects.create(
+                                asset=asset,
+                                period=period,
+                                depreciation_amount=monthly_dep,
+                                accumulated_depreciation=asset.accumulated_depreciation,
+                                net_book_value=asset.net_book_value,
+                                journal_entry=journal,
+                                posted=True
+                            )
+                            depreciated_count += 1
+                
+                messages.success(request, f"Depreciation complete. Calculated depreciation for {depreciated_count} assets.")
+            except Exception as e:
+                messages.error(request, f"Error running depreciation: {str(e)}")
+
+    return redirect('fixed_assets_list')
+
+@login_required
+def bank_reconciliation_list(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    reconciliations = BankReconciliation.objects.all().order_by('-period_end')
+    bank_accounts = BankAccount.objects.filter(is_active=True)
+
+    if request.method == 'POST':
+        bank_acc_id = request.POST.get('bank_account_id')
+        start_date = request.POST.get('period_start')
+        end_date = request.POST.get('period_end')
+        stmt_open = Decimal(request.POST.get('stmt_opening') or '0')
+        stmt_close = Decimal(request.POST.get('stmt_closing') or '0')
+
+        try:
+            bank_account = BankAccount.objects.get(id=bank_acc_id)
+            
+            gl_acc = bank_account.gl_account.first()
+            book_open = gl_acc.get_balance_at_date(timezone.datetime.strptime(start_date, '%Y-%m-%d').date()) if gl_acc else Decimal('0')
+            book_close = gl_acc.get_balance_at_date(timezone.datetime.strptime(end_date, '%Y-%m-%d').date()) if gl_acc else Decimal('0')
+
+            recon = BankReconciliation.objects.create(
+                bank_account=bank_account,
+                period_start=start_date,
+                period_end=end_date,
+                statement_opening_balance=stmt_open,
+                statement_closing_balance=stmt_close,
+                book_opening_balance=book_open,
+                book_closing_balance=book_close,
+                prepared_by=request.user,
+                status='DRAFT'
+            )
+            messages.success(request, f"Reconciliation {recon.reference} prepared for {recon.period_start} to {recon.period_end}")
+            return redirect('bank_reconciliation_detail', recon_id=recon.id)
+        except Exception as e:
+            messages.error(request, f"Error preparing reconciliation: {str(e)}")
+
+    return render(request, 'erp_core/financials/bank_reconciliation_list.html', {
+        'reconciliations': reconciliations,
+        'bank_accounts': bank_accounts,
+    })
+
+@login_required
+def bank_reconciliation_detail(request, recon_id):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    recon = BankReconciliation.objects.get(id=recon_id)
+    
+    unmatched_stmt = BankTransaction.objects.filter(
+        bank_account=recon.bank_account,
+        is_reconciled=False,
+        transaction_date__lte=recon.period_end
+    )
+    
+    gl_acc = recon.bank_account.gl_account.first()
+    unreconciled_book = JournalEntryLine.objects.filter(
+        account=gl_acc,
+        journal__status='POSTED',
+        bank_transaction__isnull=True,
+        journal__posting_date__lte=recon.period_end
+    ) if gl_acc else []
+
+    if request.method == 'POST':
+        if 'finalize' in request.POST:
+            recon.status = 'COMPLETED'
+            recon.save()
+            
+            bank = recon.bank_account
+            bank.last_reconciled_date = recon.period_end
+            bank.last_reconciled_balance = recon.statement_closing_balance
+            bank.save()
+
+            messages.success(request, f"Reconciliation {recon.reference} finalized.")
+            return redirect('bank_reconciliation_list')
+
+    return render(request, 'erp_core/financials/bank_reconciliation_detail.html', {
+        'recon': recon,
+        'unmatched_stmt': unmatched_stmt,
+        'unreconciled_book': unreconciled_book,
+    })
+
+@login_required
+def bank_reconciliation_match(request, recon_id):
+    if request.method == 'POST':
+        stmt_id = request.POST.get('stmt_id')
+        book_line_id = request.POST.get('book_line_id')
+
+        try:
+            stmt = BankTransaction.objects.get(id=stmt_id)
+            book_line = JournalEntryLine.objects.get(id=book_line_id)
+
+            stmt.matched_journal_line = book_line
+            stmt.is_reconciled = True
+            stmt.status = 'RECONCILED'
+            stmt.save()
+
+            book_line.bank_transaction = stmt
+            book_line.save()
+
+            recon = BankReconciliation.objects.get(id=recon_id)
+            stmt.reconciliation = recon
+            stmt.save()
+
+            gl_acc = recon.bank_account.gl_account.first()
+            unmatched_lines = JournalEntryLine.objects.filter(
+                account=gl_acc,
+                journal__status='POSTED',
+                bank_transaction__isnull=True,
+                journal__posting_date__lte=recon.period_end
+            )
+            recon.deposits_in_transit = unmatched_lines.aggregate(total=Sum('debit_amount'))['total'] or Decimal('0')
+            recon.outstanding_checks = unmatched_lines.aggregate(total=Sum('credit_amount'))['total'] or Decimal('0')
+            recon.save()
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error'}, status=400)
+
+@login_required
+def financial_reports(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R03' not in role_codes and 'R01' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    today = timezone.now().date()
+    start_date = request.GET.get('start_date', today.replace(day=1).strftime('%Y-%m-%d'))
+    end_date = request.GET.get('end_date', today.strftime('%Y-%m-%d'))
+    as_of_date = request.GET.get('as_of_date', today.strftime('%Y-%m-%d'))
+
+    start_d = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
+    end_d = timezone.datetime.strptime(end_date, '%Y-%m-%d').date()
+    as_of_d = timezone.datetime.strptime(as_of_date, '%Y-%m-%d').date()
+
+    trial_balance = TrialBalanceService.get_trial_balance(as_of_d)
+    profit_loss = TrialBalanceService.get_profit_and_loss(start_d, end_d)
+    balance_sheet = TrialBalanceService.get_balance_sheet(as_of_d)
+
+    fiscal_year = FiscalYear.get_active()
+    budget_lines = []
+    if fiscal_year:
+        for bl in fiscal_year.budget_lines.all():
+            actual = bl.account.get_balance_at_date(end_d)
+            budget_lines.append({
+                'account': bl.account,
+                'budget': bl.annual_budget,
+                'actual': actual,
+                'variance': bl.annual_budget - actual,
+            })
+
+    return render(request, 'erp_core/financials/financial_reports.html', {
+        'start_date': start_date,
+        'end_date': end_date,
+        'as_of_date': as_of_date,
+        'trial_balance': trial_balance,
+        'profit_loss': profit_loss,
+        'balance_sheet': balance_sheet,
+        'budget_lines': budget_lines,
     })

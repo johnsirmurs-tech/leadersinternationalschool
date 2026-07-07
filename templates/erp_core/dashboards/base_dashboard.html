@@ -156,6 +156,65 @@
             color: var(--danger);
         }
 
+        /* Collapsible Sidebar Styles */
+        .sidebar {
+            transition: var(--transition);
+        }
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+        .sidebar.collapsed .sidebar-brand h2 {
+            display: none;
+        }
+        .sidebar.collapsed .sidebar-brand img {
+            margin-right: 0;
+            max-height: 35px;
+        }
+        .sidebar.collapsed .menu-category {
+            display: none;
+        }
+        .sidebar.collapsed .sidebar-menu span {
+            display: none;
+        }
+        .sidebar.collapsed .sidebar-menu a {
+            justify-content: center;
+            padding: 12px 0;
+        }
+        .sidebar.collapsed .sidebar-menu i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar.collapsed .sidebar-footer span {
+            display: none;
+        }
+        .sidebar.collapsed .sidebar-footer a {
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-footer i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar.collapsed + .workspace {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+        
+        .sidebar-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.15rem;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+        .sidebar-toggle-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
         /* Main Workspace Wrapper */
         .workspace {
             margin-left: var(--sidebar-width);
@@ -364,10 +423,15 @@
 <body>
 
     <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="School Logo">
-            <h2>LIS ERP Portal</h2>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand" style="display: flex; justify-content: space-between; align-items: center; padding: 0 15px;">
+            <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
+                <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="School Logo" style="flex-shrink: 0;">
+                <h2 style="font-size: 1.05rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">LIS ERP Portal</h2>
+            </div>
+            <button id="sidebar-toggle" class="sidebar-toggle-btn" style="flex-shrink: 0;">
+                <i class="fa-solid fa-angle-left" id="toggle-icon"></i>
+            </button>
         </div>
         <ul class="sidebar-menu">
             <li class="{% block active_dash %}active{% endblock %}">
@@ -376,7 +440,122 @@
                     <span>Dashboard</span>
                 </a>
             </li>
-            {% block sidebar_items %}{% endblock %}
+            {% block sidebar_items %}
+                {% for role in user_roles %}
+                    {% if role.code == 'R01' %}
+                        <!-- Human Resource Category -->
+                        <span class="menu-category">Human Resource</span>
+                        <li><a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a></li>
+                        <li><a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a></li>
+                        <li><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
+                        <li><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+
+                        <!-- Finance & Operations Category -->
+                        <span class="menu-category">Finance & Ops</span>
+                        <li><a href="{% url 'chart_of_accounts' %}"><i class="fa-solid fa-list"></i> <span>Chart of Accounts</span></a></li>
+                        <li><a href="{% url 'journal_entries_list' %}"><i class="fa-solid fa-book"></i> <span>Journal Entries</span></a></li>
+                        <li><a href="{% url 'bills_list' %}"><i class="fa-solid fa-file-invoice"></i> <span>Accounts Payable</span></a></li>
+                        <li><a href="{% url 'fixed_assets_list' %}"><i class="fa-solid fa-coins"></i> <span>Fixed Assets</span></a></li>
+                        <li><a href="{% url 'bank_reconciliation_list' %}"><i class="fa-solid fa-code-compare"></i> <span>Bank Recon</span></a></li>
+                        <li><a href="{% url 'financial_reports' %}"><i class="fa-solid fa-folder-open"></i> <span>Accounting Reports</span></a></li>
+                        <li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Statements</span></a></li>
+                        <li><a href="{% url 'fee_structure_setup' %}"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Fee Structure</span></a></li>
+                        <li><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
+                        <li><a href="{% url 'bank_deposits_list' %}"><i class="fa-solid fa-building-columns"></i> <span>Bank Deposits</span></a></li>
+                        <li><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
+                        <li><a href="{% url 'inventory_list' %}"><i class="fa-solid fa-boxes-stacked"></i> <span>Stock & Inventory</span></a></li>
+                        <li><a href="{% url 'transport_list' %}"><i class="fa-solid fa-bus"></i> <span>Transport Routes</span></a></li>
+                        <li><a href="{% url 'procurement_requisitions' %}"><i class="fa-solid fa-cart-shopping"></i> <span>Procurement Orders</span></a></li>
+                        <li><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
+
+                        <!-- Academics Category -->
+                        <span class="menu-category">Academics</span>
+                        <li><a href="{% url 'subject_setup' %}"><i class="fa-solid fa-book-open"></i> <span>Subjects & Areas</span></a></li>
+                        <li><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
+                        <li><a href="{% url 'biometric_dashboard' %}"><i class="fa-solid fa-fingerprint"></i> <span>Biometric Logs</span></a></li>
+                        <li><a href="{% url 'biometric_registration' %}"><i class="fa-solid fa-address-card"></i> <span>Biometric Mapping</span></a></li>
+                        <li><a href="{% url 'attendance_exceptions' %}"><i class="fa-solid fa-file-circle-exclamation"></i> <span>Attendance Exceptions</span></a></li>
+                        <li><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-file-signature"></i> <span>Lesson Plans</span></a></li>
+                        <li><a href="{% url 'grade_boundaries' %}"><i class="fa-solid fa-calculator"></i> <span>Grade Boundaries</span></a></li>
+                        <li><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
+
+                        <!-- Settings Category -->
+                        <span class="menu-category">Settings</span>
+                        <li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                        <li><a href="{% url 'integration_settings' %}"><i class="fa-solid fa-gears"></i> <span>Integration Settings</span></a></li>
+                    {% elif role.code == 'R02' %}
+                        <!-- Academics Category -->
+                        <span class="menu-category">Academics</span>
+                        <li><a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a></li>
+                        <li><a href="{% url 'subject_setup' %}"><i class="fa-solid fa-book-open"></i> <span>Subjects & Areas</span></a></li>
+                        <li><a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a></li>
+                        <li><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
+                        <li><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
+                        <li><a href="{% url 'grade_boundaries' %}"><i class="fa-solid fa-calculator"></i> <span>Grade Boundaries</span></a></li>
+                        <li><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-file-signature"></i> <span>Lesson Plans</span></a></li>
+                        <li><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
+
+                        <!-- Finance -->
+                        <span class="menu-category">Finance</span>
+                        <li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Reports</span></a></li>
+                        <li><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
+                        <li><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+                        <li><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
+
+                        <!-- Settings -->
+                        <span class="menu-category">Settings</span>
+                        <li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                    {% elif role.code == 'R03' %}
+                        <!-- Human Resource -->
+                        <span class="menu-category">Human Resource</span>
+                        <li><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
+                        <li><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+
+                        <!-- Finance & Operations -->
+                        <span class="menu-category">Finance & Ops</span>
+                        <li><a href="{% url 'chart_of_accounts' %}"><i class="fa-solid fa-list"></i> <span>Chart of Accounts</span></a></li>
+                        <li><a href="{% url 'journal_entries_list' %}"><i class="fa-solid fa-book"></i> <span>Journal Entries</span></a></li>
+                        <li><a href="{% url 'bills_list' %}"><i class="fa-solid fa-file-invoice"></i> <span>Accounts Payable</span></a></li>
+                        <li><a href="{% url 'fixed_assets_list' %}"><i class="fa-solid fa-coins"></i> <span>Fixed Assets</span></a></li>
+                        <li><a href="{% url 'bank_reconciliation_list' %}"><i class="fa-solid fa-code-compare"></i> <span>Bank Recon</span></a></li>
+                        <li><a href="{% url 'financial_reports' %}"><i class="fa-solid fa-folder-open"></i> <span>Accounting Reports</span></a></li>
+                        <li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Statements</span></a></li>
+                        <li><a href="{% url 'fee_structure_setup' %}"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Fee Structure</span></a></li>
+                        <li><a href="{% url 'record_payment' %}"><i class="fa-solid fa-cash-register"></i> <span>Fee Payments</span></a></li>
+                        <li><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
+                        <li><a href="{% url 'bank_deposits_list' %}"><i class="fa-solid fa-building-columns"></i> <span>Bank Deposits</span></a></li>
+                        <li><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
+                        <li><a href="{% url 'inventory_list' %}"><i class="fa-solid fa-boxes-stacked"></i> <span>Stock & Inventory</span></a></li>
+                        <li><a href="{% url 'procurement_requisitions' %}"><i class="fa-solid fa-cart-shopping"></i> <span>Procurement Orders</span></a></li>
+                        <li><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
+                        <li><a href="{% url 'biometric_dashboard' %}"><i class="fa-solid fa-fingerprint"></i> <span>Biometric Logs</span></a></li>
+                        <li><a href="{% url 'biometric_registration' %}"><i class="fa-solid fa-address-card"></i> <span>Biometric Mapping</span></a></li>
+
+                        <!-- Settings -->
+                        <span class="menu-category">Settings</span>
+                        <li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                    {% elif role.code == 'R06' %}
+                        <!-- Academics -->
+                        <span class="menu-category">Academics</span>
+                        <li><a href="{% url 'early_years_progress' %}"><i class="fa-solid fa-baby"></i> <span>Early Years Progress</span></a></li>
+                        <li><a href="{% url 'enter_raw_marks' %}"><i class="fa-solid fa-file-pen"></i> <span>Raw Marks Entry</span></a></li>
+                        <li><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
+                        <li><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
+                        <li><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-folder-open"></i> <span>Lesson Plans</span></a></li>
+                        <li><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
+                        <li><a href="{% url 'quiz_builder' %}"><i class="fa-solid fa-brain"></i> <span>Cambridge AI Quiz</span></a></li>
+
+                        <!-- Settings -->
+                        <span class="menu-category">Settings</span>
+                        <li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                    {% elif role.code == 'R07' %}
+                        <!-- Academics -->
+                        <span class="menu-category">Academics</span>
+                        <li><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
+                        <li><a href="{% url 'student_quizzes' %}"><i class="fa-solid fa-brain"></i> <span>Cambridge AI Quizzes</span></a></li>
+                    {% endif %}
+                {% endfor %}
+            {% endblock %}
         </ul>
         <div class="sidebar-footer">
             <a href="{% url 'logout' %}">
@@ -409,7 +588,7 @@
                     <div class="user-info-text">
                         <h5>{{ user.get_full_name }}</h5>
                         <span>
-                            {% for role in roles %}
+                            {% for role in user_roles %}
                                 {{ role.name }}{% if not forloop.last %}, {% endif %}
                             {% empty %}
                                 Staff/User
@@ -425,6 +604,40 @@
             {% block content %}{% endblock %}
         </main>
     </div>
+
+    <!-- Sidebar Collapse Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            const toggleIcon = document.getElementById('toggle-icon');
+            
+            // Load state
+            const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+            if (isCollapsed) {
+                sidebar.classList.add('collapsed');
+                if (toggleIcon) {
+                    toggleIcon.classList.remove('fa-angle-left');
+                    toggleIcon.classList.add('fa-angle-right');
+                }
+            }
+            
+            toggleBtn.addEventListener('click', () => {
+                const collapsed = sidebar.classList.toggle('collapsed');
+                localStorage.setItem('sidebar-collapsed', collapsed);
+                
+                if (toggleIcon) {
+                    if (collapsed) {
+                        toggleIcon.classList.remove('fa-angle-left');
+                        toggleIcon.classList.add('fa-angle-right');
+                    } else {
+                        toggleIcon.classList.remove('fa-angle-right');
+                        toggleIcon.classList.add('fa-angle-left');
+                    }
+                }
+            });
+        });
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>

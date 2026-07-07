@@ -129,19 +129,6 @@
                 <textarea class="form-textarea" id="materials" name="materials" placeholder="Resources, smart boards, workbooks..."></textarea>
             </div>
 
-            <div class="form-group" style="background-color: var(--gray-100); padding: 20px; border-radius: var(--radius-md); border: 1.5px solid var(--gray-200); margin-bottom: 22px;">
-                <label class="form-label" style="margin-bottom: 12px; font-weight: 700; color: var(--primary);">Inventory Items Required</label>
-                <p style="font-size: 0.8rem; color: var(--gray-600); margin-bottom: 15px;">Select items from school stock and specify needed quantities. The system will compile requisitions for any deficits.</p>
-                
-                <div id="materials-rows-container" style="margin-bottom: 15px;">
-                    <!-- Dynamic material request rows go here -->
-                </div>
-                
-                <button type="button" style="padding: 8px 16px; font-size: 0.8rem; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="addMaterialRow()">
-                    <i class="fa-solid fa-plus"></i> Add Item Request
-                </button>
-            </div>
-
             <div class="form-group">
                 <label class="form-label" for="activities">Learning Activities</label>
                 <textarea class="form-textarea" id="activities" name="activities" placeholder="Introduction, main tasks, group works..."></textarea>
@@ -176,37 +163,6 @@
             structSec.style.display = 'block';
             fileInput.required = false;
             fileInput.value = ''; // Clear file selection
-        }
-    }
-    
-    let rowCount = 0;
-    function addMaterialRow() {
-        const container = document.getElementById('materials-rows-container');
-        const div = document.createElement('div');
-        div.className = 'material-row';
-        div.id = `material-row-${rowCount}`;
-        div.style = 'display: grid; grid-template-columns: 2fr 1fr auto; gap: 15px; align-items: center; margin-bottom: 12px;';
-        
-        div.innerHTML = `
-            <select name="item_id[]" class="form-control" required style="padding: 8px 10px;">
-                <option value="">-- Select Inventory Item --</option>
-                {% for item in stock_items %}
-                    <option value="{{ item.id }}">{{ item.name }} (Stock: {{ item.quantity }} {{ item.unit }})</option>
-                {% endfor %}
-            </select>
-            <input type="number" name="quantity[]" class="form-control" value="1" min="1" required style="padding: 8px 10px;" placeholder="Qty">
-            <button type="button" style="background: none; border: none; color: var(--danger); font-size: 1.1rem; cursor: pointer; padding: 5px;" onclick="removeMaterialRow(${rowCount})">
-                <i class="fa-solid fa-trash"></i>
-            </button>
-        `;
-        container.appendChild(div);
-        rowCount++;
-    }
-    
-    function removeMaterialRow(id) {
-        const row = document.getElementById(`material-row-${id}`);
-        if (row) {
-            row.remove();
         }
     }
 

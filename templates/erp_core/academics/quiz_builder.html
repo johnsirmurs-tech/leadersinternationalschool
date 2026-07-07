@@ -1,0 +1,185 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Cambridge AI Quiz Generator | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Cambridge AI Quiz Generator{% endblock %}
+
+{% block extra_css %}
+.wizard-card {
+    background-color: var(--white);
+    padding: 35px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+    max-width: 700px;
+    margin: 0 auto;
+}
+.form-group {
+    margin-bottom: 22px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 750;
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+    font-family: var(--font-family);
+    transition: var(--transition);
+}
+.form-control:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(15, 46, 89, 0.1);
+}
+.topics-list {
+    background-color: var(--gray-100);
+    padding: 15px;
+    border-radius: var(--radius-md);
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--gray-200);
+}
+.topic-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.topic-item:last-child {
+    border-bottom: none;
+}
+.btn-premium {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 750;
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: var(--transition);
+}
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+{% endblock %}
+
+{% block content %}
+<div class="wizard-card">
+    <h3 style="color: var(--primary); margin-bottom: 10px; text-align: center;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Quiz Wizard</h3>
+    <p style="color: var(--gray-600); text-align: center; margin-bottom: 30px;">Generate standard-aligned Cambridge assessments using OpenAI GPT-4o / Gemini models.</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Cambridge Subject</label>
+            <select name="subject" id="subject-select" class="form-control" required onchange="loadUnits()">
+                <option value="">Select Subject</option>
+                {% for sub in subjects %}
+                    <option value="{{ sub.id }}">{{ sub.code }} - {{ sub.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Cambridge Stage</label>
+            <select name="stage" id="stage-select" class="form-control" required onchange="loadUnits()">
+                <option value="">Select Stage</option>
+                {% for stage in stages %}
+                    <option value="{{ stage.id }}">{{ stage.name }} ({{ stage.get_stage_type_display }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Syllabus Unit</label>
+            <select name="unit" id="unit-select" class="form-control" required onchange="loadTopics()">
+                <option value="">Select Subject & Stage first</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Select Topics</label>
+            <div class="topics-list" id="topics-container">
+                <p style="color: var(--gray-600); font-style: italic;">Select a syllabus unit to retrieve topics...</p>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 20px;">
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label">Difficulty Level</label>
+                <select name="difficulty" class="form-control" required>
+                    <option value="EASY">Easy (Knowledge / Recall)</option>
+                    <option value="MEDIUM" selected>Medium (Application)</option>
+                    <option value="HARD">Hard (Analysis / Synthesis)</option>
+                    <option value="MIXED">Mixed</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label">Number of Questions</label>
+                <input type="number" name="num_questions" min="1" max="30" value="5" class="form-control" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-premium"><i class="fa-solid fa-gears"></i> Trigger AI Generation</button>
+    </form>
+</div>
+
+<script>
+function loadUnits() {
+    const sub = document.getElementById('subject-select').value;
+    const stage = document.getElementById('stage-select').value;
+    const unitSelect = document.getElementById('unit-select');
+
+    if (!sub || !stage) return;
+
+    fetch(`?subject_id=${sub}&stage_id=${stage}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        unitSelect.innerHTML = '<option value="">Select Unit</option>';
+        data.units.forEach(u => {
+            unitSelect.innerHTML += `<option value="${u.id}">${u.code} - ${u.title}</option>`;
+        });
+    });
+}
+
+function loadTopics() {
+    const unit = document.getElementById('unit-select').value;
+    const container = document.getElementById('topics-container');
+
+    if (!unit) return;
+
+    fetch(`?unit_id=${unit}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        container.innerHTML = '';
+        if (data.topics.length === 0) {
+            container.innerHTML = '<p style="color: var(--gray-600);">No topics configured for this unit.</p>';
+            return;
+        }
+        data.topics.forEach(t => {
+            container.innerHTML += `
+                <div class="topic-item">
+                    <input type="checkbox" name="topics" value="${t.id}" id="topic-${t.id}">
+                    <label for="topic-${t.id}" style="cursor: pointer; font-size: 0.9rem;">${t.title}</label>
+                </div>
+            `;
+        });
+    });
+}
+</script>
+{% endblock %}

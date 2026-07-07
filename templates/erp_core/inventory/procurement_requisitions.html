@@ -71,8 +71,8 @@
 <div class="flex-container">
     <div class="list-card">
         <div style="margin-bottom: 20px; border-bottom: 2px solid var(--gray-200); padding-bottom: 15px;">
-            <h3 style="color: var(--primary); font-weight: 700; font-size: 1.25rem; margin-bottom: 5px;">Requisitions Summary</h3>
-            <p style="font-size: 0.85rem; color: var(--gray-600);">Below is the aggregated material requests compiled across all teachers' lesson plans. Items are grouped, and purchase orders are calculated based on stock shortfalls.</p>
+            <h3 style="color: var(--primary); font-weight: 700; font-size: 1.25rem; margin-bottom: 5px;">Low Stock & Procurement Requisitions</h3>
+            <p style="font-size: 0.85rem; color: var(--gray-600);">Below is the list of all inventory items whose quantities are at or below their defined reorder levels. Restocking orders can be prepared based on these deficits.</p>
         </div>
 
         <table class="procurement-table">
@@ -80,62 +80,33 @@
                 <tr>
                     <th>Item Name</th>
                     <th>Category</th>
-                    <th>Total Demanded</th>
                     <th>Current Stock</th>
+                    <th>Reorder Level</th>
                     <th>Deficit (To Buy)</th>
-                    <th>Breakdown</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for req in requisition_list %}
-                <tr style="border-bottom: 1px solid var(--gray-200); background-color: {% if req.deficit > 0 %}rgba(220, 53, 69, 0.02){% else %}transparent{% endif %};">
+                <tr style="border-bottom: 1px solid var(--gray-200); background-color: rgba(220, 53, 69, 0.02);">
                     <td style="font-weight: 600; color: var(--primary);">{{ req.item.name }}</td>
                     <td>{{ req.item.get_category_display }}</td>
-                    <td>{{ req.total_demanded }} {{ req.item.unit }}</td>
-                    <td>{{ req.stock }} {{ req.item.unit }}</td>
+                    <td>{{ req.stock|floatformat:2 }} {{ req.item.unit }}</td>
+                    <td>{{ req.reorder_level|floatformat:2 }} {{ req.item.unit }}</td>
                     <td>
-                        {% if req.deficit > 0 %}
-                            <span class="deficit-badge badge-need-buy">Buy {{ req.deficit }} {{ req.item.unit }}</span>
-                        {% else %}
-                            <span class="deficit-badge badge-in-stock">Stock Sufficient</span>
-                        {% endif %}
+                        <span class="deficit-badge badge-need-buy">Buy {{ req.deficit|floatformat:2 }} {{ req.item.unit }}</span>
                     </td>
                     <td>
-                        <span class="breakdown-toggle" onclick="toggleBreakdown({{ forloop.counter }})">
-                            View Details ({{ req.breakdown|length }})
-                        </span>
-                    </td>
-                </tr>
-                <tr id="breakdown-{{ forloop.counter }}" class="breakdown-row">
-                    <td colspan="6" style="padding: 15px 25px; border-bottom: 1.5px solid var(--gray-300);">
-                        <h5 style="color: var(--primary); font-weight: 700; margin-bottom: 10px;">Teacher Demands Breakdown:</h5>
-                        <table style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid var(--gray-200); color: var(--gray-600); font-weight: 600;">
-                                    <th style="padding: 6px 0; text-align: left;">Teacher</th>
-                                    <th style="padding: 6px 0; text-align: left;">Subject</th>
-                                    <th style="padding: 6px 0; text-align: left;">Class</th>
-                                    <th style="padding: 6px 0; text-align: left;">Quantity Needed</th>
-                                    <th style="padding: 6px 0; text-align: left;">Planned Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for detail in req.breakdown %}
-                                <tr style="border-bottom: 1px dashed var(--gray-200);">
-                                    <td style="padding: 8px 0; font-weight: 600;">{{ detail.teacher }}</td>
-                                    <td style="padding: 8px 0;">{{ detail.subject }}</td>
-                                    <td style="padding: 8px 0;">{{ detail.class }}</td>
-                                    <td style="padding: 8px 0; font-weight: 600;">{{ detail.quantity }}</td>
-                                    <td style="padding: 8px 0;">{{ detail.date|date:"d M Y" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <a href="{% url 'stock_movement_create' %}?stock_item_id={{ req.item.id }}&movement_type=IN" class="deficit-badge badge-in-stock" style="text-decoration: none;">
+                            <i class="fa-solid fa-plus"></i> Restock
+                        </a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 25px;">No active material requests from lesson plans.</td>
+                    <td colspan="6" style="text-align: center; padding: 25px; color: var(--success); font-weight: 600;">
+                        <i class="fa-solid fa-circle-check"></i> All stock levels are sufficient. No procurement requisitions needed!
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -145,14 +116,4 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    function toggleBreakdown(id) {
-        const row = document.getElementById(`breakdown-${id}`);
-        if (row.style.display === 'table-row') {
-            row.style.display = 'none';
-        } else {
-            row.style.display = 'table-row';
-        }
-    }
-</script>
 {% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Assign Quiz | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Assign Assessment: {{ quiz.title }}{% endblock %}
+
+{% block extra_css %}
+.assign-card {
+    background-color: var(--white);
+    padding: 35px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+    max-width: 600px;
+    margin: 0 auto;
+}
+.form-group {
+    margin-bottom: 22px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 750;
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+}
+.btn-premium {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 750;
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: var(--transition);
+}
+.btn-premium:hover {
+    transform: translateY(-2px);
+}
+{% endblock %}
+
+{% block content %}
+<div class="assign-card">
+    <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-user-check"></i> Assign Assessment</h3>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Assignment Scope</label>
+            <select name="assignment_type" class="form-control" required>
+                <option value="CLASS">Whole Class</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Assigned Class</label>
+            <select name="assigned_class_id" class="form-control" required>
+                <option value="">Select Class</option>
+                {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 20px;">
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label">Time Limit (Minutes)</label>
+                <input type="number" name="time_limit_minutes" min="1" max="180" value="30" class="form-control" help-text="Duration student has to submit once started.">
+            </div>
+
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label">Passing Score (%)</label>
+                <input type="number" name="passing_score" min="0" max="100" value="50" class="form-control" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-premium">Publish and Assign Quiz</button>
+    </form>
+</div>
+{% endblock %}

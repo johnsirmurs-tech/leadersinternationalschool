@@ -1,0 +1,160 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Review AI Generated Questions | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Review AI Generated Questions{% endblock %}
+
+{% block extra_css %}
+.review-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.job-summary {
+    background-color: var(--white);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 30px;
+}
+.question-card {
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 25px;
+}
+.form-group {
+    margin-bottom: 12px;
+}
+.form-label {
+    font-weight: 750;
+    color: var(--primary);
+    font-size: 0.85rem;
+}
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+}
+.btn-premium {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-premium:hover {
+    transform: translateY(-2px);
+}
+{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <div class="job-summary">
+        <h4 style="color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-square-check"></i> Generation Job Details</h4>
+        <p>Subject: <strong>{{ job.subject.name }}</strong> | Stage: <strong>{{ job.stage.name }}</strong></p>
+        <p>Difficulty: <strong>{{ job.difficulty }}</strong> | Model Used: <strong>{{ job.ai_model }}</strong></p>
+        <div style="display: flex; gap: 15px; margin-top: 15px;">
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="approve_all">
+                <button type="submit" class="btn-premium"><i class="fa-solid fa-thumbs-up"></i> Approve All & Create Quiz</button>
+            </form>
+        </div>
+    </div>
+
+    {% for q in questions %}
+        <div class="question-card" id="card-{{ q.id }}">
+            <h4 style="color: var(--primary); margin-bottom: 15px;">Question {{ forloop.counter }}</h4>
+            <form class="ajax-q-form" data-qid="{{ q.id }}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_question">
+                <input type="hidden" name="question_id" value="{{ q.id }}">
+
+                <div class="form-group">
+                    <label class="form-label">Question Text</label>
+                    <textarea name="question_text" class="form-control" rows="3" required>{{ q.question_text }}</textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Option A</label>
+                        <input type="text" name="option_a" class="form-control" value="{{ q.option_a }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Option B</label>
+                        <input type="text" name="option_b" class="form-control" value="{{ q.option_b }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Option C</label>
+                        <input type="text" name="option_c" class="form-control" value="{{ q.option_c }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Option D</label>
+                        <input type="text" name="option_d" class="form-control" value="{{ q.option_d }}" required>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 20px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Correct Option</label>
+                        <select name="correct_answer" class="form-control" required>
+                            <option value="A" {% if q.correct_answer == 'A' %}selected{% endif %}>A</option>
+                            <option value="B" {% if q.correct_answer == 'B' %}selected{% endif %}>B</option>
+                            <option value="C" {% if q.correct_answer == 'C' %}selected{% endif %}>C</option>
+                            <option value="D" {% if q.correct_answer == 'D' %}selected{% endif %}>D</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label class="form-label">Cognitive Level</label>
+                        <span class="form-control" style="background-color: var(--gray-100);">{{ q.get_cognitive_level_display }}</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Explanation</label>
+                    <textarea name="explanation" class="form-control" rows="2" required>{{ q.explanation }}</textarea>
+                </div>
+
+                <div style="text-align: right; margin-top: 15px;">
+                    <button type="button" class="btn-premium" style="background: var(--success);" onclick="saveQuestion('{{ q.id }}')"><i class="fa-solid fa-floppy-disk"></i> Save & Approve Question</button>
+                </div>
+            </form>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+function saveQuestion(qid) {
+    const card = document.getElementById(`card-${qid}`);
+    const form = card.querySelector('form');
+    const formData = new FormData(form);
+
+    fetch('', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            card.style.borderColor = 'var(--success)';
+            card.style.backgroundColor = 'rgba(25, 135, 84, 0.03)';
+            alert('Question saved & approved successfully!');
+        } else {
+            alert('Failed to save question.');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Network or server error.');
+    });
+}
+</script>
+{% endblock %}

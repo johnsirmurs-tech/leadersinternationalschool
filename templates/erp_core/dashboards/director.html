@@ -17,10 +17,12 @@
 <li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Reports</span></a></li>
 <li><a href="{% url 'fee_structure_setup' %}"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Fee Structure</span></a></li>
 <li><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
+<li><a href="{% url 'bank_deposits_list' %}"><i class="fa-solid fa-building-columns"></i> <span>Bank Deposits</span></a></li>
 <li><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
 <li><a href="{% url 'inventory_list' %}"><i class="fa-solid fa-boxes-stacked"></i> <span>Stock & Inventory</span></a></li>
 <li><a href="{% url 'transport_list' %}"><i class="fa-solid fa-bus"></i> <span>Transport Routes</span></a></li>
 <li><a href="{% url 'procurement_requisitions' %}"><i class="fa-solid fa-cart-shopping"></i> <span>Procurement Orders</span></a></li>
+<li><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
 
 <!-- Academics Category -->
 <span class="menu-category">Academics</span>
@@ -36,6 +38,7 @@
 <!-- Settings Category -->
 <span class="menu-category">Settings</span>
 <li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+<li><a href="{% url 'integration_settings' %}"><i class="fa-solid fa-gears"></i> <span>Integration Settings</span></a></li>
 {% endblock %}
 
 {% block extra_css %}

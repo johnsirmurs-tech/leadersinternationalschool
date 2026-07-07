@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views
+from . import views, views_quiz
 
 urlpatterns = [
     path('', views.custom_login, name='login'),
@@ -66,6 +66,7 @@ urlpatterns = [
     path('inventory/', views.inventory_list, name='inventory_list'),
     path('inventory/create/', views.inventory_create, name='inventory_create'),
     path('inventory/update/<int:item_id>/', views.inventory_update, name='inventory_update'),
+    path('inventory/movement/create/', views.stock_movement_create, name='stock_movement_create'),
 
     # Transport
     path('transport/', views.transport_list, name='transport_list'),
@@ -80,4 +81,36 @@ urlpatterns = [
     path('administration/biometric/register/', views.biometric_registration, name='biometric_registration'),
     path('administration/biometric/dashboard/', views.biometric_dashboard, name='biometric_dashboard'),
     path('administration/biometric/exceptions/', views.attendance_exceptions, name='attendance_exceptions'),
+
+    # Kitchen LED Display
+    path('kitchen/led-display/', views.kitchen_led_display, name='kitchen_led_display'),
+    path('api/kitchen/led-data/', views.kitchen_led_data_api, name='kitchen_led_data_api'),
+
+    # Bank Integration
+    path('api/bank/webhook/', views.bank_deposit_webhook, name='bank_deposit_webhook'),
+    path('financials/fees/bank-deposits/', views.bank_deposits_list, name='bank_deposits_list'),
+    path('financials/fees/bank-deposits/allocate/<int:deposit_id>/', views.allocate_bank_deposit, name='allocate_bank_deposit'),
+    path('administration/integrations/', views.integration_settings, name='integration_settings'),
+
+    # Accounting Module URLs
+    path('financials/accounting/coa/', views.chart_of_accounts, name='chart_of_accounts'),
+    path('financials/accounting/journals/', views.journal_entries_list, name='journal_entries_list'),
+    path('financials/accounting/journals/post/<int:entry_id>/', views.post_journal_entry, name='post_journal_entry'),
+    path('financials/accounting/journals/reverse/<int:entry_id>/', views.reverse_journal_entry, name='reverse_journal_entry'),
+    path('financials/accounting/bills/', views.bills_list, name='bills_list'),
+    path('financials/accounting/bills/pay/<int:bill_id>/', views.pay_bill, name='pay_bill'),
+    path('financials/accounting/assets/', views.fixed_assets_list, name='fixed_assets_list'),
+    path('financials/accounting/assets/depreciate/', views.run_depreciation, name='run_depreciation'),
+    path('financials/accounting/recon/', views.bank_reconciliation_list, name='bank_reconciliation_list'),
+    path('financials/accounting/recon/<int:recon_id>/', views.bank_reconciliation_detail, name='bank_reconciliation_detail'),
+    path('financials/accounting/recon/match/<int:recon_id>/', views.bank_reconciliation_match, name='bank_reconciliation_match'),
+    path('financials/accounting/reports/', views.financial_reports, name='financial_reports'),
+
+    # Cambridge AI Quiz URLs
+    path('academics/quiz/builder/', views_quiz.quiz_builder, name='quiz_builder'),
+    path('academics/quiz/review/<uuid:job_id>/', views_quiz.review_questions, name='review_questions'),
+    path('academics/quiz/assign/<uuid:quiz_id>/', views_quiz.assign_quiz, name='assign_quiz'),
+    path('academics/quiz/portal/', views_quiz.student_quizzes, name='student_quizzes'),
+    path('academics/quiz/take/<uuid:quiz_id>/', views_quiz.take_quiz, name='take_quiz'),
+    path('academics/quiz/result/<uuid:attempt_id>/', views_quiz.quiz_attempt_result, name='quiz_attempt_result'),
 ]

@@ -67,6 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'erp_core.context_processors.user_roles',
             ],
         },
     },
@@ -158,3 +159,13 @@ CSRF_COOKIE_SECURE = False         # Set True when HTTPS is enforced end-to-end
 CSRF_COOKIE_HTTPONLY = False       # JavaScript must be able to read the CSRF token
 CSRF_COOKIE_SAMESITE = 'Lax'      # Consistent with session cookie policy
 
+
+# ── Vector Embeddings (PostgreSQL + pgvector) ─────────────────
+EMBEDDING_PROVIDER = env('EMBEDDING_PROVIDER', default='sentence_transformer')
+EMBEDDING_MODEL = env('EMBEDDING_MODEL', default='all-MiniLM-L6-v2')
+EMBEDDING_DIMENSIONS = env.int('EMBEDDING_DIMENSIONS', default=384)
+
+# AI Quiz Generation
+AI_QUIZ_PROVIDER = env('AI_QUIZ_PROVIDER', default='openai')
+AI_QUIZ_MODEL = env('AI_QUIZ_MODEL', default='gpt-4o-mini')
+OPENAI_API_KEY = env('OPENAI_API_KEY', default='')

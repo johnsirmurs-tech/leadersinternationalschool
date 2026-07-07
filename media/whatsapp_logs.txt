@@ -1,0 +1,232 @@
+[2026-07-02 05:32:16] SENDING TO 255700000001 | Receipt #: BANK-20260702-4385
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260702-4385.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260702-4385.pdf
+--------------------------------------------------
+[2026-07-02 05:48:34] SENDING TO 255700000001 | Receipt #: BANK-20260702-9315
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260702-9315.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260702-9315.pdf
+--------------------------------------------------
+[2026-07-02 06:10:18] SENDING TO 255700000001 | Receipt #: BANK-20260702-1247
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  API URL: N/A
+  Sender Number: N/A
+  API Key: N/A
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260702-1247.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260702-1247.pdf
+--------------------------------------------------
+[2026-07-02 06:17:05] SENDING TO 255700000001 | Receipt #: BANK-20260702-6805
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  API URL: N/A
+  Sender Number: N/A
+  API Key: N/A
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260702-6805.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260702-6805.pdf
+--------------------------------------------------
+[2026-07-02 06:52:31] SENDING TO 255700000001 | Receipt #: BANK-20260702-3653
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  API URL: N/A
+  Sender Number: N/A
+  API Key: N/A
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260702-3653.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260702-3653.pdf
+--------------------------------------------------
+[2026-07-02 06:52:49] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-02 06:52:49] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-02 06:52:49] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-02 07:28:02] SENDING TO 255700000001 | Receipt #: BANK-20260702-5055
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  API URL: N/A
+  Sender Number: N/A
+  API Key: N/A
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260702-5055.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260702-5055.pdf
+--------------------------------------------------
+[2026-07-02 07:28:20] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-02 07:28:20] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-02 07:28:20] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-02 07:37:40] SENDING TO 255700000001 | Receipt #: BANK-20260702-7912
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  API URL: N/A
+  Sender Number: N/A
+  API Key: N/A
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260702-7912.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260702-7912.pdf
+--------------------------------------------------
+[2026-07-02 07:37:58] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-02 07:37:58] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-02 07:37:58] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-06 17:33:26] SENDING TO 255700000001 | Receipt #: BANK-20260706-7337
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  API URL: N/A
+  Sender Number: N/A
+  API Key: N/A
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260706-7337.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260706-7337.pdf
+--------------------------------------------------
+[2026-07-06 17:33:32] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-06 17:33:32] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-06 17:33:32] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:03:08] SENDING TO 255700000001 | Receipt #: BANK-20260707-5431
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  API URL: N/A
+  Sender Number: N/A
+  API Key: N/A
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260707-5431.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260707-5431.pdf
+--------------------------------------------------
+[2026-07-07 03:03:15] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:03:15] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:03:15] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:04:46] SENDING TO 255700000001 | Receipt #: BANK-20260707-4322
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  API URL: N/A
+  Sender Number: N/A
+  API Key: N/A
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260707-4322.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260707-4322.pdf
+--------------------------------------------------
+[2026-07-07 03:04:53] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:04:53] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:04:53] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:06:06] SENDING TO 255700000001 | Receipt #: BANK-20260707-7266
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  API URL: N/A
+  Sender Number: N/A
+  API Key: N/A
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260707-7266.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260707-7266.pdf
+--------------------------------------------------
+[2026-07-07 03:06:13] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:06:13] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:06:13] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:26:20] SENDING TO 255700000001 | Receipt #: BANK-20260707-8368
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  API URL: N/A
+  Sender Number: N/A
+  API Key: N/A
+  Attachment: D:\LEADERS INTERNATIONAL SCHOOL\ERP\media\receipts\receipt_BANK-20260707-8368.pdf
+  Message: Dear Parent, thank you for your payment. We have successfully received and allocated your bank deposit. Please find attached your official school payment receipt: receipt_BANK-20260707-8368.pdf
+--------------------------------------------------
+[2026-07-07 03:26:26] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:26:26] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------
+[2026-07-07 03:26:26] SENDING TO 255700000001 | Balance Reminder
+  Active WhatsApp Provider: Twilio WhatsApp Sandbox
+  Sender Number: N/A
+  API Key: N/A
+  Message: Dear Parent, this is a friendly reminder that the outstanding school fees balance for  is TZS 0.00 calculated up to Term 1 2026. Please settle the dues. Thank you.
+--------------------------------------------------

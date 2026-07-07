@@ -3237,6 +3237,8 @@ def pay_bill(request, bill_id):
         messages.error(request, "Access denied.")
         return redirect('dashboard')
 
+    bill = Bill.objects.get(id=bill_id)
+
     if request.method == 'POST':
         amount = Decimal(request.POST.get('amount') or '0')
         payment_method = request.POST.get('payment_method')
@@ -3244,7 +3246,6 @@ def pay_bill(request, bill_id):
         notes = request.POST.get('notes', '')
 
         try:
-            bill = Bill.objects.get(id=bill_id)
             bank_account = BankAccount.objects.get(id=bank_acc_id) if bank_acc_id else None
             
             bill_payment = BillPayment.objects.create(
@@ -3261,8 +3262,13 @@ def pay_bill(request, bill_id):
             messages.success(request, f"Recorded payment of TZS {amount:,.2f} for Bill {bill.reference}")
         except Exception as e:
             messages.error(request, f"Error paying bill: {str(e)}")
+        return redirect('bills_list')
 
-    return redirect('bills_list')
+    bank_accounts = BankAccount.objects.filter(is_active=True)
+    return render(request, 'erp_core/financials/bill_pay_modal.html', {
+        'bill': bill,
+        'bank_accounts': bank_accounts,
+    })
 
 @login_required
 def fixed_assets_list(request):

@@ -1,0 +1,53 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Pay Bill | Leaders International School ERP{% endblock %}
+
+{% block content %}
+<div class="content-card" style="max-width: 500px; margin: 0 auto;">
+    <div class="card-header-flex" style="border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px;">
+        <h4 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-credit-card" style="color: var(--primary-light);"></i> Pay Bill: {{ bill.reference }}
+        </h4>
+    </div>
+
+    <form method="POST" action="{% url 'pay_bill' bill.id %}" style="display: flex; flex-direction: column; gap: 20px;">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="amount">Payment Amount (TZS)</label>
+            <input type="number" name="amount" id="amount" step="0.01" value="{{ bill.balance_due|default:0|floatformat:2 }}" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="payment_method">Payment Method</label>
+            <select name="payment_method" id="payment_method" class="form-control" required>
+                <option value="BANK_TRANSFER" selected>Bank Transfer</option>
+                <option value="CASH">Cash</option>
+                <option value="CHEQUE">Cheque</option>
+                <option value="MOBILE_MONEY">Mobile Money</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="bank_account_id">Cash/Bank Account</label>
+            <select name="bank_account_id" id="bank_account_id" class="form-control" required>
+                <option value="" disabled selected>Select Account</option>
+                {% for bank in bank_accounts %}
+                    <option value="{{ bank.id }}">{{ bank.name }} ({{ bank.bank_name }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="notes">Notes</label>
+            <textarea name="notes" id="notes" class="form-control" rows="2" placeholder="Payment reference or notes..."></textarea>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="{% url 'bills_list' %}" class="btn-action-white" style="text-decoration: none; padding: 12px 24px; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; justify-content: center;">Cancel</a>
+            <button type="submit" class="btn-save" style="padding: 12px 30px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer; box-shadow: 0 4px 12px rgba(30,80,200,0.25);">
+                <i class="fa-solid fa-check"></i> Submit Payment
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

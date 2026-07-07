@@ -1,0 +1,184 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+{% load custom_filters %}
+
+{% block title %}Stock & Inventory | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Stock & Inventory Management{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.list-card {
+    flex: 3;
+    min-width: 600px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.inventory-table th, .inventory-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.inventory-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 700;
+}
+.stock-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+}
+.badge-ok { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
+.badge-low { background-color: rgba(255, 193, 7, 0.15); color: #b27a00; }
+.badge-out { background-color: rgba(220, 53, 69, 0.15); color: var(--danger); }
+.action-btn {
+    text-decoration: none;
+    color: var(--primary-light);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    border: 1px solid var(--primary-light);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+.action-btn:hover {
+    background-color: var(--primary-light);
+    color: var(--white);
+}
+.btn-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(15, 46, 89, 0.15);
+    transition: var(--transition);
+}
+.btn-create:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15, 46, 89, 0.25);
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Stats Cards -->
+<div class="dashboard-grid">
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Total Items</h4>
+            <h2>{{ total_items }}</h2>
+        </div>
+        <div class="card-icon card-icon-blue">
+            <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Low Stock Alert</h4>
+            <h2>{{ low_stock_count }}</h2>
+        </div>
+        <div class="card-icon card-icon-gold">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Out of Stock</h4>
+            <h2>{{ out_of_stock_count }}</h2>
+        </div>
+        <div class="card-icon card-icon-red">
+            <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Total Value</h4>
+            <h2>TZS {{ total_value|floatformat:0 }}</h2>
+        </div>
+        <div class="card-icon card-icon-green">
+            <i class="fa-solid fa-coins"></i>
+        </div>
+    </div>
+</div>
+
+<div class="flex-container">
+    <div class="list-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color: var(--primary); font-weight: 700; font-size: 1.25rem;">Inventory Items</h3>
+            <a href="{% url 'inventory_create' %}" class="btn-create">
+                <i class="fa-solid fa-plus"></i> Add New Item
+            </a>
+        </div>
+
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Stock Quantity</th>
+                    <th>Unit Price (TZS)</th>
+                    <th>Stock Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td style="font-weight: 600; color: var(--primary);">{{ item.name }}</td>
+                    <td>{{ item.get_category_display }}</td>
+                    <td>{{ item.quantity }} {{ item.unit }}</td>
+                    <td>{{ item.unit_price|floatformat:0 }}</td>
+                    <td>
+                        {% if item.quantity == 0 %}
+                            <span class="stock-badge badge-out">Out of Stock</span>
+                        {% elif item.quantity <= item.reorder_level %}
+                            <span class="stock-badge badge-low">Low Stock</span>
+                        {% else %}
+                            <span class="stock-badge badge-ok">In Stock</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'inventory_update' item.id %}" class="action-btn">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">No inventory items recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

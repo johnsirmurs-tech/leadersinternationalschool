@@ -1,0 +1,158 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Procurement Requisitions | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Compiled Procurement Requisitions{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.list-card {
+    flex: 1;
+    min-width: 600px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.procurement-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.procurement-table th, .procurement-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.procurement-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 700;
+}
+.deficit-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+}
+.badge-need-buy { background-color: rgba(220, 53, 69, 0.15); color: var(--danger); }
+.badge-in-stock { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
+
+.breakdown-row {
+    background-color: #fcfcfd;
+    display: none;
+}
+.breakdown-toggle {
+    cursor: pointer;
+    color: var(--primary-light);
+    font-weight: 600;
+    text-decoration: underline;
+    font-size: 0.85rem;
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="flex-container">
+    <div class="list-card">
+        <div style="margin-bottom: 20px; border-bottom: 2px solid var(--gray-200); padding-bottom: 15px;">
+            <h3 style="color: var(--primary); font-weight: 700; font-size: 1.25rem; margin-bottom: 5px;">Requisitions Summary</h3>
+            <p style="font-size: 0.85rem; color: var(--gray-600);">Below is the aggregated material requests compiled across all teachers' lesson plans. Items are grouped, and purchase orders are calculated based on stock shortfalls.</p>
+        </div>
+
+        <table class="procurement-table">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Total Demanded</th>
+                    <th>Current Stock</th>
+                    <th>Deficit (To Buy)</th>
+                    <th>Breakdown</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requisition_list %}
+                <tr style="border-bottom: 1px solid var(--gray-200); background-color: {% if req.deficit > 0 %}rgba(220, 53, 69, 0.02){% else %}transparent{% endif %};">
+                    <td style="font-weight: 600; color: var(--primary);">{{ req.item.name }}</td>
+                    <td>{{ req.item.get_category_display }}</td>
+                    <td>{{ req.total_demanded }} {{ req.item.unit }}</td>
+                    <td>{{ req.stock }} {{ req.item.unit }}</td>
+                    <td>
+                        {% if req.deficit > 0 %}
+                            <span class="deficit-badge badge-need-buy">Buy {{ req.deficit }} {{ req.item.unit }}</span>
+                        {% else %}
+                            <span class="deficit-badge badge-in-stock">Stock Sufficient</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="breakdown-toggle" onclick="toggleBreakdown({{ forloop.counter }})">
+                            View Details ({{ req.breakdown|length }})
+                        </span>
+                    </td>
+                </tr>
+                <tr id="breakdown-{{ forloop.counter }}" class="breakdown-row">
+                    <td colspan="6" style="padding: 15px 25px; border-bottom: 1.5px solid var(--gray-300);">
+                        <h5 style="color: var(--primary); font-weight: 700; margin-bottom: 10px;">Teacher Demands Breakdown:</h5>
+                        <table style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--gray-200); color: var(--gray-600); font-weight: 600;">
+                                    <th style="padding: 6px 0; text-align: left;">Teacher</th>
+                                    <th style="padding: 6px 0; text-align: left;">Subject</th>
+                                    <th style="padding: 6px 0; text-align: left;">Class</th>
+                                    <th style="padding: 6px 0; text-align: left;">Quantity Needed</th>
+                                    <th style="padding: 6px 0; text-align: left;">Planned Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for detail in req.breakdown %}
+                                <tr style="border-bottom: 1px dashed var(--gray-200);">
+                                    <td style="padding: 8px 0; font-weight: 600;">{{ detail.teacher }}</td>
+                                    <td style="padding: 8px 0;">{{ detail.subject }}</td>
+                                    <td style="padding: 8px 0;">{{ detail.class }}</td>
+                                    <td style="padding: 8px 0; font-weight: 600;">{{ detail.quantity }}</td>
+                                    <td style="padding: 8px 0;">{{ detail.date|date:"d M Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 25px;">No active material requests from lesson plans.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleBreakdown(id) {
+        const row = document.getElementById(`breakdown-${id}`);
+        if (row.style.display === 'table-row') {
+            row.style.display = 'none';
+        } else {
+            row.style.display = 'table-row';
+        }
+    }
+</script>
+{% endblock %}

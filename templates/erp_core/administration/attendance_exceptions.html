@@ -1,0 +1,179 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Attendance Exceptions | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Audited Attendance Exceptions{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.form-card {
+    flex: 1.2;
+    min-width: 350px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.list-card {
+    flex: 2;
+    min-width: 500px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+    font-family: var(--font-family);
+    transition: var(--transition);
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-submit:hover {
+    transform: translateY(-2px);
+}
+.exc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+.exc-table th, .exc-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.exc-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 700;
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; 
+                background-color: {% if message.tags == 'error' %}rgba(220, 53, 69, 0.1){% else %}rgba(25, 135, 84, 0.1){% endif %}; 
+                border: 1px solid {% if message.tags == 'error' %}var(--danger){% else %}var(--success){% endif %}; 
+                color: {% if message.tags == 'error' %}var(--danger){% else %}var(--success){% endif %};">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="flex-container">
+    <!-- Log Form -->
+    <div class="form-card">
+        <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 15px; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px;">Log Manual Exception</h3>
+        <p style="font-size: 0.8rem; color: var(--gray-600); margin-bottom: 20px;">Use this workflow to register an audited attendance override for students or staff (e.g. finger injuries, terminal down times, etc.).</p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label" for="user_id">Select Person</label>
+                <select class="form-control" id="user_id" name="user_id" required>
+                    <option value="">-- Select Person --</option>
+                    {% for u in users %}
+                        <option value="{{ u.id }}">{{ u.get_full_name }} (Biometric ID: {{ u.biometric_id|default:'N/A' }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="date">Exception Date</label>
+                <input type="date" class="form-control" id="date" name="date" required value="{% now 'Y-m-d' %}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="exception_type">Override Status</label>
+                <select class="form-control" id="exception_type" name="exception_type" required>
+                    <option value="PRESENT">Mark Present</option>
+                    <option value="LATE">Mark Late</option>
+                    <option value="LEAVE">Mark On Leave</option>
+                    <option value="ABSENT">Mark Absent</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reason">Audit Reason</label>
+                <input type="text" class="form-control" id="reason" name="reason" required placeholder="e.g. Broken finger / Device Offline">
+            </div>
+
+            <button type="submit" class="btn-submit">Approve Exception</button>
+        </form>
+    </div>
+
+    <!-- Active List -->
+    <div class="list-card">
+        <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 15px; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px;">Recent Exception Logs</h3>
+        
+        <table class="exc-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Person</th>
+                    <th>Override Status</th>
+                    <th>Reason</th>
+                    <th>Approved By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exc in exceptions %}
+                <tr>
+                    <td style="font-weight: 700;">{{ exc.date|date:"d M Y" }}</td>
+                    <td style="font-weight: 600; color: var(--primary);">{{ exc.user.get_full_name }}</td>
+                    <td>
+                        <span style="font-weight: 700; color: {% if exc.exception_type == 'PRESENT' %}var(--success){% else %}#b27a00{% endif %};">
+                            {{ exc.exception_type }}
+                        </span>
+                    </td>
+                    <td>{{ exc.reason }}</td>
+                    <td>{{ exc.approved_by.get_full_name }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px;">No manual exceptions logged recently.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

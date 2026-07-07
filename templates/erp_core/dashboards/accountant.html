@@ -5,13 +5,25 @@
 {% block page_title %}Accountant Dashboard{% endblock %}
 
 {% block sidebar_items %}
+<!-- Human Resource -->
+<span class="menu-category">Human Resource</span>
+<li><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
+<li><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+
+<!-- Finance & Operations -->
+<span class="menu-category">Finance & Ops</span>
+<li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Reports</span></a></li>
 <li><a href="{% url 'fee_structure_setup' %}"><i class="fa-solid fa-file-invoice-dollar"></i> <span>Fee Structure</span></a></li>
 <li><a href="{% url 'record_payment' %}"><i class="fa-solid fa-cash-register"></i> <span>Fee Payments</span></a></li>
 <li><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
-<li><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
-<li><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
 <li><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
-<li><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Reports</span></a></li>
+<li><a href="{% url 'inventory_list' %}"><i class="fa-solid fa-boxes-stacked"></i> <span>Stock & Inventory</span></a></li>
+<li><a href="{% url 'procurement_requisitions' %}"><i class="fa-solid fa-cart-shopping"></i> <span>Procurement Orders</span></a></li>
+<li><a href="{% url 'biometric_dashboard' %}"><i class="fa-solid fa-fingerprint"></i> <span>Biometric Logs</span></a></li>
+<li><a href="{% url 'biometric_registration' %}"><i class="fa-solid fa-address-card"></i> <span>Biometric Mapping</span></a></li>
+
+<!-- Settings -->
+<span class="menu-category">Settings</span>
 <li><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
 {% endblock %}
 

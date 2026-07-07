@@ -40,6 +40,7 @@ class CustomUser(AbstractUser):
     is_temporary_password = models.BooleanField(default=True)
     failed_login_attempts = models.IntegerField(default=0)
     last_failed_login = models.DateTimeField(blank=True, null=True)
+    biometric_id = models.CharField(max_length=50, blank=True, null=True, unique=True)
 
     def is_locked(self):
         """Returns True if the user account is locked due to consecutive failed attempts (locked for 15 minutes)"""
@@ -118,6 +119,8 @@ class StudentAttendance(models.Model):
     student = models.ForeignKey('StudentProfile', on_delete=models.CASCADE, related_name='attendances')
     date = models.DateField(default=timezone.now)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    check_in_time = models.TimeField(null=True, blank=True)
+    check_out_time = models.TimeField(null=True, blank=True)
     remarks = models.CharField(max_length=200, blank=True, null=True)
     recorded_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -134,6 +137,7 @@ class StudentProfile(models.Model):
     current_class = models.ForeignKey(Class, on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
     enrollment_date = models.DateField(default=timezone.now)
     medical_conditions = models.TextField(blank=True, null=True)
+    transport_route = models.ForeignKey('TransportRoute', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_students')
 
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.student_id})"
@@ -425,3 +429,121 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.category} - {self.paid_to}: TZS {self.amount}"
+
+class StockItem(models.Model):
+    CATEGORY_CHOICES = [
+        ('STATIONERY', 'Stationery & Books'),
+        ('UNIFORM', 'School Uniforms'),
+        ('FURNITURE', 'Furniture & Equipment'),
+        ('CLEANING', 'Cleaning & Sanitation'),
+        ('ELECTRONICS', 'IT & Electronics'),
+        ('OTHER', 'Other Supplies'),
+    ]
+    name = models.CharField(max_length=150)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='STATIONERY')
+    quantity = models.IntegerField(default=0)
+    unit = models.CharField(max_length=20, default='pcs')
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    reorder_level = models.IntegerField(default=10)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.quantity} {self.unit})"
+
+class TransportRoute(models.Model):
+    name = models.CharField(max_length=150)
+    vehicle_number = models.CharField(max_length=50)
+    driver_name = models.CharField(max_length=100)
+    driver_phone = models.CharField(max_length=20)
+    route_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    capacity = models.IntegerField(default=30)
+    
+    def __str__(self):
+        return f"{self.name} - {self.vehicle_number}"
+
+class LessonPlanMaterialRequirement(models.Model):
+    lesson_plan = models.ForeignKey(LessonPlan, on_delete=models.CASCADE, related_name='material_requirements')
+    stock_item = models.ForeignKey(StockItem, on_delete=models.CASCADE, related_name='lesson_plan_requirements')
+    quantity_needed = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.lesson_plan} needs {self.quantity_needed} of {self.stock_item.name}"
+
+class BiometricDevice(models.Model):
+    STATUS_CHOICES = [
+        ('ONLINE', 'Online'),
+        ('OFFLINE', 'Offline'),
+    ]
+    name = models.CharField(max_length=100)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    port = models.IntegerField(default=4370)
+    location = models.CharField(max_length=150)
+    serial_number = models.CharField(max_length=100, unique=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='OFFLINE')
+    last_seen = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.serial_number}) - {self.status}"
+
+class BiometricLog(models.Model):
+    DIRECTION_CHOICES = [
+        ('IN', 'Check In'),
+        ('OUT', 'Check Out'),
+        ('AUTO', 'Auto (Unspecified)'),
+    ]
+    device = models.ForeignKey(BiometricDevice, on_delete=models.SET_NULL, null=True, blank=True, related_name='logs')
+    biometric_id = models.CharField(max_length=50) # Raw ID from device
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='biometric_logs')
+    timestamp = models.DateTimeField()
+    direction = models.CharField(max_length=20, choices=DIRECTION_CHOICES, default='AUTO')
+    verification_type = models.CharField(max_length=50, default='FINGERPRINT')
+    processed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        user_name = self.user.get_full_name() if self.user else "Unregistered User"
+        return f"Log: {user_name} (ID: {self.biometric_id}) at {self.timestamp} - {self.direction}"
+
+class StaffAttendance(models.Model):
+    STATUS_CHOICES = [
+        ('PRESENT', 'Present'),
+        ('ABSENT', 'Absent'),
+        ('LATE', 'Late'),
+        ('LEAVE', 'On Leave'),
+        ('EXCEPTION', 'Manual Exception'),
+    ]
+    staff = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='staff_attendances')
+    date = models.DateField(default=timezone.now)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    check_in_time = models.TimeField(null=True, blank=True)
+    check_out_time = models.TimeField(null=True, blank=True)
+    worked_hours = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    remarks = models.CharField(max_length=200, blank=True, null=True)
+    recorded_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('staff', 'date')
+
+    def __str__(self):
+        return f"{self.staff.get_full_name()} - {self.date}: {self.status}"
+
+class AttendanceException(models.Model):
+    STATUS_CHOICES = [
+        ('PRESENT', 'Present'),
+        ('ABSENT', 'Absent'),
+        ('LATE', 'Late'),
+        ('LEAVE', 'On Leave'),
+    ]
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='attendance_exceptions')
+    date = models.DateField()
+    exception_type = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PRESENT')
+    reason = models.CharField(max_length=255) # e.g. Hand Injury, Device Down
+    approved_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='approved_exceptions')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'date')
+
+    def __str__(self):
+        return f"Exception: {self.user.get_full_name()} on {self.date} - {self.exception_type} ({self.reason})"

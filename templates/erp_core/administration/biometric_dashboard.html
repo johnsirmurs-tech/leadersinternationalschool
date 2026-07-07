@@ -1,0 +1,198 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Biometric Logs & Sync | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Biometric Sync & Event Logs{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.list-card {
+    flex: 2;
+    min-width: 600px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.device-card {
+    flex: 1;
+    min-width: 320px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+.log-table th, .log-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.log-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 700;
+}
+.badge-direction {
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.dir-in { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
+.dir-out { background-color: rgba(220, 53, 69, 0.15); color: var(--danger); }
+.dir-auto { background-color: rgba(108, 117, 125, 0.15); color: var(--gray-600); }
+
+.device-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+.status-online { color: var(--success); }
+.status-offline { color: var(--danger); }
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Stats Grid -->
+<div class="dashboard-grid">
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Sync logs today</h4>
+            <h2>{{ total_scans_today }}</h2>
+        </div>
+        <div class="card-icon card-icon-blue">
+            <i class="fa-solid fa-fingerprint"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Students Present</h4>
+            <h2>{{ students_present }}</h2>
+        </div>
+        <div class="card-icon card-icon-green">
+            <i class="fa-solid fa-user-graduate"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Staff Present</h4>
+            <h2>{{ staff_present }}</h2>
+        </div>
+        <div class="card-icon card-icon-gold">
+            <i class="fa-solid fa-user-tie"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Active Devices</h4>
+            <h2>{{ active_devices }}</h2>
+        </div>
+        <div class="card-icon card-icon-blue">
+            <i class="fa-solid fa-server"></i>
+        </div>
+    </div>
+</div>
+
+<div class="flex-container">
+    <!-- Log Feed -->
+    <div class="list-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px;">
+            <h3 style="color: var(--primary); font-weight: 700;">Live Biometric Punch Stream</h3>
+            <span style="font-size: 0.8rem; font-weight: 600; color: var(--success);"><i class="fa-solid fa-circle-dot"></i> Live Feed</span>
+        </div>
+        
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Resolved Person</th>
+                    <th>Timestamp</th>
+                    <th>Device</th>
+                    <th>Direction</th>
+                    <th>Method</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr>
+                    <td style="font-weight: 700;">{{ log.biometric_id }}</td>
+                    <td style="font-weight: 600; color: var(--primary);">
+                        {% if log.user %}
+                            {{ log.user.get_full_name }}
+                            <small style="display:block; font-size:0.75rem; color:var(--gray-600);">
+                                {% for role in log.user.roles.all %}{{ role.name }}{% endfor %}
+                            </small>
+                        {% else %}
+                            <span style="color: var(--danger);"><i class="fa-solid fa-user-slash"></i> Unregistered</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.timestamp|date:"d M Y, H:i:s" }}</td>
+                    <td>{{ log.device.name }}</td>
+                    <td>
+                        {% if log.direction == 'IN' %}
+                            <span class="badge-direction dir-in">IN</span>
+                        {% elif log.direction == 'OUT' %}
+                            <span class="badge-direction dir-out">OUT</span>
+                        {% else %}
+                            <span class="badge-direction dir-auto">AUTO</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.verification_type }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">No biometric sync logs received today.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Connected Devices Panel -->
+    <div class="device-card">
+        <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 15px; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px;">Registered Terminals</h3>
+        
+        {% for d in devices %}
+        <div style="padding: 15px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-md); margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h5 style="font-size: 0.95rem; font-weight: 700; color: var(--primary);">{{ d.name }}</h5>
+                {% if d.status == 'ONLINE' %}
+                    <span class="device-status status-online"><i class="fa-solid fa-circle"></i> Online</span>
+                {% else %}
+                    <span class="device-status status-offline"><i class="fa-solid fa-circle"></i> Offline</span>
+                {% endif %}
+            </div>
+            <p style="font-size: 0.8rem; color: var(--gray-600); margin-bottom: 4px;"><strong>Location:</strong> {{ d.location }}</p>
+            <p style="font-size: 0.8rem; color: var(--gray-600); margin-bottom: 4px;"><strong>S/N:</strong> {{ d.serial_number }}</p>
+            <p style="font-size: 0.8rem; color: var(--gray-600);"><strong>Last Sync:</strong> {{ d.last_seen|date:"H:i" }}</p>
+        </div>
+        {% empty %}
+        <p style="text-align: center; color: var(--gray-600); font-size: 0.9rem; padding: 20px 0;">No biometric terminals registered. Send a sync payload to add one.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -61,4 +61,23 @@ urlpatterns = [
     path('academics/report-cards/view/<int:student_id>/<str:term>/<str:year>/', views.view_report_card, name='view_report_card'),
     
     path('financials/statements/', views.financial_statements, name='financial_statements'),
+
+    # Stock Inventory
+    path('inventory/', views.inventory_list, name='inventory_list'),
+    path('inventory/create/', views.inventory_create, name='inventory_create'),
+    path('inventory/update/<int:item_id>/', views.inventory_update, name='inventory_update'),
+
+    # Transport
+    path('transport/', views.transport_list, name='transport_list'),
+    path('transport/create/', views.transport_create, name='transport_create'),
+    path('transport/assign/<int:student_id>/', views.transport_assign_student, name='transport_assign_student'),
+
+    # Procurement Requisitions
+    path('financials/procurement/', views.procurement_requisitions, name='procurement_requisitions'),
+
+    # Biometric Integration
+    path('api/biometric/push/', views.api_biometric_log_push, name='api_biometric_log_push'),
+    path('administration/biometric/register/', views.biometric_registration, name='biometric_registration'),
+    path('administration/biometric/dashboard/', views.biometric_dashboard, name='biometric_dashboard'),
+    path('administration/biometric/exceptions/', views.attendance_exceptions, name='attendance_exceptions'),
 ]

@@ -6,8 +6,11 @@ from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from .models import CustomUser, Role, GradeBoundary, LearningAreaProgress, RawMark, LessonPlan, AutoGradedActivity, ActivityQuestion, StudentActivitySubmission, Class, StudentProfile, FeeStructure, FeePayment, StaffSalaryConfig, StaffAllowance, StaffDeduction, Payroll, Payslip, PayslipLineItem, Expense, Subject, TeacherSubjectAssignment, StudentAttendance, ParentProfile, StaffProfile, Section
-from django.http import HttpResponse
+from .models import CustomUser, Role, GradeBoundary, LearningAreaProgress, RawMark, LessonPlan, AutoGradedActivity, ActivityQuestion, StudentActivitySubmission, Class, StudentProfile, FeeStructure, FeePayment, StaffSalaryConfig, StaffAllowance, StaffDeduction, Payroll, Payslip, PayslipLineItem, Expense, Subject, TeacherSubjectAssignment, StudentAttendance, ParentProfile, StaffProfile, Section, StockItem, TransportRoute, LessonPlanMaterialRequirement, BiometricDevice, BiometricLog, StaffAttendance, AttendanceException
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.db.models import Sum, Q, Count, Avg
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -482,6 +485,7 @@ def create_lesson_plan(request):
         return redirect('lesson_plan_list')
 
     classes = Class.objects.all()
+    stock_items = StockItem.objects.all().order_by('name')
 
     if request.method == 'POST':
         class_id = request.POST.get('class_id')
@@ -509,10 +513,30 @@ def create_lesson_plan(request):
 
         plan.status = 'SUBMITTED'
         plan.save()
+
+        # Save material requirements from inventory
+        item_ids = request.POST.getlist('item_id[]')
+        quantities = request.POST.getlist('quantity[]')
+        
+        for item_id, qty in zip(item_ids, quantities):
+            if item_id and qty:
+                try:
+                    stock_item = StockItem.objects.get(id=item_id)
+                    LessonPlanMaterialRequirement.objects.create(
+                        lesson_plan=plan,
+                        stock_item=stock_item,
+                        quantity_needed=int(qty)
+                    )
+                except (StockItem.DoesNotExist, ValueError):
+                    pass
+
         messages.success(request, "Lesson plan submitted for review.")
         return redirect('lesson_plan_list')
 
-    return render(request, 'erp_core/academics/lesson_plan_form.html', {'classes': classes})
+    return render(request, 'erp_core/academics/lesson_plan_form.html', {
+        'classes': classes,
+        'stock_items': stock_items
+    })
 
 @login_required
 def review_lesson_plan(request, plan_id):
@@ -1680,8 +1704,7 @@ def attendance_registry(request):
     selected_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
 
     selected_class = None
-    students = []
-    attendances = {}
+    students_data = []
 
     if selected_class_id:
         selected_class = Class.objects.get(id=selected_class_id)
@@ -1689,20 +1712,44 @@ def attendance_registry(request):
         # Enforce Class Teacher constraint
         if 'R06' in role_codes and not is_admin:
             if selected_class.class_teacher != user:
-                messages.error(request, f"You are not assigned as the class teacher for {selected_class.name}. Only class teachers can manage attendance.")
+                messages.error(request, f"You are not assigned as the class teacher for {selected_class.name}. Only class teachers can view attendance.")
                 return redirect('attendance_registry')
 
         students = StudentProfile.objects.filter(current_class=selected_class).order_by('user__first_name')
-        existing = StudentAttendance.objects.filter(student__current_class=selected_class, date=selected_date)
-        for att in existing:
-            attendances[att.student.id] = att.status
+        
+        for s in students:
+            att = StudentAttendance.objects.filter(student=s, date=selected_date).first()
+            exc = AttendanceException.objects.filter(user=s.user, date=selected_date).first()
+            
+            status = 'ABSENT'
+            check_in = None
+            check_out = None
+            source = 'Biometric'
+            reason = ''
+            
+            if exc:
+                status = exc.exception_type
+                source = 'Manual Exception'
+                reason = exc.reason
+            elif att:
+                status = att.status
+                check_in = att.check_in_time
+                check_out = att.check_out_time
+            
+            students_data.append({
+                'student': s,
+                'status': status,
+                'check_in': check_in,
+                'check_out': check_out,
+                'source': source,
+                'reason': reason
+            })
 
     return render(request, 'erp_core/administration/attendance.html', {
         'classes': classes,
         'selected_class': selected_class,
         'selected_date': selected_date,
-        'students': students,
-        'attendances': attendances,
+        'students_data': students_data,
         'is_admin': is_admin
     })
 
@@ -1853,4 +1900,463 @@ def financial_statements(request):
         'total_expenses': total_expenses,
         'payroll_runs': payroll_runs,
         'total_payroll': total_payroll,
+    })
+
+# 7. Inventory Management Views
+@login_required
+def inventory_list(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes and 'R03' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    items = StockItem.objects.all().order_by('name')
+    
+    total_items = items.count()
+    low_stock_count = sum(1 for item in items if item.quantity <= item.reorder_level and item.quantity > 0)
+    out_of_stock_count = sum(1 for item in items if item.quantity == 0)
+    total_value = sum(item.quantity * item.unit_price for item in items)
+
+    return render(request, 'erp_core/inventory/inventory_list.html', {
+        'items': items,
+        'total_items': total_items,
+        'low_stock_count': low_stock_count,
+        'out_of_stock_count': out_of_stock_count,
+        'total_value': total_value,
+    })
+
+@login_required
+def inventory_create(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes and 'R03' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        category = request.POST.get('category')
+        quantity = int(request.POST.get('quantity', 0))
+        unit = request.POST.get('unit', 'pcs')
+        unit_price = float(request.POST.get('unit_price', 0))
+        reorder_level = int(request.POST.get('reorder_level', 10))
+
+        StockItem.objects.create(
+            name=name,
+            category=category,
+            quantity=quantity,
+            unit=unit,
+            unit_price=unit_price,
+            reorder_level=reorder_level
+        )
+        messages.success(request, f"Inventory item '{name}' added successfully.")
+        return redirect('inventory_list')
+
+    categories = StockItem.CATEGORY_CHOICES
+    return render(request, 'erp_core/inventory/inventory_form.html', {
+        'categories': categories,
+        'is_create': True
+    })
+
+@login_required
+def inventory_update(request, item_id):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes and 'R03' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    item = StockItem.objects.get(id=item_id)
+
+    if request.method == 'POST':
+        item.name = request.POST.get('name')
+        item.category = request.POST.get('category')
+        item.quantity = int(request.POST.get('quantity', 0))
+        item.unit = request.POST.get('unit', 'pcs')
+        item.unit_price = float(request.POST.get('unit_price', 0))
+        item.reorder_level = int(request.POST.get('reorder_level', 10))
+        item.save()
+
+        messages.success(request, f"Inventory item '{item.name}' updated successfully.")
+        return redirect('inventory_list')
+
+    categories = StockItem.CATEGORY_CHOICES
+    return render(request, 'erp_core/inventory/inventory_form.html', {
+        'item': item,
+        'categories': categories,
+        'is_create': False
+    })
+
+
+# 8. Transport Management Views
+@login_required
+def transport_list(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes and 'R03' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    routes = TransportRoute.objects.all().order_by('name')
+    students_no_route = StudentProfile.objects.filter(transport_route__isnull=True)
+    
+    total_routes = routes.count()
+    total_assigned = StudentProfile.objects.filter(transport_route__isnull=False).count()
+    termly_revenue = sum(route.route_fee * route.assigned_students.count() for route in routes)
+
+    return render(request, 'erp_core/transport/transport_list.html', {
+        'routes': routes,
+        'students_no_route': students_no_route,
+        'total_routes': total_routes,
+        'total_assigned': total_assigned,
+        'termly_revenue': termly_revenue,
+    })
+
+@login_required
+def transport_create(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes and 'R03' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        vehicle_number = request.POST.get('vehicle_number')
+        driver_name = request.POST.get('driver_name')
+        driver_phone = request.POST.get('driver_phone')
+        route_fee = float(request.POST.get('route_fee', 0))
+        capacity = int(request.POST.get('capacity', 30))
+
+        TransportRoute.objects.create(
+            name=name,
+            vehicle_number=vehicle_number,
+            driver_name=driver_name,
+            driver_phone=driver_phone,
+            route_fee=route_fee,
+            capacity=capacity
+        )
+        messages.success(request, f"Transport route '{name}' created successfully.")
+        return redirect('transport_list')
+
+    return render(request, 'erp_core/transport/transport_form.html', {
+        'is_create': True
+    })
+
+@login_required
+def transport_assign_student(request, student_id):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes and 'R03' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    student = StudentProfile.objects.get(id=student_id)
+    if request.method == 'POST':
+        route_id = request.POST.get('route_id')
+        if route_id:
+            route = TransportRoute.objects.get(id=route_id)
+            if route.assigned_students.count() >= route.capacity:
+                messages.error(request, f"Route '{route.name}' is already at full capacity.")
+            else:
+                student.transport_route = route
+                student.save()
+                messages.success(request, f"Assigned {student.user.get_full_name()} to {route.name}.")
+        else:
+            student.transport_route = None
+            student.save()
+            messages.info(request, f"Removed transport assignment for {student.user.get_full_name()}.")
+        return redirect('transport_list')
+
+    routes = TransportRoute.objects.all()
+    return render(request, 'erp_core/transport/assign_student.html', {
+        'student': student,
+        'routes': routes
+    })
+
+@login_required
+def procurement_requisitions(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes and 'R03' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    active_requirements = LessonPlanMaterialRequirement.objects.filter(
+        lesson_plan__status__in=['SUBMITTED', 'APPROVED']
+    )
+
+    compiled_requisitions = {}
+    for req in active_requirements:
+        item = req.stock_item
+        if item.id not in compiled_requisitions:
+            compiled_requisitions[item.id] = {
+                'item': item,
+                'total_demanded': 0,
+                'breakdown': []
+            }
+        compiled_requisitions[item.id]['total_demanded'] += req.quantity_needed
+        compiled_requisitions[item.id]['breakdown'].append({
+            'teacher': req.lesson_plan.teacher.get_full_name(),
+            'subject': req.lesson_plan.subject,
+            'class': req.lesson_plan.class_obj.name,
+            'quantity': req.quantity_needed,
+            'date': req.lesson_plan.date
+        })
+
+    requisition_list = []
+    for item_id, data in compiled_requisitions.items():
+        item = data['item']
+        total_demanded = data['total_demanded']
+        deficit = max(0, total_demanded - item.quantity)
+        
+        requisition_list.append({
+            'item': item,
+            'total_demanded': total_demanded,
+            'stock': item.quantity,
+            'deficit': deficit,
+            'breakdown': data['breakdown']
+        })
+
+    requisition_list.sort(key=lambda x: x['deficit'], reverse=True)
+
+    return render(request, 'erp_core/inventory/procurement_requisitions.html', {
+        'requisition_list': requisition_list
+    })
+
+# 9. Biometric Integration Views
+@csrf_exempt
+@require_POST
+def api_biometric_log_push(request):
+    # Verify API key
+    api_key = request.headers.get('X-API-Key')
+    if api_key != "leaders-erp-secure-token-2026":
+        return JsonResponse({"status": "error", "message": "Unauthorized API key"}, status=401)
+
+    import json
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
+
+    serial_number = data.get('serial_number')
+    biometric_id = data.get('biometric_id')
+    timestamp_str = data.get('timestamp')
+    direction = data.get('direction', 'AUTO')
+    verify_mode = data.get('verify_mode', 'FINGERPRINT')
+
+    if not biometric_id or not timestamp_str or not serial_number:
+        return JsonResponse({"status": "error", "message": "Missing required fields"}, status=400)
+
+    try:
+        timestamp = timezone.datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+    except ValueError:
+        return JsonResponse({"status": "error", "message": "Invalid timestamp format"}, status=400)
+
+    # 1. Fetch or create device
+    device, _ = BiometricDevice.objects.get_or_create(
+        serial_number=serial_number,
+        defaults={
+            'name': f"Terminal {serial_number[-6:]}",
+            'location': "Automatic Sync Gateway",
+            'status': 'ONLINE'
+        }
+    )
+    device.status = 'ONLINE'
+    device.save()
+
+    # 2. Resolve User
+    user = CustomUser.objects.filter(biometric_id=biometric_id).first()
+
+    # 3. Create raw log entry
+    log = BiometricLog.objects.create(
+        device=device,
+        biometric_id=biometric_id,
+        user=user,
+        timestamp=timestamp,
+        direction=direction,
+        verification_type=verify_mode,
+        processed=True
+    )
+
+    if not user:
+        return JsonResponse({
+            "status": "success",
+            "message": f"Log recorded for unregistered biometric ID {biometric_id}"
+        })
+
+    # 4. Update Daily Attendance
+    punch_date = timestamp.date()
+    punch_time = timestamp.time()
+    role_codes = [r.code for r in user.roles.all()]
+
+    # Skip if manual exception exists
+    has_exception = AttendanceException.objects.filter(user=user, date=punch_date).exists()
+    if has_exception:
+        return JsonResponse({"status": "success", "message": "Attendance skipped due to manual exception"})
+
+    if 'R07' in role_codes:
+        # Student
+        student_profile = getattr(user, 'student_profile', None)
+        if student_profile:
+            att, created = StudentAttendance.objects.get_or_create(
+                student=student_profile,
+                date=punch_date,
+                defaults={
+                    'status': 'LATE' if punch_time > timezone.datetime.strptime('08:00:00', '%H:%M:%S').time() else 'PRESENT',
+                    'check_in_time': punch_time,
+                    'recorded_by': user
+                }
+            )
+            if not created:
+                att.check_out_time = punch_time
+                att.save()
+
+    elif any(code in ['R01', 'R02', 'R03', 'R04', 'R05', 'R06'] for code in role_codes):
+        # Staff
+        att, created = StaffAttendance.objects.get_or_create(
+            staff=user,
+            date=punch_date,
+            defaults={
+                'status': 'LATE' if punch_time > timezone.datetime.strptime('08:30:00', '%H:%M:%S').time() else 'PRESENT',
+                'check_in_time': punch_time,
+                'recorded_by': user
+            }
+        )
+        if not created:
+            att.check_out_time = punch_time
+            # Calculate worked hours
+            if att.check_in_time and att.check_out_time:
+                delta = timezone.datetime.combine(punch_date, att.check_out_time) - timezone.datetime.combine(punch_date, att.check_in_time)
+                att.worked_hours = round(delta.total_seconds() / 3600.0, 2)
+            att.save()
+
+    return JsonResponse({"status": "success", "message": "Log processed successfully"})
+
+@login_required
+def biometric_registration(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes:
+        messages.error(request, "Only Administrators can register biometric mappings.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        biometric_id = request.POST.get('biometric_id', '').strip()
+        
+        if user_id:
+            try:
+                target_user = CustomUser.objects.get(id=user_id)
+                if biometric_id:
+                    # Check duplicate
+                    duplicate = CustomUser.objects.filter(biometric_id=biometric_id).exclude(id=user_id).first()
+                    if duplicate:
+                        messages.error(request, f"Biometric ID '{biometric_id}' is already assigned to {duplicate.get_full_name()}.")
+                    else:
+                        target_user.biometric_id = biometric_id
+                        target_user.save()
+                        messages.success(request, f"Fingerprint ID {biometric_id} registered to {target_user.get_full_name()}.")
+                else:
+                    target_user.biometric_id = None
+                    target_user.save()
+                    messages.info(request, f"Biometric assignment removed for {target_user.get_full_name()}.")
+            except CustomUser.DoesNotExist:
+                pass
+            return redirect('biometric_registration')
+
+    # Find users with no biometric_id
+    students = StudentProfile.objects.all().order_by('user__first_name')
+    staff = StaffProfile.objects.all().order_by('user__first_name')
+    
+    return render(request, 'erp_core/administration/biometric_registration.html', {
+        'students': students,
+        'staff': staff
+    })
+
+@login_required
+def biometric_dashboard(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes and 'R03' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    devices = BiometricDevice.objects.all().order_by('name')
+    recent_logs = BiometricLog.objects.all().order_by('-timestamp')[:50]
+    
+    # Calculate Stats
+    today = timezone.now().date()
+    total_scans_today = BiometricLog.objects.filter(timestamp__date=today).count()
+    unregistered_scans = BiometricLog.objects.filter(user__isnull=True).count()
+    active_devices = devices.filter(status='ONLINE').count()
+    
+    students_present = StudentAttendance.objects.filter(date=today, status__in=['PRESENT', 'LATE']).count()
+    staff_present = StaffAttendance.objects.filter(date=today, status__in=['PRESENT', 'LATE']).count()
+
+    return render(request, 'erp_core/administration/biometric_dashboard.html', {
+        'devices': devices,
+        'recent_logs': recent_logs,
+        'total_scans_today': total_scans_today,
+        'unregistered_scans': unregistered_scans,
+        'active_devices': active_devices,
+        'students_present': students_present,
+        'staff_present': staff_present,
+    })
+
+@login_required
+def attendance_exceptions(request):
+    role_codes = [role.code for role in request.user.roles.all()]
+    if 'R01' not in role_codes and 'R02' not in role_codes:
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        date_str = request.POST.get('date')
+        exception_type = request.POST.get('exception_type', 'PRESENT')
+        reason = request.POST.get('reason')
+
+        if user_id and date_str:
+            try:
+                target_user = CustomUser.objects.get(id=user_id)
+                exc_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+                
+                # Save Exception
+                AttendanceException.objects.update_or_create(
+                    user=target_user,
+                    date=exc_date,
+                    defaults={
+                        'exception_type': exception_type,
+                        'reason': reason,
+                        'approved_by': request.user
+                    }
+                )
+
+                # Dynamically write into summary tables
+                target_roles = [r.code for r in target_user.roles.all()]
+                if 'R07' in target_roles:
+                    profile = target_user.student_profile
+                    StudentAttendance.objects.update_or_create(
+                        student=profile,
+                        date=exc_date,
+                        defaults={
+                            'status': exception_type,
+                            'remarks': f"Manual Exception: {reason}",
+                            'recorded_by': request.user
+                        }
+                    )
+                else:
+                    StaffAttendance.objects.update_or_create(
+                        staff=target_user,
+                        date=exc_date,
+                        defaults={
+                            'status': exception_type,
+                            'remarks': f"Manual Exception: {reason}",
+                            'recorded_by': request.user
+                        }
+                    )
+                messages.success(request, f"Manual exception logged successfully for {target_user.get_full_name()}.")
+            except Exception as e:
+                messages.error(request, f"Error logging exception: {str(e)}")
+            return redirect('attendance_exceptions')
+
+    users = CustomUser.objects.all().order_by('first_name')
+    exceptions = AttendanceException.objects.all().order_by('-date')[:50]
+    
+    return render(request, 'erp_core/administration/attendance_exceptions.html', {
+        'users': users,
+        'exceptions': exceptions
     })

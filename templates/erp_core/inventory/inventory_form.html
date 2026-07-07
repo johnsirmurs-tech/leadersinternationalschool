@@ -1,0 +1,122 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}{% if is_create %}Add Stock Item{% else %}Edit {{ item.name }}{% endif %} | Leaders International School ERP{% endblock %}
+
+{% block page_title %}{% if is_create %}Add New Stock Item{% else %}Edit Stock Item{% endif %}{% endblock %}
+
+{% block extra_css %}
+.form-card {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+    font-family: var(--font-family);
+    transition: var(--transition);
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+.btn-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+.btn-submit {
+    flex: 1;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-submit:hover {
+    transform: translateY(-2px);
+}
+.btn-cancel {
+    flex: 1;
+    padding: 12px;
+    background-color: var(--gray-200);
+    color: var(--dark);
+    text-decoration: none;
+    text-align: center;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: var(--transition);
+}
+.btn-cancel:hover {
+    background-color: var(--gray-300);
+}
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="name">Item Name</label>
+            <input class="form-control" type="text" id="name" name="name" value="{{ item.name|default:'' }}" required placeholder="e.g. A4 Photocopy Paper">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="category">Category</label>
+            <select class="form-control" id="category" name="category" required>
+                {% for code, label in categories %}
+                    <option value="{{ code }}" {% if item.category == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="quantity">Quantity in Stock</label>
+            <input class="form-control" type="number" id="quantity" name="quantity" value="{{ item.quantity|default:0 }}" required min="0">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="unit">Unit of Measure</label>
+            <input class="form-control" type="text" id="unit" name="unit" value="{{ item.unit|default:'pcs' }}" required placeholder="e.g. pcs, reams, boxes">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="unit_price">Unit Price (TZS)</label>
+            <input class="form-control" type="number" step="0.01" id="unit_price" name="unit_price" value="{{ item.unit_price|default:0 }}" required min="0">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="reorder_level">Reorder Level (Alert Limit)</label>
+            <input class="form-control" type="number" id="reorder_level" name="reorder_level" value="{{ item.reorder_level|default:10 }}" required min="0">
+        </div>
+
+        <div class="btn-row">
+            <a href="{% url 'inventory_list' %}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-submit">
+                {% if is_create %}Add Stock Item{% else %}Save Changes{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

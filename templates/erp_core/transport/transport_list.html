@@ -1,0 +1,219 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Transport Management | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Transport Management{% endblock %}
+
+{% block extra_css %}
+.flex-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+.list-card {
+    flex: 3;
+    min-width: 600px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.student-assign-card {
+    flex: 1.2;
+    min-width: 320px;
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.transport-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.transport-table th, .transport-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.transport-table th {
+    background-color: var(--gray-100);
+    color: var(--primary);
+    font-weight: 700;
+}
+.btn-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(15, 46, 89, 0.15);
+    transition: var(--transition);
+}
+.btn-create:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15, 46, 89, 0.25);
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+}
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+}
+.btn-assign {
+    padding: 4px 8px;
+    color: var(--primary-light);
+    border: 1px solid var(--primary-light);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.btn-assign:hover {
+    background-color: var(--primary-light);
+    color: var(--white);
+}
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+            <div style="padding: 12px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 600; background-color: rgba(25, 135, 84, 0.1); border: 1px solid var(--success); color: var(--success);">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Stats Cards -->
+<div class="dashboard-grid">
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Active Routes</h4>
+            <h2>{{ total_routes }}</h2>
+        </div>
+        <div class="card-icon card-icon-blue">
+            <i class="fa-solid fa-route"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Assigned Students</h4>
+            <h2>{{ total_assigned }}</h2>
+        </div>
+        <div class="card-icon card-icon-gold">
+            <i class="fa-solid fa-user-check"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Total Vehicles</h4>
+            <h2>{{ total_routes }}</h2>
+        </div>
+        <div class="card-icon card-icon-green">
+            <i class="fa-solid fa-bus"></i>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-details">
+            <h4>Termly Revenue Estimate</h4>
+            <h2>TZS {{ termly_revenue|floatformat:0 }}</h2>
+        </div>
+        <div class="card-icon card-icon-blue">
+            <i class="fa-solid fa-wallet"></i>
+        </div>
+    </div>
+</div>
+
+<div class="flex-container">
+    <div class="list-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color: var(--primary); font-weight: 700; font-size: 1.25rem;">Transport Routes</h3>
+            <a href="{% url 'transport_create' %}" class="btn-create">
+                <i class="fa-solid fa-plus"></i> Create Route
+            </a>
+        </div>
+
+        <table class="transport-table">
+            <thead>
+                <tr>
+                    <th>Route Name</th>
+                    <th>Vehicle Plate</th>
+                    <th>Driver Name</th>
+                    <th>Driver Contact</th>
+                    <th>Capacity Status</th>
+                    <th>Fee (TZS / Term)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for route in routes %}
+                <tr>
+                    <td style="font-weight: 600; color: var(--primary);">{{ route.name }}</td>
+                    <td>{{ route.vehicle_number }}</td>
+                    <td>{{ route.driver_name }}</td>
+                    <td>{{ route.driver_phone }}</td>
+                    <td>
+                        {{ route.assigned_students.count }} / {{ route.capacity }}
+                        {% if route.assigned_students.count >= route.capacity %}
+                            <span style="color: var(--danger); font-weight: 600; font-size: 0.8rem;">(Full)</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ route.route_fee|floatformat:0 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">No routes configured yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Student Assignment Sidebar panel -->
+    <div class="student-assign-card">
+        <h3 style="color: var(--primary); font-weight: 700; font-size: 1.15rem; margin-bottom: 15px; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px;">Assign Students to Transport</h3>
+        
+        <div style="max-height: 400px; overflow-y: auto;">
+            {% for student in students_no_route %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-200);">
+                <div>
+                    <h5 style="font-size: 0.9rem; font-weight: 600; color: var(--dark);">{{ student.user.get_full_name }}</h5>
+                    <p style="font-size: 0.75rem; color: var(--gray-600);">Class: {{ student.current_class.name }}</p>
+                </div>
+                <a href="{% url 'transport_assign_student' student.id %}" class="btn-assign">Assign</a>
+            </div>
+            {% empty %}
+            <p style="font-size: 0.9rem; text-align: center; color: var(--gray-600); padding: 20px 0;">All students are assigned to a route.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

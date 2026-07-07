@@ -1,0 +1,112 @@
+{% extends 'erp_core/dashboards/base_dashboard.html' %}
+
+{% block title %}Assign Student Transport | Leaders International School ERP{% endblock %}
+
+{% block page_title %}Assign Route for {{ student.user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+.form-card {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gray-300);
+    font-family: var(--font-family);
+    transition: var(--transition);
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+.btn-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+.btn-submit {
+    flex: 1;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-submit:hover {
+    transform: translateY(-2px);
+}
+.btn-cancel {
+    flex: 1;
+    padding: 12px;
+    background-color: var(--gray-200);
+    color: var(--dark);
+    text-decoration: none;
+    text-align: center;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: var(--transition);
+}
+.btn-cancel:hover {
+    background-color: var(--gray-300);
+}
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <div style="margin-bottom: 20px; border-bottom: 1px solid var(--gray-200); padding-bottom: 15px;">
+        <h4 style="color: var(--primary); margin-bottom: 5px;">Student Details</h4>
+        <p><strong>Name:</strong> {{ student.user.get_full_name }}</p>
+        <p><strong>Student ID:</strong> {{ student.student_id }}</p>
+        <p><strong>Class:</strong> {{ student.current_class.name }}</p>
+        <p><strong>Current Assignment:</strong> 
+            {% if student.transport_route %}
+                <span style="color: var(--success); font-weight: 600;">{{ student.transport_route.name }}</span>
+            {% else %}
+                <span style="color: var(--danger); font-weight: 600;">None</span>
+            {% endif %}
+        </p>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="route_id">Select Transport Route</label>
+            <select class="form-control" id="route_id" name="route_id">
+                <option value="">-- No Transport (Remove Route) --</option>
+                {% for route in routes %}
+                    <option value="{{ route.id }}" {% if student.transport_route.id == route.id %}selected{% endif %}>
+                        {{ route.name }} (Driver: {{ route.driver_name }} | {{ route.assigned_students.count }}/{{ route.capacity }} occupied)
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="btn-row">
+            <a href="{% url 'transport_list' %}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-submit">Assign Route</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

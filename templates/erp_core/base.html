@@ -1763,10 +1763,9 @@
                     const href = link.getAttribute('href');
                     if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
 
-                    // Exclude sidebar navigation links from modal interception except Salaries Setup and Monthly Payroll
+                    // Exclude sidebar navigation links from modal interception
                     if (link.closest('.sidebar') || link.closest('.sidebar-menu') || link.closest('.sidebar-footer')) {
-                        const isHrOrFinanceModal = href.includes('/salary/setup/') || href.includes('/payroll/');
-                        if (!isHrOrFinanceModal) return;
+                        return;
                     }
 
                     const formKeywords = ['/create/', '/edit/', '/setup/', '/record-payment/', '/add/', '/requisition/', '/payroll/'];
@@ -1782,7 +1781,7 @@
 
                 // 2. Direct page-load fallback: Convert loaded form content to modal overlay
                 const dataEntryForm = document.querySelector('main.workspace-content form[method="POST"]');
-                const isDirectSetupPage = window.location.pathname.includes('/subjects/setup/') || window.location.pathname.includes('/teachers/setup/');
+                const isDirectSetupPage = window.location.pathname.includes('/subjects/setup/') || window.location.pathname.includes('/teachers/setup/') || (window.location.pathname.includes('/payroll/') && !window.location.search.includes('action=new'));
                 if (dataEntryForm && !dataEntryForm.closest('.login-card') && !dataEntryForm.closest('.sidebar') && !isDirectSetupPage) {
                     const dataInputs = dataEntryForm.querySelectorAll('input:not([type="hidden"]), select, textarea');
                     if (dataInputs.length > 0 && !dataEntryForm.action.includes('delete') && !dataEntryForm.action.includes('post_journal_entry')) {

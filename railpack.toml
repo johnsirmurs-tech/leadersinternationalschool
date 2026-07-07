@@ -1,2 +1,7 @@
 [deploy]
 startCommand = "python startup.py"
+
+[variables]
+PYTHONUNBUFFERED = "1"
+PYTHONDONTWRITEBYTECODE = "1"
+DJANGO_SETTINGS_MODULE = "school_erp.settings"

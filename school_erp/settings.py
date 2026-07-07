@@ -76,15 +76,43 @@ TEMPLATES = [
 WSGI_APPLICATION = 'school_erp.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+import os
+import sys
 
-DATABASES = {
-    'default': env.db(),
-}
+# This prints to Railway deploy logs immediately
+print(">>> settings.py loading...", file=sys.stderr, flush=True)
 
-if DATABASES['default']['ENGINE'] != 'django.db.backends.postgresql':
-    raise ValueError("System error: The database must be configured to use PostgreSQL engine.")
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+
+if DATABASE_URL:
+    print(
+        f">>> DATABASE_URL found: {DATABASE_URL[:20]}...",
+        file=sys.stderr, flush=True
+    )
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    print(
+        ">>> WARNING: DATABASE_URL not set, using SQLite",
+        file=sys.stderr, flush=True
+    )
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+print(
+    f">>> DB engine: {DATABASES['default']['ENGINE']}",
+    file=sys.stderr, flush=True
+)
 
 
 # Password validation

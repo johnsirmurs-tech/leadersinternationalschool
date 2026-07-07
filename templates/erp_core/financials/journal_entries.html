@@ -4,83 +4,6 @@
 
 {% block page_title %}General Ledger Journal Entries{% endblock %}
 
-{% block extra_css %}
-.flex-container {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-}
-.card {
-    background-color: var(--white);
-    padding: 25px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-premium);
-    border: 1px solid var(--gray-200);
-}
-.form-group {
-    margin-bottom: 15px;
-}
-.form-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 700;
-    color: var(--primary);
-    font-size: 0.9rem;
-}
-.form-control {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: var(--radius-md);
-    border: 1.5px solid var(--gray-300);
-}
-.journal-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-.journal-table th, .journal-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid var(--gray-200);
-}
-.journal-table th {
-    background-color: var(--gray-100);
-    color: var(--primary);
-}
-.status-badge {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-.status-draft { background-color: rgba(108, 117, 125, 0.15); color: var(--gray-600); }
-.status-posted { background-color: rgba(25, 135, 84, 0.15); color: var(--success); }
-.status-reversed { background-color: rgba(220, 53, 69, 0.15); color: var(--danger); }
-.entry-line {
-    background: var(--gray-100);
-    padding: 15px;
-    border-radius: var(--radius-md);
-    margin-bottom: 10px;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-}
-.btn-premium {
-    padding: 10px 20px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    color: var(--white);
-    border: none;
-    border-radius: var(--radius-md);
-    font-weight: 700;
-    cursor: pointer;
-    transition: var(--transition);
-}
-.btn-premium:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-{% endblock %}
-
 {% block content %}
 {% if messages %}
     <div style="margin-bottom: 20px;">
@@ -92,25 +15,31 @@
     </div>
 {% endif %}
 
-<div class="flex-container">
-    <!-- Manual Journal Entry Form -->
-    <div class="card">
-        <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-pen-to-square"></i> Create Journal Entry</h3>
-        <form method="POST">
+{% if request.GET.action == 'new' %}
+<!-- Manual Journal Entry Form -->
+<div class="flex-container" style="max-width: 1000px; margin: 0 auto; width: 100%;">
+    <div class="content-card" style="width: 100%;">
+        <div class="card-header-flex" style="border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px;">
+            <h4 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-pen-to-square" style="color: var(--primary-light);"></i> Create Journal Entry
+            </h4>
+        </div>
+        
+        <form method="POST" action="{% url 'journal_entries_list' %}" style="display: flex; flex-direction: column; gap: 20px;">
             {% csrf_token %}
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                 <div class="form-group" style="flex: 2; min-width: 250px;">
-                    <label class="form-label">Narrative / Description</label>
-                    <input type="text" name="description" class="form-control" placeholder="Describe the purpose of entry..." required>
+                    <label class="form-label" for="description">Narrative / Description</label>
+                    <input type="text" name="description" id="description" class="form-control" placeholder="Describe the purpose of entry..." required>
                 </div>
                 <div class="form-group" style="flex: 1; min-width: 150px;">
-                    <label class="form-label">Posting Date</label>
-                    <input type="date" name="posting_date" class="form-control" required>
+                    <label class="form-label" for="posting_date">Posting Date</label>
+                    <input type="date" name="posting_date" id="posting_date" class="form-control" required>
                 </div>
                 <div class="form-group" style="flex: 1; min-width: 150px;">
-                    <label class="form-label">Entry Type</label>
-                    <select name="entry_type" class="form-control" required>
-                        <option value="MANUAL">Manual Journal Entry</option>
+                    <label class="form-label" for="entry_type">Entry Type</label>
+                    <select name="entry_type" id="entry_type" class="form-control" required>
+                        <option value="MANUAL" selected>Manual Journal Entry</option>
                         <option value="ADJUSTMENT">Adjustment</option>
                         <option value="OPENING">Opening Balance</option>
                     </select>
@@ -118,163 +47,219 @@
             </div>
 
             <div style="margin: 20px 0;">
-                <h4 style="color: var(--primary); margin-bottom: 10px;">Journal Lines</h4>
-                <div id="lines-container">
+                <h5 style="color: var(--primary); font-weight: 700; margin-bottom: 15px; font-size: 0.95rem; border-left: 3px solid var(--accent); padding-left: 8px;">Journal Lines</h5>
+                <div id="lines-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
                     <!-- Dynamic lines injected here -->
-                    <div class="entry-line" data-idx="0">
+                    <div class="entry-line animate-fade-in" data-idx="0" style="display: flex; gap: 12px; align-items: center;">
                         <select name="line_account_0" class="form-control" style="flex: 2;" required>
-                            <option value="">Select Account</option>
+                            <option value="" disabled selected>Select Account</option>
                             {% for account in accounts %}
                                 <option value="{{ account.id }}">{{ account.code }} - {{ account.name }} ({{ account.normal_balance }})</option>
                             {% endfor %}
                         </select>
-                        <input type="text" name="line_desc_0" class="form-control" style="flex: 2;" placeholder="Line reference/description">
-                        <input type="number" name="line_debit_0" step="0.01" min="0" class="form-control amount-input debit-input" style="flex: 1;" placeholder="Debit Amount">
-                        <input type="number" name="line_credit_0" step="0.01" min="0" class="form-control amount-input credit-input" style="flex: 1;" placeholder="Credit Amount">
+                        <input type="text" name="line_desc_0" class="form-control" style="flex: 2;" placeholder="Line description (optional)">
+                        <input type="number" name="line_debit_0" step="0.01" min="0" class="form-control amount-input debit-input" style="flex: 1;" placeholder="Debit">
+                        <input type="number" name="line_credit_0" step="0.01" min="0" class="form-control amount-input credit-input" style="flex: 1;" placeholder="Credit">
                     </div>
-                    <div class="entry-line" data-idx="1">
+                    <div class="entry-line animate-fade-in" data-idx="1" style="display: flex; gap: 12px; align-items: center;">
                         <select name="line_account_1" class="form-control" style="flex: 2;" required>
-                            <option value="">Select Account</option>
+                            <option value="" disabled selected>Select Account</option>
                             {% for account in accounts %}
                                 <option value="{{ account.id }}">{{ account.code }} - {{ account.name }} ({{ account.normal_balance }})</option>
                             {% endfor %}
                         </select>
-                        <input type="text" name="line_desc_1" class="form-control" style="flex: 2;" placeholder="Line reference/description">
-                        <input type="number" name="line_debit_1" step="0.01" min="0" class="form-control amount-input debit-input" style="flex: 1;" placeholder="Debit Amount">
-                        <input type="number" name="line_credit_1" step="0.01" min="0" class="form-control amount-input credit-input" style="flex: 1;" placeholder="Credit Amount">
+                        <input type="text" name="line_desc_1" class="form-control" style="flex: 2;" placeholder="Line description (optional)">
+                        <input type="number" name="line_debit_1" step="0.01" min="0" class="form-control amount-input debit-input" style="flex: 1;" placeholder="Debit">
+                        <input type="number" name="line_credit_1" step="0.01" min="0" class="form-control amount-input credit-input" style="flex: 1;" placeholder="Credit">
                     </div>
                 </div>
-                <button type="button" class="btn-premium" style="background: var(--gray-600); font-size: 0.85rem;" onclick="addNewLine()"><i class="fa-solid fa-plus"></i> Add Line</button>
+                <button type="button" class="btn-premium btn-add-line" style="font-size: 0.85rem; padding: 10px 18px; background-color: var(--accent); color: var(--white); border: none; border-radius: var(--radius-md); font-weight: 700; cursor: pointer; transition: all 0.2s;" onclick="addNewLine()">
+                    <i class="fa-solid fa-plus"></i> Add Journal Line
+                </button>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray-300); padding-top: 20px;">
-                <div style="font-weight: 700; color: var(--primary);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid var(--border-color); padding-top: 20px;">
+                <div style="font-weight: 700; color: var(--primary); font-size: 0.95rem;">
                     Debits: <span id="total-debits">0.00</span> | Credits: <span id="total-credits">0.00</span>
                     <span id="balance-error" style="color: var(--danger); margin-left: 15px; display: none;"><i class="fa-solid fa-triangle-exclamation"></i> Out of balance!</span>
                 </div>
-                <div style="display: flex; gap: 15px;">
-                    <button type="submit" name="post_directly" class="btn-premium">Post Directly</button>
-                    <button type="submit" class="btn-premium" style="background: var(--gray-600);">Save Draft</button>
+                <div style="display: flex; gap: 12px;">
+                    <a href="{% url 'journal_entries_list' %}" class="btn-action-white" style="text-decoration: none; padding: 12px 24px; border-radius: var(--radius-md); font-weight: 600; display: inline-flex; align-items: center; justify-content: center;">Cancel</a>
+                    <button type="submit" name="post_directly" class="btn-premium btn-post" style="padding: 12px 24px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); border: none; border-radius: var(--radius-md); font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(30,80,200,0.25);">Post Directly</button>
+                    <button type="submit" class="btn-premium btn-save-draft" style="padding: 12px 24px; background-color: var(--gray-600); color: var(--white); border: none; border-radius: var(--radius-md); font-weight: 700; cursor: pointer;">Save Draft</button>
                 </div>
             </div>
         </form>
     </div>
-
-    <!-- Journal Entries Ledger -->
-    <div class="card">
-        <h3 style="color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-folder-open"></i> Journal Registry</h3>
-        <div style="overflow-x: auto;">
-            <table class="journal-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Reference</th>
-                        <th>Description</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Debits</th>
-                        <th>Credits</th>
-                        <th style="text-align: center;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for entry in entries %}
-                        <tr>
-                            <td>{{ entry.posting_date }}</td>
-                            <td style="font-weight: 750; color: var(--primary);">{{ entry.reference }}</td>
-                            <td>{{ entry.description }}</td>
-                            <td>{{ entry.get_entry_type_display }}</td>
-                            <td>
-                                <span class="status-badge status-{{ entry.status|lower }}">
-                                    {{ entry.get_status_display }}
-                                </span>
-                            </td>
-                            <td style="font-weight: 700;">TZS {{ entry.total_debits|default:"0.00" }}</td>
-                            <td style="font-weight: 700;">TZS {{ entry.total_credits|default:"0.00" }}</td>
-                            <td style="text-align: center;">
-                                {% if entry.status == 'DRAFT' %}
-                                    <form method="POST" action="{% url 'post_journal_entry' entry.id %}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn-premium" style="padding: 5px 10px; font-size: 0.8rem;">Post</button>
-                                    </form>
-                                {% elif entry.status == 'POSTED' %}
-                                    <form method="POST" action="{% url 'reverse_journal_entry' entry.id %}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="reason" value="User manual reversal">
-                                        <button type="submit" class="btn-premium" style="background: var(--danger); padding: 5px 10px; font-size: 0.8rem;">Reverse</button>
-                                    </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="8" style="text-align: center; padding: 30px; color: var(--gray-600);">No journal entries matched.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
 
 <script>
-let lineCounter = 2;
+(function() {
+    let lineCounter = 2;
 
-function addNewLine() {
-    const container = document.getElementById('lines-container');
-    const idx = lineCounter++;
-    
-    const div = document.createElement('div');
-    div.className = 'entry-line';
-    div.setAttribute('data-idx', idx);
-    div.innerHTML = `
-        <select name="line_account_${idx}" class="form-control" style="flex: 2;" required>
-            <option value="">Select Account</option>
-            {% for account in accounts %}
-                <option value="{{ account.id }}">{{ account.code }} - {{ account.name }}</option>
-            {% endfor %}
-        </select>
-        <input type="text" name="line_desc_${idx}" class="form-control" style="flex: 2;" placeholder="Line reference/description">
-        <input type="number" name="line_debit_${idx}" step="0.01" min="0" class="form-control amount-input debit-input" style="flex: 1;" placeholder="Debit Amount">
-        <input type="number" name="line_credit_${idx}" step="0.01" min="0" class="form-control amount-input credit-input" style="flex: 1;" placeholder="Credit Amount">
-    `;
-    container.appendChild(div);
+    window.addNewLine = function() {
+        const container = document.getElementById('lines-container');
+        const idx = lineCounter++;
+        
+        const div = document.createElement('div');
+        div.className = 'entry-line animate-fade-in';
+        div.setAttribute('data-idx', idx);
+        div.style.display = 'flex';
+        div.style.gap = '12px';
+        div.style.alignItems = 'center';
+        div.innerHTML = `
+            <select name="line_account_${idx}" class="form-control" style="flex: 2;" required>
+                <option value="" disabled selected>Select Account</option>
+                {% for account in accounts %}
+                    <option value="{{ account.id }}">{{ account.code }} - {{ account.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="line_desc_${idx}" class="form-control" style="flex: 2;" placeholder="Line description (optional)">
+            <input type="number" name="line_debit_${idx}" step="0.01" min="0" class="form-control amount-input debit-input" style="flex: 1;" placeholder="Debit">
+            <input type="number" name="line_credit_${idx}" step="0.01" min="0" class="form-control amount-input credit-input" style="flex: 1;" placeholder="Credit">
+        `;
+        container.appendChild(div);
+        attachInputListeners();
+    };
+
+    window.calculateTotals = function() {
+        let debits = 0;
+        let credits = 0;
+        
+        document.querySelectorAll('.debit-input').forEach(input => {
+            debits += parseFloat(input.value || 0);
+        });
+        document.querySelectorAll('.credit-input').forEach(input => {
+            credits += parseFloat(input.value || 0);
+        });
+        
+        const debitsEl = document.getElementById('total-debits');
+        const creditsEl = document.getElementById('total-credits');
+        if (debitsEl) debitsEl.innerText = debits.toFixed(2);
+        if (creditsEl) creditsEl.innerText = credits.toFixed(2);
+        
+        const diff = Math.abs(debits - credits);
+        const balanceError = document.getElementById('balance-error');
+        
+        if (balanceError) {
+            if (diff >= 0.01) {
+                balanceError.style.display = 'inline';
+            } else {
+                balanceError.style.display = 'none';
+            }
+        }
+    };
+
+    window.attachInputListeners = function() {
+        document.querySelectorAll('.amount-input').forEach(input => {
+            input.removeEventListener('input', window.calculateTotals);
+            input.addEventListener('input', window.calculateTotals);
+        });
+    };
+
     attachInputListeners();
-}
-
-function calculateTotals() {
-    let debits = 0;
-    let credits = 0;
-    
-    document.querySelectorAll('.debit-input').forEach(input => {
-        debits += parseFloat(input.value || 0);
-    });
-    document.querySelectorAll('.credit-input').forEach(input => {
-        credits += parseFloat(input.value || 0);
-    });
-    
-    document.getElementById('total-debits').innerText = debits.toFixed(2);
-    document.getElementById('total-credits').innerText = credits.toFixed(2);
-    
-    const diff = Math.abs(debits - credits);
-    const balanceError = document.getElementById('balance-error');
-    
-    if (diff >= 0.01) {
-        balanceError.style.display = 'inline';
-    } else {
-        balanceError.style.display = 'none';
-    }
-}
-
-function attachInputListeners() {
-    document.querySelectorAll('.amount-input').forEach(input => {
-        input.removeEventListener('input', calculateTotals);
-        input.addEventListener('input', calculateTotals);
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    attachInputListeners();
-});
+})();
 </script>
+
+{% else %}
+<!-- Journal Entries Ledger -->
+<div class="content-card">
+    <div class="card-header-flex" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
+        <div>
+            <h3 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.5rem;">
+                <i class="fa-solid fa-book" style="color: var(--primary-light); margin-right: 8px;"></i> Journal Registry
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 5px 0 0 0;">Review manual, system-generated, and reversing journal entries posted to the general ledger.</p>
+        </div>
+        <a href="{% url 'journal_entries_list' %}?action=new" class="btn-add" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); padding: 12px 22px; border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(30,80,200,0.25); transition: all 0.25s;">
+            <i class="fa-solid fa-pen-to-square"></i> New Journal Entry
+        </a>
+    </div>
+
+    <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
+        <table class="table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background-color: var(--bg-subtle); border-bottom: 2px solid var(--border-color);">
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Date</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Reference</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Description / Narrative</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">Type</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Status</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Debits</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Credits</th>
+                    <th style="padding: 12px 15px; font-weight: 700; color: var(--text-main); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr class="table-row-hover" style="border-bottom: 1.5px solid var(--border-color); transition: background-color 0.2s;">
+                    <td style="padding: 12px 15px; color: var(--text-muted);">{{ entry.posting_date|date:"d M Y" }}</td>
+                    <td style="padding: 12px 15px; font-weight: 750; color: var(--primary);">{{ entry.reference }}</td>
+                    <td style="padding: 12px 15px; color: var(--text-main);">{{ entry.description }}</td>
+                    <td style="padding: 12px 15px; font-weight: 600; color: var(--accent);">{{ entry.get_entry_type_display }}</td>
+                    <td style="padding: 12px 15px; text-align: center;">
+                        {% if entry.status == 'DRAFT' %}
+                            <span class="status-badge" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(149, 165, 166, 0.15); color: #7f8c8d; padding: 4px 10px; border-radius: var(--radius-sm);">Draft</span>
+                        {% elif entry.status == 'POSTED' %}
+                            <span class="status-badge" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(46, 204, 113, 0.15); color: #2ecc71; padding: 4px 10px; border-radius: var(--radius-sm);">Posted</span>
+                        {% else %}
+                            <span class="status-badge" style="font-size: 0.72rem; font-weight: 700; background-color: rgba(231, 76, 60, 0.15); color: #e74c3c; padding: 4px 10px; border-radius: var(--radius-sm);">Reversed</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px 15px; text-align: right; font-weight: 700; color: var(--text-main);">TZS {{ entry.total_debits|default:"0.00" }}</td>
+                    <td style="padding: 12px 15px; text-align: right; font-weight: 700; color: var(--text-main);">TZS {{ entry.total_credits|default:"0.00" }}</td>
+                    <td style="padding: 12px 15px; text-align: center;">
+                        {% if entry.status == 'DRAFT' %}
+                            <form method="POST" action="{% url 'post_journal_entry' entry.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-action-white animate-scale" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; color: var(--success); border: 1.5px solid var(--border-color); background: var(--bg-card); cursor: pointer; border-radius: var(--radius-sm);">
+                                    <i class="fa-solid fa-circle-check"></i> Post
+                                </button>
+                            </form>
+                        {% elif entry.status == 'POSTED' %}
+                            <form method="POST" action="{% url 'reverse_journal_entry' entry.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="reason" value="User manual reversal">
+                                <button type="submit" class="btn-action-white animate-scale" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; color: var(--danger); border: 1.5px solid var(--border-color); background: var(--bg-card); cursor: pointer; border-radius: var(--radius-sm);" onclick="return confirm('Are you sure you want to reverse this entry?')">
+                                    <i class="fa-solid fa-rotate-left"></i> Reverse
+                                </button>
+                            </form>
+                        {% else %}
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">No actions</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 12px; display: block; color: var(--border-color);"></i>
+                        No journal entries registered yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .table-row-hover:hover {
+        background-color: rgba(30, 80, 200, 0.02) !important;
+    }
+    .table th {
+        padding: 12px 15px !important;
+        font-size: 0.82rem !important;
+    }
+    .table td {
+        padding: 12px 15px !important;
+        font-size: 0.88rem !important;
+    }
+    .animate-scale {
+        transition: all 0.2s ease-in-out;
+    }
+    .animate-scale:hover {
+        transform: scale(1.05);
+    }
+</style>
 {% endblock %}

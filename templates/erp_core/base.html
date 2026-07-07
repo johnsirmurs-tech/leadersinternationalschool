@@ -13,18 +13,18 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com/">
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- FontAwesome for Premium Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Premium Custom Styles -->
+    <!-- Styles -->
     <style>
         :root {
-            --primary: #0F2E59; /* Deep Blue from school branding */
+            /* Light Theme Variables */
+            --primary: #0F2E59;
             --primary-light: #1A4680;
-            --accent: #E5A93C; /* Premium Gold/Yellow from school crest */
+            --accent: #E5A93C;
             --accent-light: #F0BE5E;
             --success: #198754;
             --danger: #DC3545;
@@ -36,14 +36,43 @@
             --gray-200: #E9ECEF;
             --gray-300: #DEE2E6;
             --gray-600: #6C757D;
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.4);
-            --shadow-premium: 0 20px 40px rgba(15, 46, 89, 0.15);
-            --shadow-glow: 0 0 15px rgba(229, 169, 60, 0.4);
-            --font-family: 'Plus Jakarta Sans', 'Parkinsans', sans-serif;
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+            --header-height: 70px;
             --radius-lg: 16px;
             --radius-md: 10px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 20px rgba(15, 46, 89, 0.05);
+            --shadow-premium: 0 20px 40px rgba(15, 46, 89, 0.08);
+            --font-family: 'Plus Jakarta Sans', sans-serif;
+            
+            --bg-body: #F3F5F9;
+            --bg-card: #FFFFFF;
+            --text-main: #0A192F;
+            --text-muted: #6C757D;
+            --border-color: #E9ECEF;
+            --sidebar-bg: #0F2E59;
+            --sidebar-hover: rgba(255, 255, 255, 0.08);
+            --sidebar-text: #FFFFFF;
+            --sidebar-muted: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Dark Theme Variables */
+        html.dark-theme {
+            --bg-body: #090E1A;
+            --bg-card: #121826;
+            --text-main: #E2E8F0;
+            --text-muted: #94A3B8;
+            --border-color: #1E293B;
+            --sidebar-bg: #0B0F19;
+            --sidebar-hover: rgba(255, 255, 255, 0.05);
+            --sidebar-text: #F1F5F9;
+            --sidebar-muted: #64748B;
+            --light: #0F172A;
+            --white: #1E293B;
+            --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.3);
+            --shadow-premium: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
         * {
@@ -54,128 +83,34 @@
 
         body {
             font-family: var(--font-family);
-            background: linear-gradient(135deg, #0A192F 0%, #0F2E59 50%, #1A4680 100%);
-            color: var(--dark);
+            background-color: var(--bg-body);
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
             overflow-x: hidden;
-            position: relative;
         }
 
-        /* Decorative Animated Background Elements */
-        body::before, body::after {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            z-index: 0;
-            filter: blur(100px);
-            opacity: 0.15;
-            pointer-events: none;
-            animation: floatShape 20s infinite alternate;
+        /* Non-authenticated Full-Screen Layout (e.g. Login) */
+        body.fullscreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0A192F 0%, #0F2E59 50%, #1A4680 100%);
+            color: var(--white);
         }
-
-        body::before {
-            background-color: var(--accent);
-            top: 10%;
-            left: 5%;
-        }
-
-        body::after {
-            background-color: var(--primary-light);
-            bottom: 10%;
-            right: 5%;
-            animation-delay: -10s;
-        }
-
-        @keyframes floatShape {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(50px, 50px) scale(1.2); }
-        }
-
-        /* Utility classes */
-        .premium-container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            z-index: 1;
-        }
-
-        /* Header / Navigation bar mimicking school web header */
-        .school-header {
+        body.fullscreen .school-header {
             width: 100%;
             padding: 20px 0;
             background: rgba(10, 25, 47, 0.6);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            z-index: 10;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
-
-        .header-wrap {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo-wrap {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none;
-        }
-
-        .logo-img {
-            height: 50px;
-            width: auto;
-        }
-
-        .logo-text h1 {
-            font-size: 1.2rem;
-            color: var(--white);
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .logo-text p {
-            font-size: 0.75rem;
-            color: var(--accent);
-            font-weight: 500;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .header-links a {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: var(--transition);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: var(--radius-md);
-        }
-
-        .header-links a:hover {
-            color: var(--accent);
-            border-color: var(--accent);
-            box-shadow: var(--shadow-glow);
-        }
-
-        /* Main Content wrapper */
-        .main-content {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 0;
-            z-index: 2;
-        }
-
-        /* Footer */
-        .school-footer {
+        body.fullscreen .school-footer {
             width: 100%;
             padding: 20px 0;
             background: rgba(10, 25, 47, 0.8);
@@ -183,53 +118,456 @@
             text-align: center;
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.85rem;
-            z-index: 10;
+            position: absolute;
+            bottom: 0;
+            left: 0;
         }
 
-        .school-footer a {
-            color: var(--accent);
+        /* Sidebar Structure */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-brand {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-brand img {
+            height: 40px;
+            width: auto;
+            transition: var(--transition);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: var(--transition);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 20px 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .sidebar-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .sidebar-menu .menu-category {
+            display: block;
+            padding: 10px 25px 5px;
+            font-size: 0.725rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--sidebar-muted);
+            transition: var(--transition);
+        }
+
+        .sidebar-menu li {
+            position: relative;
+            margin: 4px 15px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: var(--sidebar-muted);
             text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 0.925rem;
+            transition: var(--transition);
+            gap: 12px;
         }
 
-        /* Alerts and Messages style */
+        .sidebar-menu a:hover,
+        .sidebar-menu li.active > a {
+            color: var(--sidebar-text);
+            background-color: var(--sidebar-hover);
+        }
+
+        .sidebar-menu li.active > a {
+            font-weight: 600;
+            color: var(--accent-light);
+        }
+
+        .sidebar-menu i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        /* Submenus */
+        .submenu {
+            list-style: none;
+            padding-left: 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .submenu.open {
+            max-height: 500px;
+            transition: max-height 0.3s ease-in;
+        }
+
+        .submenu li {
+            margin: 2px 0 2px 15px;
+        }
+
+        .submenu a {
+            padding: 8px 12px;
+            font-size: 0.875rem;
+        }
+
+        .has-submenu > a {
+            justify-content: space-between;
+        }
+
+        .has-submenu .submenu-arrow {
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+
+        .has-submenu.open .submenu-arrow {
+            transform: rotate(90deg);
+        }
+
+        /* Sidebar Footer & Toggle Button */
+        .sidebar-footer {
+            padding: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            color: var(--sidebar-muted);
+            text-decoration: none;
+            font-size: 0.925rem;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+        }
+
+        .sidebar-footer a:hover {
+            color: var(--danger);
+            background-color: var(--sidebar-hover);
+        }
+
+        .sidebar-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--sidebar-text);
+            font-size: 1.15rem;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+        .sidebar-toggle-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* Dark Mode Toggle Button */
+        .theme-toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--sidebar-text);
+            padding: 10px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .theme-toggle-btn:hover {
+            background: var(--sidebar-hover);
+        }
+
+        /* Tooltip styling in collapsed mode */
+        .sidebar.collapsed .sidebar-menu li[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 80px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--dark);
+            color: var(--white);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            z-index: 1100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+
+        /* Collapsed Sidebar Mode CSS Rules */
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar.collapsed .sidebar-brand h2,
+        .sidebar.collapsed .menu-category,
+        .sidebar.collapsed .sidebar-menu span,
+        .sidebar.collapsed .submenu,
+        .sidebar.collapsed .sidebar-footer span,
+        .sidebar.collapsed .theme-toggle-btn span {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-brand {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .sidebar-brand img {
+            margin-right: 0;
+            max-height: 35px;
+        }
+
+        .sidebar.collapsed .sidebar-menu li {
+            margin: 4px 10px;
+        }
+
+        .sidebar.collapsed .sidebar-menu a,
+        .sidebar.collapsed .sidebar-footer a {
+            justify-content: center;
+            padding: 12px 0;
+        }
+
+        .sidebar.collapsed .sidebar-menu i,
+        .sidebar.collapsed .sidebar-footer i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+
+        .sidebar.collapsed .theme-toggle-btn {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            margin: 0 auto;
+        }
+
+        /* Workspace Structure */
+        .workspace {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        .sidebar.collapsed + .workspace {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* Workspace Header */
+        .workspace-header {
+            height: var(--header-height);
+            background-color: var(--bg-card);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+        .page-title-area h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-profile-widget {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .user-info-text h5 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .user-info-text span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Workspace Content */
+        .workspace-content {
+            padding: 30px;
+            flex: 1;
+            z-index: 1;
+        }
+
+        /* Mobile Responsive CSS & Overlay Menu */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 950;
+            backdrop-filter: blur(4px);
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                left: -100%;
+            }
+            .sidebar.mobile-open {
+                left: 0;
+                width: var(--sidebar-width) !important;
+            }
+            .sidebar.mobile-open .sidebar-brand h2,
+            .sidebar.mobile-open .menu-category,
+            .sidebar.mobile-open .sidebar-menu span,
+            .sidebar.mobile-open .sidebar-footer span,
+            .sidebar.mobile-open .theme-toggle-btn span {
+                display: block !important;
+            }
+            .sidebar.mobile-open .theme-toggle-btn {
+                border-radius: var(--radius-md) !important;
+                width: auto !important;
+                height: auto !important;
+                padding: 10px !important;
+            }
+            .workspace {
+                margin-left: 0 !important;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+            .sidebar-brand #sidebar-toggle {
+                display: none;
+            }
+        }
+
+        /* Premium Forms and Alerts */
         .alert-messages {
-            margin-bottom: 20px;
-            width: 100%;
+            margin-bottom: 25px;
         }
 
         .alert-item {
-            padding: 12px 16px;
+            padding: 15px 20px;
             border-radius: var(--radius-md);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 12px;
             font-size: 0.9rem;
             font-weight: 500;
-            animation: slideIn 0.3s ease-out forwards;
+            box-shadow: var(--shadow-sm);
         }
 
         .alert-error {
-            background-color: rgba(220, 53, 69, 0.15);
-            border: 1px solid var(--danger);
-            color: #ff6b7a;
+            background-color: rgba(220, 53, 69, 0.1);
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
         }
 
         .alert-success {
-            background-color: rgba(25, 135, 84, 0.15);
-            border: 1px solid var(--success);
-            color: #51cf66;
+            background-color: rgba(25, 135, 84, 0.1);
+            border-left: 4px solid var(--success);
+            color: var(--success);
         }
 
         .alert-info {
-            background-color: rgba(26, 70, 128, 0.15);
-            border: 1px solid var(--primary-light);
-            color: #74c0fc;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(-10px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            background-color: rgba(15, 46, 89, 0.1);
+            border-left: 4px solid var(--primary);
+            color: var(--primary);
         }
 
         {% block extra_css %}{% endblock %}
@@ -237,54 +575,424 @@
 </head>
 <body>
 
-    <!-- Header -->
-    <header class="school-header">
-        <div class="premium-container header-wrap">
-            <a href="/" class="logo-wrap">
-                <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="Leaders International School Logo" class="logo-img">
-                <div class="logo-text">
-                    <h1>Leaders International School</h1>
-                    <p>Learn Today, Leading Tomorrow</p>
+    {% if user.is_authenticated %}
+        <!-- Sidebar overlay for mobile drawer -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
+                    <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="School Logo" style="flex-shrink: 0;">
+                    <h2>LIS ERP</h2>
                 </div>
-            </a>
-            <div class="header-links">
-                <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">
-                    <i class="fa-solid fa-arrow-left"></i> School Website
+                <button id="sidebar-toggle" class="sidebar-toggle-btn" style="flex-shrink: 0;">
+                    <i class="fa-solid fa-angle-left" id="toggle-icon"></i>
+                </button>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" data-tooltip="Dashboard">
+                    <a href="{% url 'dashboard' %}">
+                        <i class="fa-solid fa-gauge"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                {% for role in user_roles %}
+                    {% if role.code == 'R01' %}
+                        <!-- Human Resource -->
+                        <span class="menu-category">Human Resource</span>
+                        <li class="{% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_update' %}active{% endif %}" data-tooltip="Manage Users">
+                            <a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a>
+                        </li>
+                        <li class="{% if request.resolver_match.url_name == 'teacher_assignment_setup' %}active{% endif %}" data-tooltip="Teacher Assignments">
+                            <a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a>
+                        </li>
+                        <li class="{% if request.resolver_match.url_name == 'salary_setup' %}active{% endif %}" data-tooltip="Salaries Setup">
+                            <a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a>
+                        </li>
+                        <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}" data-tooltip="Monthly Payroll">
+                            <a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a>
+                        </li>
+
+                        <!-- Finance Submenu -->
+                        <span class="menu-category">Finance & Ops</span>
+                        <li class="has-submenu" id="menu-finance">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <span>Finance & Ops</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'chart_of_accounts' %}active{% endif %}"><a href="{% url 'chart_of_accounts' %}">Chart of Accounts</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'journal_entries_list' %}active{% endif %}"><a href="{% url 'journal_entries_list' %}">Journal Entries</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'bills_list' %}active{% endif %}"><a href="{% url 'bills_list' %}">Accounts Payable</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'fixed_assets_list' %}active{% endif %}"><a href="{% url 'fixed_assets_list' %}">Fixed Assets</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'bank_reconciliation_list' or request.resolver_match.url_name == 'bank_reconciliation_detail' %}active{% endif %}"><a href="{% url 'bank_reconciliation_list' %}">Bank Recon</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'financial_reports' %}active{% endif %}"><a href="{% url 'financial_reports' %}">Accounting Reports</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}"><a href="{% url 'financial_statements' %}">Financial Statements</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'fee_structure_setup' %}active{% endif %}"><a href="{% url 'fee_structure_setup' %}">Fee Structure</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'fee_balances' %}active{% endif %}"><a href="{% url 'fee_balances' %}">Fee Balances</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'bank_deposits_list' or request.resolver_match.url_name == 'allocate_bank_deposit' %}active{% endif %}"><a href="{% url 'bank_deposits_list' %}">Bank Deposits</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}"><a href="{% url 'expense_list' %}">Expenses</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}"><a href="{% url 'inventory_list' %}">Stock & Inventory</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'transport_list' %}active{% endif %}"><a href="{% url 'transport_list' %}">Transport Routes</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'procurement_requisitions' %}active{% endif %}"><a href="{% url 'procurement_requisitions' %}">Procurement Orders</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'kitchen_led_display' %}active{% endif %}"><a href="{% url 'kitchen_led_display' %}">Kitchen LED Display</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Academics Submenu -->
+                        <span class="menu-category">Academics</span>
+                        <li class="has-submenu" id="menu-academics">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-book-open"></i>
+                                    <span>Academics</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'subject_setup' %}active{% endif %}"><a href="{% url 'subject_setup' %}">Subjects & Areas</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'attendance_registry' %}active{% endif %}"><a href="{% url 'attendance_registry' %}">Student Attendance</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'biometric_dashboard' %}active{% endif %}"><a href="{% url 'biometric_dashboard' %}">Biometric Logs</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'biometric_registration' %}active{% endif %}"><a href="{% url 'biometric_registration' %}">Biometric Mapping</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'attendance_exceptions' %}active{% endif %}"><a href="{% url 'attendance_exceptions' %}">Attendance Exceptions</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'lesson_plan_list' or request.resolver_match.url_name == 'lesson_plan_create' or request.resolver_match.url_name == 'lesson_plan_edit' %}active{% endif %}"><a href="{% url 'lesson_plan_list' %}">Lesson Plans</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'grade_boundaries' %}active{% endif %}"><a href="{% url 'grade_boundaries' %}">Grade Boundaries</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'report_card_generator' %}active{% endif %}"><a href="{% url 'report_card_generator' %}">Report Cards</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Settings Category -->
+                        <span class="menu-category">Settings</span>
+                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}" data-tooltip="Change Password">
+                            <a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a>
+                        </li>
+                        <li class="{% if request.resolver_match.url_name == 'integration_settings' %}active{% endif %}" data-tooltip="Integration Settings">
+                            <a href="{% url 'integration_settings' %}"><i class="fa-solid fa-gears"></i> <span>Integration Settings</span></a>
+                        </li>
+                    {% elif role.code == 'R02' %}
+                        <!-- Academics Category -->
+                        <span class="menu-category">Academics</span>
+                        <li class="{% if request.resolver_match.url_name == 'user_list' %}active{% endif %}" data-tooltip="Manage Users"><a href="{% url 'user_list' %}"><i class="fa-solid fa-users"></i> <span>Manage Users</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'subject_setup' %}active{% endif %}" data-tooltip="Subjects & Areas"><a href="{% url 'subject_setup' %}"><i class="fa-solid fa-book-open"></i> <span>Subjects & Areas</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'teacher_assignment_setup' %}active{% endif %}" data-tooltip="Teacher Assignments"><a href="{% url 'teacher_assignment_setup' %}"><i class="fa-solid fa-user-check"></i> <span>Teacher Assignments</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'attendance_registry' %}active{% endif %}" data-tooltip="Student Attendance"><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'report_card_generator' %}active{% endif %}" data-tooltip="Report Cards"><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'grade_boundaries' %}active{% endif %}" data-tooltip="Grade Boundaries"><a href="{% url 'grade_boundaries' %}"><i class="fa-solid fa-calculator"></i> <span>Grade Boundaries</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'lesson_plan_list' %}active{% endif %}" data-tooltip="Lesson Plans"><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-file-signature"></i> <span>Lesson Plans</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'kitchen_led_display' %}active{% endif %}" data-tooltip="Kitchen LED Display"><a href="{% url 'kitchen_led_display' %}"><i class="fa-solid fa-desktop"></i> <span>Kitchen LED Display</span></a></li>
+
+                        <!-- Finance -->
+                        <span class="menu-category">Finance</span>
+                        <li class="{% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}" data-tooltip="Financial Reports"><a href="{% url 'financial_statements' %}"><i class="fa-solid fa-chart-line"></i> <span>Financial Reports</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'fee_balances' %}active{% endif %}" data-tooltip="Fee Balances"><a href="{% url 'fee_balances' %}"><i class="fa-solid fa-scale-balanced"></i> <span>Fee Balances</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}" data-tooltip="Monthly Payroll"><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}" data-tooltip="Expenses"><a href="{% url 'expense_list' %}"><i class="fa-solid fa-receipt"></i> <span>Expenses</span></a></li>
+
+                        <!-- Settings -->
+                        <span class="menu-category">Settings</span>
+                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}" data-tooltip="Change Password"><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                    {% elif role.code == 'R03' %}
+                        <!-- Human Resource -->
+                        <span class="menu-category">Human Resource</span>
+                        <li class="{% if request.resolver_match.url_name == 'salary_setup' %}active{% endif %}" data-tooltip="Salaries Setup"><a href="{% url 'salary_setup' %}"><i class="fa-solid fa-gears"></i> <span>Salaries Setup</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'payroll_list' %}active{% endif %}" data-tooltip="Monthly Payroll"><a href="{% url 'payroll_list' %}"><i class="fa-solid fa-calculator"></i> <span>Monthly Payroll</span></a></li>
+
+                        <!-- Finance Submenu -->
+                        <span class="menu-category">Finance & Ops</span>
+                        <li class="has-submenu" id="menu-finance-r03">
+                            <a href="javascript:void(0);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    <span>Finance & Ops</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right submenu-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li class="{% if request.resolver_match.url_name == 'chart_of_accounts' %}active{% endif %}"><a href="{% url 'chart_of_accounts' %}">Chart of Accounts</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'journal_entries_list' %}active{% endif %}"><a href="{% url 'journal_entries_list' %}">Journal Entries</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'bills_list' %}active{% endif %}"><a href="{% url 'bills_list' %}">Accounts Payable</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'fixed_assets_list' %}active{% endif %}"><a href="{% url 'fixed_assets_list' %}">Fixed Assets</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'bank_reconciliation_list' or request.resolver_match.url_name == 'bank_reconciliation_detail' %}active{% endif %}"><a href="{% url 'bank_reconciliation_list' %}">Bank Recon</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'financial_reports' %}active{% endif %}"><a href="{% url 'financial_reports' %}">Accounting Reports</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}"><a href="{% url 'financial_statements' %}">Financial Statements</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'fee_structure_setup' %}active{% endif %}"><a href="{% url 'fee_structure_setup' %}">Fee Structure</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'record_payment' %}active{% endif %}"><a href="{% url 'record_payment' %}">Fee Payments</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'fee_balances' %}active{% endif %}"><a href="{% url 'fee_balances' %}">Fee Balances</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'bank_deposits_list' or request.resolver_match.url_name == 'allocate_bank_deposit' %}active{% endif %}"><a href="{% url 'bank_deposits_list' %}">Bank Deposits</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}"><a href="{% url 'expense_list' %}">Expenses</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}"><a href="{% url 'inventory_list' %}">Stock & Inventory</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'procurement_requisitions' %}active{% endif %}"><a href="{% url 'procurement_requisitions' %}">Procurement Orders</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'kitchen_led_display' %}active{% endif %}"><a href="{% url 'kitchen_led_display' %}">Kitchen LED Display</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'biometric_dashboard' %}active{% endif %}"><a href="{% url 'biometric_dashboard' %}">Biometric Logs</a></li>
+                                <li class="{% if request.resolver_match.url_name == 'biometric_registration' %}active{% endif %}"><a href="{% url 'biometric_registration' %}">Biometric Mapping</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Settings -->
+                        <span class="menu-category">Settings</span>
+                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}" data-tooltip="Change Password"><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                    {% elif role.code == 'R06' %}
+                        <!-- Academics -->
+                        <span class="menu-category">Academics</span>
+                        <li class="{% if request.resolver_match.url_name == 'early_years_progress' %}active{% endif %}" data-tooltip="Early Years Progress"><a href="{% url 'early_years_progress' %}"><i class="fa-solid fa-baby"></i> <span>Early Years Progress</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'enter_raw_marks' %}active{% endif %}" data-tooltip="Raw Marks Entry"><a href="{% url 'enter_raw_marks' %}"><i class="fa-solid fa-file-pen"></i> <span>Raw Marks Entry</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'attendance_registry' %}active{% endif %}" data-tooltip="Student Attendance"><a href="{% url 'attendance_registry' %}"><i class="fa-solid fa-clipboard-user"></i> <span>Student Attendance</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'report_card_generator' %}active{% endif %}" data-tooltip="Report Cards"><a href="{% url 'report_card_generator' %}"><i class="fa-solid fa-graduation-cap"></i> <span>Report Cards</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'lesson_plan_list' or request.resolver_match.url_name == 'lesson_plan_create' or request.resolver_match.url_name == 'lesson_plan_edit' %}active{% endif %}" data-tooltip="Lesson Plans"><a href="{% url 'lesson_plan_list' %}"><i class="fa-solid fa-folder-open"></i> <span>Lesson Plans</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'activity_list' or request.resolver_match.url_name == 'activity_detail' %}active{% endif %}" data-tooltip="Auto-Graded Activities"><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'quiz_builder' or request.resolver_match.url_name == 'review_questions' or request.resolver_match.url_name == 'assign_quiz' %}active{% endif %}" data-tooltip="Cambridge AI Quiz"><a href="{% url 'quiz_builder' %}"><i class="fa-solid fa-brain"></i> <span>Cambridge AI Quiz</span></a></li>
+
+                        <!-- Settings -->
+                        <span class="menu-category">Settings</span>
+                        <li class="{% if request.resolver_match.url_name == 'change_my_password' %}active{% endif %}" data-tooltip="Change Password"><a href="{% url 'change_my_password' %}"><i class="fa-solid fa-key"></i> <span>Change Password</span></a></li>
+                    {% elif role.code == 'R07' %}
+                        <!-- Academics -->
+                        <span class="menu-category">Academics</span>
+                        <li class="{% if request.resolver_match.url_name == 'activity_list' %}active{% endif %}" data-tooltip="Auto-Graded Activities"><a href="{% url 'activity_list' %}"><i class="fa-solid fa-square-poll-horizontal"></i> <span>Auto-Graded Activities</span></a></li>
+                        <li class="{% if request.resolver_match.url_name == 'student_quizzes' or request.resolver_match.url_name == 'take_quiz' or request.resolver_match.url_name == 'quiz_results' %}active{% endif %}" data-tooltip="Cambridge AI Quizzes"><a href="{% url 'student_quizzes' %}"><i class="fa-solid fa-brain"></i> <span>Cambridge AI Quizzes</span></a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            
+            <div class="sidebar-footer">
+                <button class="theme-toggle-btn" id="theme-toggle">
+                    <i class="fa-solid fa-moon" id="theme-icon"></i>
+                    <span>Dark Mode</span>
+                </button>
+                <a href="{% url 'logout' %}">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
                 </a>
             </div>
-        </div>
-    </header>
+        </aside>
 
-    <!-- Main Section -->
-    <main class="main-content">
-        <div class="premium-container" style="max-width: 480px;">
-            {% if messages %}
-                <div class="alert-messages">
-                    {% for message in messages %}
-                        <div class="alert-item alert-{{ message.tags }}">
-                            {% if message.tags == 'error' %}
-                                <i class="fa-solid fa-circle-exclamation"></i>
-                            {% elif message.tags == 'success' %}
-                                <i class="fa-solid fa-circle-check"></i>
-                            {% else %}
-                                <i class="fa-solid fa-circle-info"></i>
-                            {% endif %}
-                            <span>{{ message }}</span>
-                        </div>
-                    {% endfor %}
+        <!-- Main Workspace Area -->
+        <div class="workspace">
+            <header class="workspace-header">
+                <div class="header-left">
+                    <button class="mobile-menu-btn" id="mobile-menu-btn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="page-title-area">
+                        <h2>{% block page_title %}LIS Portal{% endblock %}</h2>
+                    </div>
                 </div>
-            {% endif %}
+                
+                <div class="header-right">
+                    <div class="user-profile-widget">
+                        <div class="user-avatar">
+                            {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                        </div>
+                        <div class="user-info-text">
+                            <h5>{{ user.get_full_name }}</h5>
+                            <span>
+                                {% for role in user_roles %}
+                                    {{ role.name }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    Staff/User
+                                {% endfor %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-            {% block content %}{% endblock %}
-        </div>
-    </main>
+            <main class="workspace-content">
+                {% if messages %}
+                    <div class="alert-messages">
+                        {% for message in messages %}
+                            <div class="alert-item alert-{{ message.tags }}">
+                                {% if message.tags == 'error' %}
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                {% elif message.tags == 'success' %}
+                                    <i class="fa-solid fa-circle-check"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-circle-info"></i>
+                                {% endif %}
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
-    <!-- Footer -->
-    <footer class="school-footer">
-        <div class="premium-container">
-            <p>&copy; {% now "Y" %} Leaders International School ERP. All rights reserved. Managed by <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">Leaders International School</a></p>
+                {% block content %}{% endblock %}
+            </main>
         </div>
-    </footer>
+
+        <!-- Sidebar Collapse & Submenu Expand & Theme Toggle Script -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const sidebar = document.getElementById('sidebar');
+                const toggleBtn = document.getElementById('sidebar-toggle');
+                const toggleIcon = document.getElementById('toggle-icon');
+                const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+                const sidebarOverlay = document.getElementById('sidebar-overlay');
+                
+                // 1. Sidebar Collapse State LocalStorage Persistence
+                const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+                if (isCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    if (toggleIcon) {
+                        toggleIcon.classList.remove('fa-angle-left');
+                        toggleIcon.classList.add('fa-angle-right');
+                    }
+                }
+                
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', () => {
+                        const collapsed = sidebar.classList.toggle('collapsed');
+                        localStorage.setItem('sidebar-collapsed', collapsed);
+                        
+                        if (toggleIcon) {
+                            if (collapsed) {
+                                toggleIcon.classList.remove('fa-angle-left');
+                                toggleIcon.classList.add('fa-angle-right');
+                            } else {
+                                toggleIcon.classList.remove('fa-angle-right');
+                                toggleIcon.classList.add('fa-angle-left');
+                            }
+                        }
+                    });
+                }
+
+                // 2. Mobile slide-in & Overlay drawer
+                if (mobileMenuBtn && sidebarOverlay) {
+                    mobileMenuBtn.addEventListener('click', () => {
+                        sidebar.classList.add('mobile-open');
+                        sidebarOverlay.classList.add('active');
+                    });
+
+                    sidebarOverlay.addEventListener('click', () => {
+                        sidebar.classList.remove('mobile-open');
+                        sidebarOverlay.classList.remove('active');
+                    });
+                }
+
+                // 3. Submenu toggle and auto-expansion
+                const submenuToggles = document.querySelectorAll('.has-submenu > a');
+                submenuToggles.forEach(toggle => {
+                    toggle.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const parentLi = toggle.parentElement;
+                        const submenu = parentLi.querySelector('.submenu');
+                        
+                        // Close other submenus first
+                        document.querySelectorAll('.has-submenu').forEach(li => {
+                            if (li !== parentLi) {
+                                li.classList.remove('open');
+                                const otherSub = li.querySelector('.submenu');
+                                if (otherSub) otherSub.classList.remove('open');
+                            }
+                        });
+
+                        const isOpen = parentLi.classList.toggle('open');
+                        if (submenu) {
+                            submenu.classList.toggle('open', isOpen);
+                        }
+                    });
+                });
+
+                // Auto-expand submenus if an active child is inside
+                const activeSubmenuItem = document.querySelector('.submenu li.active');
+                if (activeSubmenuItem) {
+                    const parentHasSubmenu = activeSubmenuItem.closest('.has-submenu');
+                    if (parentHasSubmenu) {
+                        parentHasSubmenu.classList.add('open');
+                        const sub = parentHasSubmenu.querySelector('.submenu');
+                        if (sub) sub.classList.add('open');
+                    }
+                }
+
+                // 4. Dark Mode / Theme Toggle
+                const themeToggle = document.getElementById('theme-toggle');
+                const themeIcon = document.getElementById('theme-icon');
+                
+                const currentTheme = localStorage.getItem('theme') || 'light';
+                if (currentTheme === 'dark') {
+                    document.documentElement.classList.add('dark-theme');
+                    if (themeIcon) {
+                        themeIcon.classList.remove('fa-moon');
+                        themeIcon.classList.add('fa-sun');
+                    }
+                    if (themeToggle) {
+                        themeToggle.querySelector('span').textContent = 'Light Mode';
+                    }
+                }
+
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', () => {
+                        const isDark = document.documentElement.classList.toggle('dark-theme');
+                        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                        
+                        if (themeIcon) {
+                            if (isDark) {
+                                themeIcon.classList.remove('fa-moon');
+                                themeIcon.classList.add('fa-sun');
+                                themeToggle.querySelector('span').textContent = 'Light Mode';
+                            } else {
+                                themeIcon.classList.remove('fa-sun');
+                                themeIcon.classList.add('fa-moon');
+                                themeToggle.querySelector('span').textContent = 'Dark Mode';
+                            }
+                        }
+                    });
+                }
+            });
+        </script>
+    {% else %}
+        <!-- Full-screen layout for non-authenticated pages (e.g. login) -->
+        <header class="school-header">
+            <div class="premium-container header-wrap">
+                <a href="/" class="logo-wrap">
+                    <img src="https://leaderscapitalschool.dike.co.tz/assets/img/logo.png" alt="Leaders International School Logo" class="logo-img">
+                    <div class="logo-text">
+                        <h1>Leaders International School</h1>
+                        <p>Learn Today, Leading Tomorrow</p>
+                    </div>
+                </a>
+                <div class="header-links">
+                    <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">
+                        <i class="fa-solid fa-arrow-left"></i> School Website
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="premium-container" style="max-width: 480px; padding: 60px 0 100px;">
+                {% if messages %}
+                    <div class="alert-messages">
+                        {% for message in messages %}
+                            <div class="alert-item alert-{{ message.tags }}">
+                                {% if message.tags == 'error' %}
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                {% elif message.tags == 'success' %}
+                                    <i class="fa-solid fa-circle-check"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-circle-info"></i>
+                                {% endif %}
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+        <footer class="school-footer">
+            <div class="premium-container">
+                <p>&copy; {% now "Y" %} Leaders International School ERP. All rights reserved. Managed by <a href="https://leaderscapitalschool.dike.co.tz/" target="_blank">Leaders International School</a></p>
+            </div>
+        </footer>
+    {% endif %}
 
     {% block extra_js %}{% endblock %}
 </body>

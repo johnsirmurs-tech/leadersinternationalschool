@@ -17,22 +17,29 @@
 
 <div class="content-card">
     <!-- Filter bar -->
-    <form method="GET" class="filter-bar">
-        <div class="form-group">
-            <label class="form-label">As of Date (BS & Trial Bal)</label>
-            <input type="date" name="as_of_date" value="{{ as_of_date }}" class="form-control">
+    <form method="GET" class="filter-bar" style="padding: 20px; border-radius: var(--radius-md); border: 1.5px solid var(--border-color); background-color: var(--bg-subtle);">
+        <h4 style="color: var(--primary); font-weight: 800; margin-bottom: 15px; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-filter" style="color: var(--primary-light);"></i> Filter Reports & Statements
+        </h4>
+        <div class="filter-grid">
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                <label class="form-label" style="font-weight: 700; color: var(--primary); font-size: 0.85rem;">As of Date (BS & Trial Bal)</label>
+                <input type="date" name="as_of_date" value="{{ as_of_date }}" class="form-control" style="width: 100%; height: 41px; padding: 10px 12px; border-radius: var(--radius-md); border: 1.5px solid var(--gray-300);">
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                <label class="form-label" style="font-weight: 700; color: var(--primary); font-size: 0.85rem;">P&L Start Date</label>
+                <input type="date" name="start_date" value="{{ start_date }}" class="form-control" style="width: 100%; height: 41px; padding: 10px 12px; border-radius: var(--radius-md); border: 1.5px solid var(--gray-300);">
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                <label class="form-label" style="font-weight: 700; color: var(--primary); font-size: 0.85rem;">P&L End Date</label>
+                <input type="date" name="end_date" value="{{ end_date }}" class="form-control" style="width: 100%; height: 41px; padding: 10px 12px; border-radius: var(--radius-md); border: 1.5px solid var(--gray-300);">
+            </div>
+            <div>
+                <button type="submit" class="btn-filter" style="width: 100%; height: 41px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; background-color: var(--primary); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer;">
+                    <i class="fa-solid fa-arrows-rotate"></i> Generate Reports
+                </button>
+            </div>
         </div>
-        <div class="form-group">
-            <label class="form-label">P&L Start Date</label>
-            <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
-        </div>
-        <div class="form-group">
-            <label class="form-label">P&L End Date</label>
-            <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
-        </div>
-        <button type="submit" class="btn-premium" style="height: 41px; padding: 0 24px; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer; box-shadow: 0 4px 12px rgba(30,80,200,0.25);">
-            <i class="fa-solid fa-arrows-rotate"></i> Generate Reports
-        </button>
     </form>
 
     <!-- Report navigation tabs -->

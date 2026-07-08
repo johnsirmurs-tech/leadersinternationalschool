@@ -1079,13 +1079,260 @@
             padding: 0 !important;
         }
 
-            {
-            % block extra_css %
+        /* Shared LIS ERP Styles */
+        .two-col-layout {
+            display: grid;
+            grid-template-columns: 1.8fr 1.2fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        .setup-card {
+            background-color: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: var(--shadow-md);
+            height: fit-content;
+        }
+        .setup-card-title {
+            color: var(--primary);
+            font-weight: 750;
+            font-size: 1.15rem;
+            margin-bottom: 8px;
+            border-bottom: 1.5px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .setup-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        .fee-header-banner {
+            background-color: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .school-badge {
+            background-color: #e6f0fa;
+            color: #0d6efd;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .btn-print {
+            background-color: var(--white);
+            border: 1px solid var(--gray-300);
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            color: var(--primary);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+        .btn-print:hover {
+            background-color: var(--gray-100);
+        }
+        .filter-bar {
+            background-color: var(--bg-subtle);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: flex-end;
+        }
+        .checkbox-pill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .checkbox-pill-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: var(--white);
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .checkbox-pill-label:hover {
+            border-color: var(--primary-light);
+            background-color: var(--gray-100);
+        }
+        .checkbox-pill-label input[type="checkbox"],
+        .checkbox-pill-label input[type="radio"] {
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .table th {
+            background-color: var(--bg-subtle);
+            color: var(--text-main);
+            font-weight: 700;
+            padding: 12px 15px;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .table td {
+            padding: 12px 15px;
+            border-bottom: 1.5px solid var(--border-color);
+            font-size: 0.88rem;
+            color: var(--text-main);
+        }
+        .table-row-hover:hover {
+            background-color: rgba(30, 80, 200, 0.02) !important;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .status-paid {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+        .status-partial {
+            background-color: rgba(241, 196, 15, 0.15);
+            color: #f1c40f;
+        }
+        .status-unpaid {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+        .billing-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .billing-badge-yearly { background-color: #e2e8f0; color: #475569; }
+        .billing-badge-termly { background-color: #dbeafe; color: #1e40af; }
+        .billing-badge-lifetime { background-color: #d1fae5; color: #065f46; }
+        .btn-filter {
+            padding: 11px 20px;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-filter:hover {
+            background-color: var(--primary-light);
+        }
+        .btn-reminder {
+            padding: 12px 22px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(30,80,200,0.25);
+            transition: var(--transition);
+        }
+        .btn-reminder:hover {
+            transform: translateY(-1px);
+        }
+        .btn-action-whatsapp {
+            background: none;
+            border: 1.5px solid #25d366;
+            color: #25d366;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: var(--transition);
+        }
+        .btn-action-whatsapp:hover {
+            background-color: #25d366;
+            color: var(--white);
+        }
+        .report-tabs {
+            display: flex;
+            gap: 8px;
+            background-color: var(--bg-subtle);
+            padding: 6px;
+            border-radius: var(--radius-md);
+            border: 1.5px solid var(--border-color);
+            margin-bottom: 25px;
+            width: fit-content;
+        }
+        .report-tab-btn {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            font-size: 0.88rem;
+        }
+        .report-tab-btn:hover {
+            color: var(--primary);
+            background-color: rgba(30, 80, 200, 0.05);
+        }
+        .report-tab-btn.active {
+            color: var(--white);
+            background: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+        .report-content {
+            display: none;
+        }
+        .report-content.active {
+            display: block;
+        }
+        .report-total-row {
+            font-weight: 750;
+            background-color: var(--bg-subtle);
+        }
+        .report-section-header {
+            font-weight: 800;
+            color: var(--primary);
+            background-color: var(--bg-subtle);
+            padding: 12px 15px !important;
         }
 
-            {
-            % endblock %
-        }
+        {% block extra_css %}{% endblock %}
     </style>
 </head>
 

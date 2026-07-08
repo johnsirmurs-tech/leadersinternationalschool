@@ -1791,7 +1791,7 @@
 
                 // 2. Direct page-load fallback: Convert loaded form content to modal overlay
                 const dataEntryForm = document.querySelector('main.workspace-content form[method="POST"]');
-                const isDirectSetupPage = window.location.pathname.includes('/subjects/setup/') || window.location.pathname.includes('/teachers/setup/') || (window.location.pathname.includes('/payroll/') && !window.location.search.includes('action=new')) || (window.location.pathname.includes('/enrollment/') && !window.location.search.includes('action='));
+                const isDirectSetupPage = window.location.pathname.includes('/subjects/setup/') || window.location.pathname.includes('/teachers/setup/') || (window.location.pathname.includes('/payroll/') && !window.location.search.includes('action=new')) || (window.location.pathname.includes('/enrollment/') && !window.location.search.includes('action=')) || (window.location.pathname.includes('/assets/') && !window.location.search.includes('action=new')) || (window.location.pathname.includes('/recon/') && !window.location.search.includes('action=new'));
                 if (dataEntryForm && !dataEntryForm.closest('.login-card') && !dataEntryForm.closest('.sidebar') && !isDirectSetupPage) {
                     const dataInputs = dataEntryForm.querySelectorAll('input:not([type="hidden"]), select, textarea');
                     if (dataInputs.length > 0 && !dataEntryForm.action.includes('delete') && !dataEntryForm.action.includes('post_journal_entry')) {

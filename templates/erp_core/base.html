@@ -1745,6 +1745,14 @@
                                 if (formEl && !formEl.getAttribute('action')) {
                                     formEl.setAttribute('action', url);
                                 }
+
+                                // Execute inline scripts in the loaded modal content
+                                const inlineScripts = fetchedCard.querySelectorAll('script');
+                                inlineScripts.forEach(script => {
+                                    const newScript = document.createElement('script');
+                                    newScript.text = script.text;
+                                    document.body.appendChild(newScript).parentNode.removeChild(newScript);
+                                });
                             } else {
                                 modalContainer.innerHTML = `<p style="padding: 20px; text-align: center; color: var(--danger);">Failed to extract form.</p>`;
                                 modalContainer.appendChild(createCloseButton(closeModal));

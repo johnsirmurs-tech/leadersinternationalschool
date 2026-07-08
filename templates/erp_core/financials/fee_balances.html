@@ -5,17 +5,9 @@
 {% block page_title %}Student Fee Balances{% endblock %}
 
 {% block extra_css %}
-.balances-card {
-    background-color: var(--white);
-    padding: 30px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--gray-200);
-    margin-bottom: 30px;
-}
 .filter-bar {
-    background-color: #f8fafc;
-    border: 1px solid var(--gray-200);
+    background-color: var(--bg-subtle);
+    border: 1.5px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 20px;
     margin-bottom: 25px;
@@ -37,14 +29,20 @@
     margin-bottom: 6px;
 }
 .form-control {
-    padding: 8px 10px;
+    padding: 10px 12px;
     border: 1.5px solid var(--gray-300);
     border-radius: var(--radius-md);
     font-family: var(--font-family);
+    font-size: 0.9rem;
     box-sizing: border-box;
+    background-color: var(--white);
+}
+.form-control:focus {
+    border-color: var(--primary);
+    outline: none;
 }
 .btn-filter {
-    padding: 9px 20px;
+    padding: 11px 20px;
     background-color: var(--primary);
     color: var(--white);
     border: none;
@@ -59,59 +57,62 @@
 .balance-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
 }
 .balance-table th, .balance-table td {
     padding: 12px 15px;
     text-align: left;
-    border-bottom: 1px solid var(--gray-200);
+    border-bottom: 1.5px solid var(--border-color);
+    font-size: 0.88rem;
 }
 .balance-table th {
-    background-color: var(--gray-100);
-    color: var(--primary);
+    background-color: var(--bg-subtle);
+    color: var(--text-main);
     font-weight: 700;
 }
 .status-badge {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.72rem;
     font-weight: 700;
-    text-transform: uppercase;
     display: inline-block;
 }
 .status-paid {
-    background-color: rgba(25, 135, 84, 0.15);
-    color: var(--success);
+    background-color: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
 }
 .status-partial {
-    background-color: rgba(255, 193, 7, 0.15);
-    color: #b58100;
+    background-color: rgba(241, 196, 15, 0.15);
+    color: #f1c40f;
 }
 .status-unpaid {
-    background-color: rgba(220, 53, 69, 0.15);
-    color: var(--danger);
+    background-color: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
 }
 .btn-reminder {
-    padding: 10px 20px;
-    background-color: var(--accent);
+    padding: 12px 22px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
     color: var(--white);
     border: none;
     border-radius: var(--radius-md);
     cursor: pointer;
     font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(30,80,200,0.25);
     transition: var(--transition);
 }
 .btn-reminder:hover {
-    background-color: #b58100;
+    transform: translateY(-1px);
 }
 .btn-action-whatsapp {
     background: none;
-    border: 1px solid #25d366;
+    border: 1.5px solid #25d366;
     color: #25d366;
-    padding: 4px 8px;
-    border-radius: var(--radius-md);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.8rem;
     display: inline-flex;
     align-items: center;
@@ -121,6 +122,9 @@
 .btn-action-whatsapp:hover {
     background-color: #25d366;
     color: var(--white);
+}
+.table-row-hover:hover {
+    background-color: rgba(30, 80, 200, 0.02) !important;
 }
 {% endblock %}
 
@@ -136,10 +140,10 @@
 {% endif %}
 
 <!-- Filters Form -->
-<div class="balances-card" style="padding: 20px; margin-bottom: 20px;">
-    <form method="GET" action="{% url 'fee_balances' %}" class="filter-bar">
-        <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 15px;">
-            <i class="fa-solid fa-filter"></i> Filter Ledger Balances
+<div class="content-card" style="padding: 20px; margin-bottom: 20px;">
+    <form method="GET" action="{% url 'fee_balances' %}" class="filter-bar" style="margin-bottom: 0;">
+        <h4 style="color: var(--primary); font-weight: 800; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-filter" style="color: var(--primary-light);"></i> Filter Ledger Balances
         </h4>
         <div class="filter-grid">
             <div class="form-group">
@@ -176,7 +180,7 @@
             </div>
 
             <div>
-                <button type="submit" class="btn-filter" style="width: 100%;">
+                <button type="submit" class="btn-filter" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
                     <i class="fa-solid fa-arrows-rotate"></i> Apply Filters
                 </button>
             </div>
@@ -185,79 +189,87 @@
 </div>
 
 <!-- Balances List -->
-<div class="balances-card">
+<div class="content-card">
     <form method="POST" id="bulk-reminder-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="send_whatsapp_bulk">
         
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gray-200); padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-            <h3 style="color: var(--primary); font-weight: 700;">
-                <i class="fa-solid fa-scale-balanced"></i> Fee Ledger Accounts & Balances (Retrospective to {{ selected_term }} {{ selected_year }})
-            </h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h3 style="color: var(--primary); font-weight: 800; margin: 0; font-size: 1.35rem;">
+                    <i class="fa-solid fa-scale-balanced" style="color: var(--primary-light); margin-right: 8px;"></i> Fee Ledger Balances
+                </h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 3px 0 0 0;">Retrospective accounts overview up to {{ selected_term }} {{ selected_year }}.</p>
+            </div>
             <button type="submit" class="btn-reminder">
                 <i class="fa-brands fa-whatsapp"></i> Send Bulk WhatsApp Reminders
             </button>
         </div>
 
-        <table class="balance-table">
-            <thead>
-                <tr>
-                    <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all"></th>
-                    <th>Student Name</th>
-                    <th>Class</th>
-                    <th style="text-align: right;">Retrospective Dues</th>
-                    <th style="text-align: right;">Total Paid</th>
-                    <th style="text-align: right;">Outstanding Balance</th>
-                    <th style="text-align: center;">Status</th>
-                    <th style="text-align: center;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in student_balances %}
+        <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
+            <table class="balance-table">
+                <thead>
                     <tr>
-                        <td style="text-align: center;">
-                            {% if row.balance > 0 %}
-                                <input type="checkbox" name="student_ids" value="{{ row.student.id }}" class="student-checkbox">
-                            {% endif %}
-                        </td>
-                        <td style="font-weight: 600;">{{ row.student.user.get_full_name }}</td>
-                        <td>{{ row.student.current_class.name }}</td>
-                        <td style="text-align: right; color: var(--primary);">TZS {{ row.total_due|floatformat:2 }}</td>
-                        <td style="text-align: right; color: var(--success);">TZS {{ row.total_paid|floatformat:2 }}</td>
-                        <td style="text-align: right; font-weight: 700; color: {% if row.balance > 0 %}var(--danger){% else %}var(--success){% endif %};">
-                            TZS {{ row.balance|floatformat:2 }}
-                        </td>
-                        <td style="text-align: center;">
-                            {% if row.balance <= 0 %}
-                                <span class="status-badge status-paid">🟢 Fully Paid</span>
-                            {% elif row.total_paid > 0 %}
-                                <span class="status-badge status-partial">🟡 Partial Payment</span>
-                            {% else %}
-                                <span class="status-badge status-unpaid">🔴 Outstanding</span>
-                            {% endif %}
-                        </td>
-                        <td style="text-align: center;">
-                            {% if row.balance > 0 %}
-                                <button type="submit" 
-                                        name="student_id" 
-                                        value="{{ row.student.id }}" 
-                                        formaction="?action=send_whatsapp_individual" 
-                                        class="btn-action-whatsapp"
-                                        onclick="sendIndividualReminder(event, '{{ row.student.id }}')">
-                                    <i class="fa-brands fa-whatsapp"></i> Send Alert
-                                </button>
-                            {% else %}
-                                <span style="font-size: 0.8rem; color: var(--gray-600); font-style: italic;">No dues</span>
-                            {% endif %}
-                        </td>
+                        <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all" style="cursor: pointer;"></th>
+                        <th>Student Name</th>
+                        <th>Class</th>
+                        <th style="text-align: right;">Retrospective Dues</th>
+                        <th style="text-align: right;">Total Paid</th>
+                        <th style="text-align: right;">Outstanding Balance</th>
+                        <th style="text-align: center;">Status</th>
+                        <th style="text-align: center;">Actions</th>
                     </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 25px; color: var(--gray-600);">No accounts registered matching the filters.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for row in student_balances %}
+                        <tr class="table-row-hover" style="border-bottom: 1.5px solid var(--border-color); transition: background-color 0.2s;">
+                            <td style="text-align: center;">
+                                {% if row.balance > 0 %}
+                                    <input type="checkbox" name="student_ids" value="{{ row.student.id }}" class="student-checkbox" style="cursor: pointer;">
+                                {% endif %}
+                            </td>
+                            <td style="font-weight: 700; color: var(--primary);">{{ row.student.user.get_full_name }}</td>
+                            <td style="font-weight: 600; color: var(--text-main);">{{ row.student.current_class.name }}</td>
+                            <td style="text-align: right; font-weight: 600; color: var(--text-main);">TZS {{ row.total_due|floatformat:2 }}</td>
+                            <td style="text-align: right; font-weight: 600; color: var(--success);">TZS {{ row.total_paid|floatformat:2 }}</td>
+                            <td style="text-align: right; font-weight: 750; color: {% if row.balance > 0 %}var(--danger){% else %}var(--success){% endif %};">
+                                TZS {{ row.balance|floatformat:2 }}
+                            </td>
+                            <td style="text-align: center;">
+                                {% if row.balance <= 0 %}
+                                    <span class="status-badge status-paid">Fully Paid</span>
+                                {% elif row.total_paid > 0 %}
+                                    <span class="status-badge status-partial">Partial</span>
+                                {% else %}
+                                    <span class="status-badge status-unpaid">Outstanding</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: center;">
+                                {% if row.balance > 0 %}
+                                    <button type="submit" 
+                                            name="student_id" 
+                                            value="{{ row.student.id }}" 
+                                            formaction="?action=send_whatsapp_individual" 
+                                            class="btn-action-whatsapp"
+                                            onclick="sendIndividualReminder(event, '{{ row.student.id }}')">
+                                        <i class="fa-brands fa-whatsapp"></i> Send Alert
+                                    </button>
+                                {% else %}
+                                    <span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">No dues</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fa-solid fa-file-invoice-dollar" style="font-size: 2rem; margin-bottom: 12px; display: block; color: var(--border-color);"></i>
+                                No accounts registered matching the filters.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </form>
 </div>
 

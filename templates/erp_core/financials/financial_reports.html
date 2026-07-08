@@ -1,4 +1,4 @@
-{% extends 'erp_core/dashboards/base_dashboard.html' %}
+% extends 'erp_core/dashboards/base_dashboard.html' %}
 
 {% block title %}Accounting Reports | Leaders International School ERP{% endblock %}
 
@@ -68,16 +68,16 @@
     border-color: var(--primary);
     outline: none;
 }
-.report-table {
+.table {
     width: 100%;
     border-collapse: collapse;
 }
-.report-table th, .report-table td {
+.table th, .table td {
     padding: 12px 15px;
     border-bottom: 1.5px solid var(--border-color);
     font-size: 0.88rem;
 }
-.report-table th {
+.table th {
     background-color: var(--bg-subtle);
     color: var(--text-main);
     font-weight: 700;
@@ -140,7 +140,7 @@
     <div class="report-content active" id="report-tb">
         <h3 style="color: var(--primary); margin-bottom: 20px; font-weight: 800;"><i class="fa-solid fa-scale-balanced" style="color: var(--primary-light); margin-right: 8px;"></i> Trial Balance (as of {{ as_of_date }})</h3>
         <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
-            <table class="report-table">
+            <table class="table">
                 <thead>
                     <tr>
                         <th style="font-weight: 700;">Account Code</th>
@@ -183,7 +183,7 @@
     <div class="report-content" id="report-pl">
         <h3 style="color: var(--primary); margin-bottom: 20px; font-weight: 800;"><i class="fa-solid fa-file-invoice-dollar" style="color: var(--primary-light); margin-right: 8px;"></i> Profit & Loss Statement (from {{ start_date }} to {{ end_date }})</h3>
         <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
-            <table class="report-table">
+            <table class="table">
                 <thead>
                     <tr>
                         <th style="font-weight: 700;">Account Code</th>
@@ -244,7 +244,7 @@
     <div class="report-content" id="report-bs">
         <h3 style="color: var(--primary); margin-bottom: 20px; font-weight: 800;"><i class="fa-solid fa-file-invoice" style="color: var(--primary-light); margin-right: 8px;"></i> Balance Sheet (as of {{ as_of_date }})</h3>
         <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
-            <table class="report-table">
+            <table class="table">
                 <thead>
                     <tr>
                         <th style="font-weight: 700;">Account Code</th>
@@ -327,7 +327,7 @@
     <div class="report-content" id="report-bd">
         <h3 style="color: var(--primary); margin-bottom: 20px; font-weight: 800;"><i class="fa-solid fa-chart-line" style="color: var(--primary-light); margin-right: 8px;"></i> Budget vs Actual Statement (Yearly to {{ end_date }})</h3>
         <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
-            <table class="report-table">
+            <table class="table">
                 <thead>
                     <tr>
                         <th style="font-weight: 700;">Account Code</th>

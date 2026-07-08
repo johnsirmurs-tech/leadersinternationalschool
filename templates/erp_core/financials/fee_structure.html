@@ -142,35 +142,23 @@
 .btn-save-vote:hover {
     background-color: #1e3a8a;
 }
-.bottom-table-card {
-    background-color: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-lg);
-    padding: 25px;
-    box-shadow: var(--shadow-md);
-    margin-bottom: 30px;
-}
-.vote-head-table {
+.table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
 }
-.vote-head-table th, .vote-head-table td {
+.table th, .table td {
     padding: 12px 15px;
     text-align: left;
-    border-bottom: 1px solid var(--gray-200);
-    font-size: 0.85rem;
+    border-bottom: 1.5px solid var(--border-color);
+    font-size: 0.88rem;
 }
-.vote-head-table th {
-    background-color: var(--gray-100);
-    color: var(--primary);
+.table th {
+    background-color: var(--bg-subtle);
+    color: var(--text-main);
     font-weight: 750;
     text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.5px;
-}
-.vote-head-table tr:hover {
-    background-color: var(--gray-100);
 }
 .billing-badge {
     padding: 4px 8px;
@@ -181,6 +169,9 @@
 .billing-badge-yearly { background-color: #e2e8f0; color: #475569; }
 .billing-badge-termly { background-color: #dbeafe; color: #1e40af; }
 .billing-badge-lifetime { background-color: #d1fae5; color: #065f46; }
+.table-row-hover:hover {
+    background-color: rgba(30, 80, 200, 0.02) !important;
+}
 {% endblock %}
 
 {% block content %}
@@ -212,24 +203,24 @@
 
 <div class="two-col-layout">
     <!-- Left Column: Vote Heads Table -->
-    <div class="bottom-table-card" style="margin-bottom: 0;">
-        <h3 class="setup-card-title" style="border: none; margin-bottom: 0;">Vote Heads</h3>
-        <div style="overflow-x: auto;">
-            <table class="vote-head-table">
+    <div class="content-card" style="margin-bottom: 0;">
+        <h3 class="setup-card-title" style="border: none; margin-bottom: 0; padding-bottom: 15px;">Vote Heads</h3>
+        <div class="table-container" style="overflow-x: auto; border-radius: var(--radius-md); border: 1.5px solid var(--border-color);">
+            <table class="table">
                 <thead>
                     <tr>
-                        <th>Vote Head</th>
-                        <th style="text-align: right;">Amount</th>
-                        <th>Year</th>
-                        <th>Billing</th>
-                        <th>Terms</th>
-                        <th>Classes</th>
-                        <th>Actions</th>
+                        <th style="font-weight: 700;">Vote Head</th>
+                        <th style="text-align: right; font-weight: 700;">Amount</th>
+                        <th style="font-weight: 700;">Year</th>
+                        <th style="font-weight: 700;">Billing</th>
+                        <th style="font-weight: 700;">Terms</th>
+                        <th style="font-weight: 700;">Classes</th>
+                        <th style="font-weight: 700; text-align: center;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for fs in fee_structures %}
-                        <tr>
+                        <tr class="table-row-hover" style="border-bottom: 1.5px solid var(--border-color); transition: background-color 0.2s;">
                             <td style="font-weight: 700; color: var(--primary);">{{ fs.vote_head }}</td>
                             <td style="text-align: right; font-weight: 700; color: var(--primary);">TZS {{ fs.amount }}</td>
                             <td>{{ fs.year }}</td>
@@ -248,7 +239,7 @@
                                 {% endif %}
                             </td>
                             <td style="font-weight: 600; color: var(--accent);">{{ fs.class_obj.name }}</td>
-                            <td>
+                            <td style="text-align: center;">
                                 <button onclick="prefillForm('{{ fs.vote_head }}', '{{ fs.amount }}', '{{ fs.year }}', '{{ fs.billing_mode }}', '{{ fs.due_term|default:'' }}', '{{ fs.is_one_time|yesno:'true,false' }}', '{{ fs.class_obj.id }}')" style="background: none; border: none; color: #0d6efd; font-weight: 700; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
                                     <i class="fa-solid fa-edit"></i> Edit
                                 </button>
@@ -256,7 +247,7 @@
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="7" style="text-align: center; color: var(--gray-600); padding: 30px; font-weight: 600;">No vote heads found for this school.</td>
+                            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px; font-weight: 600;">No vote heads found for this school.</td>
                         </tr>
                     {% endfor %}
                 </tbody>

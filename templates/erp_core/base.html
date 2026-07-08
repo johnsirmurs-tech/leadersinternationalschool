@@ -1155,11 +1155,11 @@
                             href="{% url 'journal_entries_list' %}">Journal Entries</a></li>
                     <li class="{% if request.resolver_match.url_name == 'bills_list' %}active{% endif %}"><a
                             href="{% url 'bills_list' %}">Accounts Payable</a></li>
-                    <li class="{% if request.resolver_match.url_name == 'fixed_assets_list' %}active{% endif %}"><a
-                            href="{% url 'fixed_assets_list' %}">Fixed Assets</a></li>
                     <li
-                        class="{% if request.resolver_match.url_name == 'bank_reconciliation_list' or request.resolver_match.url_name == 'bank_reconciliation_detail' %}active{% endif %}">
-                        <a href="{% url 'bank_reconciliation_list' %}">Bank Recon</a></li>
+                        class="{% if request.resolver_match.url_name == 'fixed_assets_list' or request.resolver_match.url_name == 'run_depreciation' %}active{% endif %}">
+                        <a href="{% url 'fixed_assets_list' %}">Fixed Assets</a></li>
+                    <li class="{% if request.resolver_match.url_name == 'bank_reconciliation_list' or request.resolver_match.url_name == 'bank_reconciliation_detail' or request.resolver_match.url_name == 'bank_reconciliation_match' %}active{% endif %}"><a
+                            href="{% url 'bank_reconciliation_list' %}">Bank Recon</a></li>
                     <li class="{% if request.resolver_match.url_name == 'financial_reports' %}active{% endif %}"><a
                             href="{% url 'financial_reports' %}">Accounting Reports</a></li>
                     <li class="{% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}"><a
@@ -1331,11 +1331,11 @@
                             href="{% url 'journal_entries_list' %}">Journal Entries</a></li>
                     <li class="{% if request.resolver_match.url_name == 'bills_list' %}active{% endif %}"><a
                             href="{% url 'bills_list' %}">Accounts Payable</a></li>
-                    <li class="{% if request.resolver_match.url_name == 'fixed_assets_list' %}active{% endif %}"><a
-                            href="{% url 'fixed_assets_list' %}">Fixed Assets</a></li>
                     <li
-                        class="{% if request.resolver_match.url_name == 'bank_reconciliation_list' or request.resolver_match.url_name == 'bank_reconciliation_detail' %}active{% endif %}">
-                        <a href="{% url 'bank_reconciliation_list' %}">Bank Recon</a></li>
+                        class="{% if request.resolver_match.url_name == 'fixed_assets_list' or request.resolver_match.url_name == 'run_depreciation' %}active{% endif %}">
+                        <a href="{% url 'fixed_assets_list' %}">Fixed Assets</a></li>
+                    <li class="{% if request.resolver_match.url_name == 'bank_reconciliation_list' or request.resolver_match.url_name == 'bank_reconciliation_detail' or request.resolver_match.url_name == 'bank_reconciliation_match' %}active{% endif %}"><a
+                            href="{% url 'bank_reconciliation_list' %}">Bank Recon</a></li>
                     <li class="{% if request.resolver_match.url_name == 'financial_reports' %}active{% endif %}"><a
                             href="{% url 'financial_reports' %}">Accounting Reports</a></li>
                     <li class="{% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}"><a
